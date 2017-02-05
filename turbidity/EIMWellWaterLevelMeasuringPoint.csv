@@ -1,0 +1,129 @@
+"Location_ID","Location_Name","Well_Tag_ID","Well_Water_Level_Measuring_Point_or_TOC_ID","Well_Water_Level_Measuring_Point_or_TOC_Description","Well_Water_Level_Measuring_Point_or_TOC_Elevation","Well_Water_Level_Measuring_Point_or_TOC_Elevation_Units","Well_Water_Level_Measuring_Point_or_TOC_Datum","Well_Water_Level_Measuring_Point_or_TOC_Accuracy","Well_Water_Level_Measuring_Point_or_TOC_Collection_Method","Well_Water_Level_Measuring_Point_or_TOC_Height","Well_Water_Level_Measuring_Point_or_TOC_Height_Units","Well_Water_Level_Measuring_Point_or_TOC_Start_Date","Well_Water_Level_Measuring_Point_or_TOC_Elevation_NAVD88_FT","Record_Created_On","Well_Water_Level_Measuring_Point_or_TOC_Accuracy_NAVD88_FT"
+"03005 MW-13D","HANSVILLE LF MW-13D","","TOC1","Top of casing at mark on connection cap",260.4,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,260.4,,1
+"03005 MW-5","HANSVILLE LF MW-5","","TOC1","Top of casing at mark on connection cap",366.9,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,366.9,,1
+"AO#DE6815-MW-52","AO#DE6815-MW-52","","MP1","Top of well casing",17.66,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,21.18,,8
+"03005 MW-14","HANSVILLE LF MW-14","","TOC1","Top of casing at mark on connection cap",341.1,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,341.1,,1
+"AO#DE6815-MW-54","AO#DE6815-MW-54","","MP1","Top of well casing",10.9,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,14.43,,8
+"03005 MW-6","HANSVILLE LF MW-6","","TOC1","Top of casing at mark on connection cap",332.7,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,332.7,,1
+"1490 MW-10","PURDY LF MW-10","","TOC1","Top of casing at mark on PVC well casing.",338.2,"FT","NAVD88","+/- 3 ft (1 m)","GPS consumer unit or unknown (code phase)",,"",,338.2,8/2/2016 4:32:17 PM,3
+"03005 MW-12I","HANSVILLE LF MW-12I","","TOC1","Top of casing at mark on connection cap",248.1,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,248.1,,1
+"1490 MW-4","PURDY LF MW-4","","TOC1","Top of casing at mark on PVC well casing.",225.5,"FT","NAVD88","+/- 3 ft (1 m)","GPS consumer unit or unknown (code phase)",,"",,225.5,8/2/2016 4:32:17 PM,3
+"AO#DE6815-MW-58","AO#DE6815-MW-58","","MP1","Top of well casing",10,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,13.53,,8
+"1490 MW-7","PURDY LF MW-7","","TOC1","Top of casing at mark on PVC well casing.",313.5,"FT","NAVD88","+/- 10 ft (3 m)","GPS consumer unit or unknown (code phase)",,"",,313.5,8/2/2016 4:32:17 PM,4
+"1490 MW-8","PURDY LF MW-8","","TOC1","Top of casing at mark on PVC well casing.",223,"FT","NAVD88","+/- 3 ft (1 m)","GPS consumer unit or unknown (code phase)",,"",,223,8/2/2016 4:32:17 PM,3
+"AO#DE6815-PZ-4","AO#DE6815-PZ-4","","MP1","Top of well casing",8.8,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,12.33,,8
+"AO#DE6815-MW-23","AO#DE6815-MW-23","","MP1","Top of well casing",12.9,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,16.43,,8
+"AO#DE6815-PZ-9","AO#DE6815-PZ-9","","MP1","Top of well casing",9.16,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,12.69,,8
+"AO#DE6815-MW-53","AO#DE6815-MW-53","","MP1","Top of well casing",9.4,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,12.93,,8
+"AO#DE6815-MW-29","AO#DE6815-MW-29","","MP1","Top of well casing",11.38,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,14.91,,8
+"AO#DE6815-MW-56","AO#DE6815-MW-56","","MP1","Top of well casing",10.6,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,14.13,,8
+"AO#DE6815-MW-51","AO#DE6815-MW-51","","MP1","Top of well casing",16.92,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,20.45,,8
+"AO#DE6815-MW-57","AO#DE6815-MW-57","","MP1","Top of well casing",10,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,13.53,,8
+"AO#DE6815-MW-59","AO#DE6815-MW-59","","MP1","Top of well casing",11.5,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,15.03,,8
+"AO#DE6815-PZ-10","AO#DE6815-PZ-10","","MP1","Top of well casing",10.26,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,13.79,,8
+"AO#DE6815-PZ-5","AO#DE6815-PZ-5","","MP1","Top of well casing",9.76,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,13.28,,8
+"AO#DE6815-PZ-2","AO#DE6815-PZ-2","","MP1","Top of well casing",10.7,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,14.23,,8
+"AO#DE6815-PZ-6","AO#DE6815-PZ-6","","MP1","Top of well casing",15.23,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,18.75,,8
+"AO#DE6815-PZ-3","AO#DE6815-PZ-3","","MP1","Top of well casing",10.58,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,14.11,,8
+"AO#DE6815-PZ-7","AO#DE6815-PZ-7","","MP1","Top of well casing",20.41,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,23.93,,8
+"AODE8462-MW-15R","AODE8462 MW-15R","","TOC1","Top of Casing,  north side",184.18,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,184.18,,1
+"AODE8462-MW-20","AODE8462 MW-20","","TOC1","Top of Casing,  north side",201.93,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,201.93,,1
+"AODE8462-MW-19C","AODE8462 MW-19C","","TOC1","Top of Casing,  north side",200.48,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,200.48,,1
+"AODE8462-MW-24","AODE8462 MW-24","","TOC1","Top of Casing,  north side",211.77,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,211.77,,1
+"AODE8462-MW-29A","AODE8462 MW-29A","","TOC1","Top of Casing,  north side",163.73,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,163.73,,1
+"AODE8462-MW-32","AODE8462 MW-32","","TOC1","Top of Casing,  north side",155.88,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,155.88,,1
+"AODE8462-MW-33C","AODE8462 MW-33C","","TOC1","Top of Casing,  north side",151.11,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,151.11,,1
+"AODE8462-MW-35","AODE8462 MW-35","","TOC1","Top of Casing,  north side",306.21,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,306.21,,1
+"AODE8462-MW-13B","AODE8462 MW-13B","","TOC1","Top of Casing,  north side",292.26,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,292.26,,1
+"AODE8462-MW-16","AODE8462 MW-16","","TOC1","Top of Casing,  north side",243.53,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,243.53,,1
+"AODE8462-MW-2B1","AODE8462 MW-2B1","","TOC1","Top of Casing,  north side",176.46,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,176.46,,1
+"AODE8462-MW-34A","AODE8462 MW-34A","","TOC1","Top of Casing,  north side",201.47,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,201.47,,1
+"AODE8462-MW-34C","AODE8462 MW-34C","","TOC1","Top of Casing,  north side",2023.41,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,2023.41,,1
+"AODE8462-MW-36a","AODE8462 MW-36a","","TOC1","Top of Casing,  north side",196.2,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,196.2,,1
+"AODE8462-MW-42","AODE8462 MW-42","","TOC1","Top of Casing,  north side",190.95,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,190.95,,1
+"03005 MW-7","HANSVILLE LF MW-7","","TOC1","Top of casing at mark on connection cap",346,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,346,,1
+"1490 MW-5","PURDY LF MW-5","","TOC1","Top of casing at mark on PVC well casing.",325.3,"FT","NAVD88","+/- 3 ft (1 m)","GPS consumer unit or unknown (code phase)",,"",,325.3,8/2/2016 4:32:17 PM,3
+"AO#DE6815-MW-55","AO#DE6815-MW-55","","MP1","Top of well casing",10,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,13.53,,8
+"G1100201-MW-1","CROWNHILL MW-1","","TOC1","Top of casing",135.83,"ft","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,135.83,8/4/2015 10:52:28 AM,1
+"G1100201-MW-11","CROWNHILL MW-11","","TOC1","Top of casing",130.28,"ft","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,130.28,8/4/2015 10:52:35 AM,1
+"G1100201-MW-12","CROWNHILL MW-12","","TOC1","Top of casing",133.87,"ft","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,133.87,8/4/2015 10:52:35 AM,1
+"G1100201-MW-14","CROWNHILL MW-14","","TOC1","Top of casing",133.58,"ft","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,133.58,8/4/2015 10:52:37 AM,1
+"AO#DE6815-PZ-11","AO#DE6815-PZ-11","","MP1","Top of well casing",27.83,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,31.35,,8
+"AODE8462-MW-4","AODE8462 MW-4","","TOC1","Top of Casing,  north side",179.3,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,179.3,,1
+"AODE8462-MW-43","AODE8462 MW-43","","TOC1","Top of Casing,  north side",189.94,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,189.94,,1
+"G1100201-MW-2","CROWNHILL MW-2","","TOC1","Top of casing",138.47,"ft","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,138.47,8/4/2015 10:52:29 AM,1
+"G1100201-MW-4","CROWNHILL MW-4","","TOC1","Top of casing",138.35,"ft","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,138.35,8/4/2015 10:52:30 AM,1
+"AO#DE6815-PZ-12","AO#DE6815-PZ-12","","MP1","Top of well casing",30.17,"FT","NGVD29","+/- 0.1 ft (0.03 m)","GPS consumer unit or unknown (code phase)",,"",,33.69,,8
+"AODE8462-MW-39","AODE8462 MW-39","","TOC1","Top of Casing,  north side",193.44,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,193.44,,1
+"AODE8462-MW-9","AODE8462 MW-9","","TOC1","Top of Casing,  north side",163.86,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,163.86,,1
+"G1100201-MW-15","CROWNHILL MW-15","","TOC1","Top of casing",133.37,"ft","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,133.37,8/4/2015 10:52:38 AM,1
+"G1100201-MW-6","CROWNHILL MW-6","","TOC1","Top of casing",133.87,"ft","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,133.87,8/4/2015 10:52:31 AM,1
+"AODE8462-MW-13A","AODE8462 MW-13A","","TOC1","Top of Casing,  north side",292.46,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,292.46,,1
+"G1100201-MW-7","CROWNHILL MW-7","","TOC1","Top of casing",133.86,"ft","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,133.86,8/4/2015 10:52:32 AM,1
+"HANSVLGS_GS-2","Hansville General Store GS-2","","MP1","Top of Casing",,"","","","",-0.18,"FT",3/12/2010 12:00:00 AM,,,
+"HANSVLGS_GS-4","Hansville General Store GS-4","","MP1","Top of Casing",,"","","","",-0.24,"FT",3/12/2010 12:00:00 AM,,,
+"HANSVLGS_GS-5","Hansville General Store GS-5","","MP1","Top of Casing",11.34,"FT","NAVD88","","Unknown",,"",3/12/2010 12:00:00 AM,11.34,,
+"AODE8462-MW-23A","AODE8462 MW-23A","","TOC1","Top of Casing,  north side",185.8,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,185.8,,1
+"NW1436~MW-4","NW1436~9-5277~MW-4","","TOC1","TOC=Top of casing",6,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",1/1/1900 12:00:00 AM,,,
+"NW1436~MW-5","NW1436~9-5277~MW-5","","TOC1","TOC=Top of casing",6,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",7/25/1989 12:00:00 AM,,,
+"AODE8462-MW-33A","AODE8462 MW-33A","","TOC1","Top of Casing,  north side",151.2,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,151.2,,1
+"G1100201-MW-10","CROWNHILL MW-10","","TOC1","Top of casing",132.33,"ft","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,132.33,8/4/2015 10:52:34 AM,1
+"NW1436~RP-MW-1","NW1436~9-5277~RP-MW-1","","TOC1","TOC=Top of casing",6,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",1/1/1900 12:00:00 AM,,,
+"NW1453~MW-1","NW1453~9-6142~MW-1","","TOC1","TOC=Top of casing",169,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",7/21/2000 12:00:00 AM,,,
+"G1100201-MW-16","CROWNHILL MW-16","","TOC1","Top of casing",133.27,"ft","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,133.27,8/4/2015 10:52:38 AM,1
+"HANSVLGS_GS-3","Hansville General Store GS-3","","MP1","Top of Casing",,"","","","",-0.19,"FT",3/12/2010 12:00:00 AM,,,
+"NW1436~MW-2","NW1436~9-5277~MW-2","","TOC1","TOC=Top of casing",6,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",1/1/1900 12:00:00 AM,,,
+"G1100201-MW-5","CROWNHILL MW-5","","TOC1","Top of casing",136.95,"ft","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,136.95,8/4/2015 10:52:30 AM,1
+"NW1454~MW-1","NW1454~9-4252~MW-1","","TOC1","TOC=Top of casing",116,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",7/31/1995 12:00:00 AM,,,
+"HANSVLGS_CL-1","Hansville General Store CL-1","","MP1","Top of Casing",11.21,"FT","NAVD88","","Unknown",,"",3/12/2010 12:00:00 AM,11.21,,
+"NW1453~MW-3","NW1453~9-6142~MW-3","","TOC1","TOC=Top of casing",169,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",7/21/2000 12:00:00 AM,,,
+"NW1454~MW-8","NW1454~9-4252~MW-8","","TOC1","TOC=Top of casing",116,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",8/15/1995 12:00:00 AM,,,
+"G1100201-MW-9","CROWNHILL MW-9","","TOC1","Top of casing",134.39,"ft","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,134.39,8/4/2015 10:52:33 AM,1
+"NW1436~MW-1","NW1436~9-5277~MW-1","","TOC1","TOC=Top of casing",6,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",1/1/1900 12:00:00 AM,,,
+"NW1436~MW-3","NW1436~9-5277~MW-3","","TOC1","TOC=Top of casing",6,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",1/1/1900 12:00:00 AM,,,
+"NW1453~MW-6","NW1453~9-6142~MW-6","","TOC1","TOC=Top of casing",169,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",7/21/2000 12:00:00 AM,,,
+"NW1454~MW-3","NW1454~9-4252~MW-3","","TOC1","TOC=Top of casing",116,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",8/1/1995 12:00:00 AM,,,
+"NW1454~N-12","NW1454~9-4252~N-12","","TOC1","TOC=Top of casing",116,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",5/9/1997 12:00:00 AM,,,
+"PALF351-MW5","PORT ANGELES 351-COMPLIANT LANDFILL MW5","","TOC1","Top of casing",204.88,"FT","NAVD88","+/- 1 ft (0.3 m)","Survey - conventional",,"",,204.88,1/25/2016 4:39:24 PM,2
+"PALF351-MW6","PORT ANGELES 351-COMPLIANT LANDFILL MW6","","TOC1","Top of casing",155.02,"FT","NAVD88","+/- 1 ft (0.3 m)","Survey - conventional",,"",,155.02,1/25/2016 4:39:25 PM,2
+"PALF351-MW7","PORT ANGELES 351-COMPLIANT LANDFILL MW7","","TOC1","Top of casing",153.15,"FT","NAVD88","+/- 1 ft (0.3 m)","Survey - conventional",,"",,153.15,1/25/2016 4:39:25 PM,2
+"SW0080_MW-A10","SW0080_MW-A10","","TOC1","Top of casing, measured from north side",,"","","+/- 3 ft (1 m)","GPS consumer unit or unknown (code phase)",-0.5,"FT",,,8/5/2014 12:20:26 PM,3
+"SW0080_MW-A2","SW0080 MW-A2","","TOC1","Top of casing, measured from north side",,"","","+/- 3 ft (1 m)","GPS consumer unit or unknown (code phase)",-0.5,"FT",,,8/5/2014 12:02:32 PM,3
+"VCSW0664~MW-1","SW0664~9-2553~MW-1","","TOC1","TOC=Top of casing",217.7,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",7/17/1991 12:00:00 AM,,,
+"NW1454~MW-4","NW1454~9-4252~MW-4","","TOC1","TOC=Top of casing",116,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",8/14/1995 12:00:00 AM,,,
+"VCSW0664~MW-11","SW0664~9-2553~MW-11","","TOC1","TOC=Top of casing",219.3,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",3/28/2007 12:00:00 AM,,,
+"VCSW0664~MW-3","SW0664~9-2553~MW-3","","TOC1","TOC=Top of casing",218.7,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",7/18/1991 12:00:00 AM,,,
+"VCSW0664~MW-5","SW0664~9-2553~MW-5","","TOC1","TOC=Top of casing",218.4,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",7/18/1991 12:00:00 AM,,,
+"SW0080_MW-A7","SW0080_MW-A7","","TOC1","Top of Casing, measured from the north side",,"","","+/- 3 ft (1 m)","GPS consumer unit or unknown (code phase)",-0.5,"FT",,,8/5/2014 12:16:41 PM,3
+"NW1453~MW-5","NW1453~9-6142~MW-5","","TOC1","TOC=Top of casing",169,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",7/21/2000 12:00:00 AM,,,
+"NW1453~MW-8","NW1453~9-6142~MW-8","","TOC1","TOC=Top of casing",169,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",7/13/2007 12:00:00 AM,,,
+"VCSW0664~MW-8","SW0664~9-2553~MW-8","","TOC1","TOC=Top of casing",218.2,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",11/10/2005 12:00:00 AM,,,
+"PALF351-MW8","PORT ANGELES 351-COMPLIANT LANDFILL MW8","","TOC1","Top of casing",158.26,"FT","NAVD88","+/- 1 ft (0.3 m)","Survey - conventional",,"",,158.26,1/25/2016 4:39:25 PM,2
+"VCSW0664~MW-7","SW0664~9-2553~MW-7","","TOC1","TOC=Top of casing",218,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",11/10/2005 12:00:00 AM,,,
+"VCSW0664~MW-9","SW0664~9-2553~MW-9","","TOC1","TOC=Top of casing",212.9,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",3/28/2007 12:00:00 AM,,,
+"VCSW1470-MW-1","VCSW1470-MW-1","","TOC1","Top of casing",57.28,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,57.28,7/29/2015 10:29:06 AM,1
+"VCSW1470-MW-102","VCSW1470-MW-102","","TOC1","Top of casing",46.63,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,46.63,7/29/2015 10:29:15 AM,1
+"VCSW0664~MW-6","SW0664~9-2553~MW-6","","TOC1","TOC=Top of casing",213.5,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",2/13/2001 12:00:00 AM,,,
+"VCSW1470-MW-103","VCSW1470-MW-103","","TOC1","Top of casing",47.68,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,47.68,7/29/2015 10:29:15 AM,1
+"VCSW1470-MW-104","VCSW1470-MW-104","","TOC1","Top of casing",48.34,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,48.34,7/29/2015 10:29:16 AM,1
+"VCSW1470-MW-105","VCSW1470-MW-105","","TOC1","Top of Casing",46.98,"FT","NAVD88","+/- 10 ft (3 m)","GPS consumer unit or unknown (code phase)",,"",,46.98,12/1/2016 3:45:38 PM,4
+"VCSW1470-MW-106","VCSW1470-MW-106","","TOC1","Top of Casing",47.13,"FT","NAVD88","+/- 10 ft (3 m)","GPS consumer unit or unknown (code phase)",,"",,47.13,12/1/2016 3:45:38 PM,4
+"VCSW1470-MW-108","VCSW1470-MW-108","","TOC1","Top of Casing",48.31,"FT","NAVD88","+/- 10 ft (3 m)","GPS consumer unit or unknown (code phase)",,"",,48.31,12/1/2016 3:45:38 PM,4
+"VCSW1470-MW-13","VCSW1470-MW-13","","TOC1","Top of casing",52.15,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,52.15,7/29/2015 10:29:10 AM,1
+"VCSW1470-MW-16","VCSW1470-MW-16","","TOC1","Top of casing",48.34,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,48.34,7/29/2015 10:29:11 AM,1
+"VCSW1470-MW-107","VCSW1470-MW-107","","TOC1","Top of Casing",46.82,"FT","NAVD88","+/- 10 ft (3 m)","GPS consumer unit or unknown (code phase)",,"",,46.82,12/1/2016 3:45:38 PM,4
+"VCSW1470-MW-20","VCSW1470-MW-20","","TOC1","Top of casing",53.09,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,53.09,7/29/2015 10:29:13 AM,1
+"VCSW1470-MW-24","VCSW1470-MW-24","","TOC1","Top of casing",51.26,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,51.26,7/29/2015 10:29:14 AM,1
+"VCSW1470-MW-18","VCSW1470-MW-18","","TOC1","Top of casing",46.34,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,46.34,7/29/2015 10:29:12 AM,1
+"VCSW1470-MW-7","VCSW1470-MW-7","","TOC1","Top of casing",55.14,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,55.14,7/29/2015 10:29:08 AM,1
+"VCSW1470-MW-6","VCSW1470-MW-6","","TOC1","Top of casing",60.4,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,60.4,7/29/2015 10:29:07 AM,1
+"VCSW0664~MW-12","SW0664~9-2553~MW-12","","TOC1","TOC=Top of casing",218.1,"FT","WGS84","Unknown","GPS consumer unit or unknown (code phase)",,"",3/28/2007 12:00:00 AM,,,
+"VCSW1470-MW-8","VCSW1470-MW-8","","TOC1","Top of casing",54.82,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,54.82,7/29/2015 10:29:08 AM,1
+"VCSW1470-MW-19","VCSW1470-MW-19","","TOC1","Top of casing",52.91,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,52.91,7/29/2015 10:29:12 AM,1
+"VCSW1470-MW-2","VCSW1470-MW-2","","TOC1","Top of casing",54.88,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,54.88,7/29/2015 10:29:06 AM,1
+"VCSW1470-MW-4","VCSW1470-MW-4","","TOC1","Top of casing",52.03,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,52.03,7/29/2015 10:29:07 AM,1
+"VCSW1470-MW-101","VCSW1470-MW-101","","TOC1","Top of casing",48.89,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,48.89,7/29/2015 10:29:15 AM,1
+"VCSW1470-MW-12","VCSW1470-MW-12","","TOC1","Top of casing",52.39,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,52.39,7/29/2015 10:29:10 AM,1
+"VCSW1470-MW-14","VCSW1470-MW-14","","TOC1","Top of casing",49.56,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,49.56,7/29/2015 10:29:10 AM,1
+"VCSW1470-MW-21","VCSW1470-MW-21","","TOC1","Top of casing",49,"FT","NAVD88","+/- 1 ft (0.3 m)","Paper map interpolation",,"",,49,7/29/2015 10:29:13 AM,2
+"VCSW1470-MW-3","VCSW1470-MW-3","","TOC1","Top of casing",52.54,"FT","NAVD88","+/- 0.1 ft (0.03 m)","Survey - conventional",,"",,52.54,7/29/2015 10:29:07 AM,1
