@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<!-- <svg width="960" height="1100"></svg> -->
+<style>
+    #map {
+      width: 960px;
+      height: 700px;
+    }
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+ <div id="map"></div>
+<script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.3.0"></script>
+<script>
+
+var map = new L.Map("map")
+	.setView([47.564, -122.996], 9);
+
+var base =  L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+// var geojsonFeature = {
+//     "type": "Feature",
+//     "properties": {
+//         "name": "Coors Field",
+//     },
+//     "geometry": {
+//         "type": "Point",
+//         "coordinates": [-123.1264259, 47.33820765]
+//     }
+// };
+
+//L.geoJSON(geojsonFeature).addTo(map);
+
+
+//addLocs('locs.csv');
+
+map.addLayer(base);
+
+var terrain = new L.StamenTileLayer('terrain').addTo(map);
+
+map.addLayer(terrain);
+
+var myLayer = L.geoJSON().addTo(map);
+
+function onEachFeature(feature, layer) {
+    // does this feature have a property named popupContent?
+    if (feature.properties && feature.properties.projectName) {
+        layer.bindPopup(feature.properties.projectName);
+    }
+};
+
+var geojsonMarkerOptions = {
+    radius: 8,
+    fillColor: "#ff7800",
+    color: "#000",
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.8
+};
+
+
+function plotProjects(filename){
+    var promise = $.getJSON(filename);
+    return promise.then(function(data){
+    
+        // function calcPropRadius(attributeValue) {
+        //     var scaleFactor = 100,
+        //         area = attributeValue * scaleFactor;
+        //     return Math.sqrt(area/Math.PI);
+        // }, // end calcPropRadius
+
+            var projects = L.geoJson(data, {
+            
+            onEachFeature: onEachFeature,
+            
+            pointToLayer: function (feature, latlng) {
+                return L.circleMarker(latlng, geojsonMarkerOptions);
+            }
+        }).addTo(map);
+        // var projects = myLayer.addData(data, {
+        //     onEachFeature: onEachFeature
+        // });
+        map.addLayer(projects);
+        return projects
+    });
+};
+
+
+var projects = plotProjects('merged.json')
+
+var baseMaps = {
+    "base": base,
+    "terrain": terrain
+};
+
+// var overlayMaps = {
+//     "projects": projects,
+// };
+
+// initialize up the L.control.layers
+var layerControl = L.control.layers(baseMaps,projects,{collapsed:false}).addTo(map);
+
+
+
+//console.log(locs)
+
+//var jkg = new L.geoJson(locs).addTo(map);
+
+//map.addLayer(jkg);
+
+//specify the basemap and overlays to put in the layers control
+
+
+
+
+</script>

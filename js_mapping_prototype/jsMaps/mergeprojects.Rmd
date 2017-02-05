@@ -1,0 +1,43 @@
+---
+title: "dataprep"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+hc_df <- read.csv('locs.csv', header = TRUE)
+f_df <- read.csv('fund.csv', header = TRUE)
+mdf <- merge(x = hc_df, y = f_df, by = "ProjectNumber", all.x = TRUE)
+# write.csv(mdf, file = "merge.csv",row.names=FALSE,quotes=FALSE)
+head(mdf)
+```
+
+```{r}
+# for (row in mdf){
+#   if row.ProjectName.x == row.ProjectName.y
+#   
+# }
+# 
+# m <- "intialize" # initialize, sometimes better as just `list()`
+# for(i in 1:nrow(mdf)){
+#   if(mdf[i,2]=='No'){
+#     # paste into position i of vector m
+#     m[i] <- paste0("ABC", g[i,1], "DEF", g[i,2], "GHI", g[i,3],"\n") 
+#   } else if(g[i,2]=='Yes'){
+#     # paste into position i of vector m
+#     m[i] <- paste0("ABC", g[i,1], "DEF", g[i,2], "GHI", g[i,3],"\n")
+#   } else {
+#   NULL
+#   }
+# }
+# m
+```

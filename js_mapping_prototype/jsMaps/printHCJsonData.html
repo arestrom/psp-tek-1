@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+
+<style>
+
+pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+
+var feat = addLocs('merged.csv');
+
+function loadcsv(csvfile){
+    var promise = $.get(csvfile);
+    return promise.then(csvtojson);
+};
+
+function csvtojson(csv){
+    var lines = csv.split("\n");
+    var projectlist = [];
+    var headers = lines[0].split(",");
+    //headers need to remove '/r'
+    for(var i = 0; i < headers.length; ++i)
+        headers[i] = headers[i].replace(/(\r\n|\n|\r)/gm,"")
+    console.log(headers);
+    for (var i = 1; i < lines.length; i++){
+        var project = {};
+        var thisLine = lines[i].split(','); //split key value pairs on comma
+        
+        for(var j=0;j<thisLine.length;j++){
+          project[headers[j]] = thisLine[j];
+        }
+        //console.log(value);
+        //project.ProjectLongitude
+        JSON.stringify(project)
+        projectlist.push(project);
+        //console.log();
+    };
+    //JSON.stringify(projectlist)
+    //console.log(projectlist);
+    var features_array = [];
+    //var data = json.features;
+    projectlist.forEach(function(item){
+
+        var thisproject = {
+            type: "Feature",
+            properties: {
+                projectID: item.ProjectNumber,
+                projectName: item.ProjectName,
+                year: item.ProjectYear,
+                cost: parseFloat(item.ProjectTotalAmount)
+                },
+            geometry: {
+                type: "Point",
+                coordinates: [parseFloat(item.ProjectLongitude), parseFloat(item.ProjectLatitude)]
+                },
+            };
+        
+        features_array.push(thisproject);
+    });
+    console.log(features_array)
+    return features_array;
+};
+
+function addLocs(locfile){
+
+   var promiseA = loadcsv(locfile);
+   //var promiseB = loadcsv(fundfile);
+   
+    $.when(promiseA).then(function(features_array) {
+        console.log(features_array[0].geometry.coordinates)
+
+        var FeatCol = {};
+            FeatCol.type = "FeatureCollection",
+            FeatCol.features = features_array;
+        console.log(FeatCol)
+		
+		function output(inp) {
+		    document.body.appendChild(document.createElement('pre')).innerHTML = inp;
+		}
+
+		var obj = FeatCol;
+		var str = JSON.stringify(obj, undefined, 4);
+
+		output(str);
+		
+        return FeatCol;
+    });
+};
+</script>
