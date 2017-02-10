@@ -88,3 +88,18 @@ turb_wria <- turb %>%
   left_join(locs, by = "Location_ID")
 head(turb_wria)
 View(turb_wria)
+
+
+turb_nums <- turb_wria %>% 
+  mutate(WRIA_ID = ifelse(Watershed_WRIA == "Kitsap", 15, 
+                     ifelse(Watershed_WRIA == "Kennedy-Goldsborough", 14,
+                            ifelse(Watershed_WRIA == "Skokomish-Dosewallips", 16,
+                                   ifelse(Watershed_WRIA == "Quilcence-Snow", 17,
+                                          ifelse(Watershed_WRIA == "Elwah-Dungeness", 18,
+                                                 NA))))))
+                            
+# ifelse(<condition>, <yes>, 
+#        ifelse(<condition>, <yes>, 
+#               ifelse(<condition>, <yes>, <no>)
+#        )
+# )
