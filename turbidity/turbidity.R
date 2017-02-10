@@ -75,3 +75,16 @@ turb %>%
 #   Result_Value <dbl>, Result_Value_Units <fctr>,
 # Calculated_Latitude_Decimal_Degrees_NAD83HARN <dbl>,
 #   Calculated_Longitude_Decimal_Degrees_NAD83HARN <dbl>,
+
+# load location data file
+locations <- read.csv('EIMLocationDetails.csv', header = TRUE)
+head(locations)
+
+# select only ID and WRIA
+locs <- tbl_df(locations) %>%
+  select(Location_ID, Watershed_WRIA)
+
+turb_wria <- turb %>%
+  left_join(locs, by = "Location_ID")
+head(turb_wria)
+View(turb_wria)
