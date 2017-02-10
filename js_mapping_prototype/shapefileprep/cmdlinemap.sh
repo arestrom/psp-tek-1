@@ -16,6 +16,10 @@ unzip -o cb_2014_06_tract_500k.zip
 
 # A quick way to check what’s in a shapefile is to visit mapshaper.org and drag the shapefile into your browser.
 
+# instructions to install npm via brew in MacOSX: https://changelog.com/posts/install-node-js-with-homebrew-on-os-x
+
+# instructions to install npm in Windows: http://blog.teamtreehouse.com/install-node-js-npm-windows
+
 # it’s possible to view shapefiles directly in your browser. But binary shapefiles can be difficult to work with, so we’ll convert to GeoJSON: a web-friendly, human-readable format. My shapefile parser has a command-line interface, shp2json, for this purpose.
 npm install -g shapefile
 
