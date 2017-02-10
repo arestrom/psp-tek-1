@@ -83,7 +83,7 @@ head(locations)
 # select only ID and WRIA
 locs <- tbl_df(locations) %>%
   select(Location_ID, Watershed_WRIA)
-
+# unique(locs$Watershed_WRIA)
 turb_wria <- turb %>%
   left_join(locs, by = "Location_ID")
 head(turb_wria)
@@ -103,3 +103,15 @@ turb_nums <- turb_wria %>%
 #               ifelse(<condition>, <yes>, <no>)
 #        )
 # )
+
+# plot mean turbidity by Watershed_WRIA
+turb_nums %>%
+  group_by(Watershed_WRIA) %>%
+  summarise(m.turb = mean(turbidity_NTU)) %>%
+  ggplot(aes(x = reorder(Watershed_WRIA, m.turb), y = m.turb)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+# sm <- turb %>%
+#   filter(Watershed_WRIA == "Skokomish-Dosewallips")
+# dim(sm)
