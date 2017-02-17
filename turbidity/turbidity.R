@@ -2,12 +2,14 @@ library(tidyverse)
 library(ggmap)
 library(leaflet)
 
-library(sp)  # classes for spatial data
-library(raster)  # grids, rasters
-library(rasterVis)  # raster visualisation
-library(maptools)
-library(rgeos)
-library(googleVis)
+# library(sp)  # classes for spatial data
+# library(raster)  # grids, rasters
+# library(rasterVis)  # raster visualisation
+# library(maptools)
+# library(rgeos)
+# library(googleVis)
+
+
 # load the turbidity data 
 turbidity <- read.csv('EIMResults.csv', header = TRUE)
 
@@ -35,40 +37,7 @@ dim(turb)
 distinct(turb, Result_Parameter_Name)
 turb
 
-# plot a histogram of turbidity values
-turb %>%
-  filter(0 < turbidity_NTU & turbidity_NTU < 100) %>%
-  ggplot(aes(turbidity_NTU)) +
-    geom_histogram(binwidth = 0.5)
-
-# plot mean turbidity by study 
-turb %>%
-  group_by(Study_ID) %>%
-  summarise(m.turb = mean(turbidity_NTU)) %>%
-  ggplot(aes(x = reorder(Study_ID, m.turb), y = m.turb)) +
-    geom_bar(stat="identity") +
-    theme(axis.text.x = element_text(angle = 60, hjust = 1))
-
-# plot mean turbidity by location
-turb %>%
-  group_by(Location_ID) %>%
-  summarise(m.turb = mean(turbidity_NTU)) %>%
-  ggplot(aes(x = reorder(Location_ID, m.turb), y = m.turb)) +
-  geom_bar(stat="identity") +
-  theme(axis.text.x = element_text(angle = 60, hjust = 1))
-
-# plot mean turbidity by location
-turb %>%
-  group_by(Study_ID) %>%
-  summarise(m.turb = mean(turbidity_NTU),
-            last_day = max(end_date),
-            first_day = min(start_date),
-            change = ) %>%
-  ggplot(aes(x = Study_ID, y = m.turb)) +
-  geom_bar(stat="identity", fill = Location_ID) +
-  theme(axis.text.x = element_text(angle = 60, hjust = 1))
-
-
+### parameter names: ###
 # Study_Name <fctr>, Location_ID <fctr>,
 #   Study_Specific_Location_ID <fctr>, Location_Name <fctr>,
 #   Field_Collection_Type <fctr>, Field_Collector <fctr>,
@@ -91,12 +60,13 @@ head(locations)
 locs <- tbl_df(locations) %>%
   select(Location_ID, Watershed_WRIA)
 # unique(locs$Watershed_WRIA)
+# join wria to main data file
 turb_wria <- turb %>%
   left_join(locs, by = "Location_ID")
 head(turb_wria)
 View(turb_wria)
 
-
+# label wria name with wria number
 turb_nums <- turb_wria %>% 
   mutate(WRIA_ID = ifelse(Watershed_WRIA == "Kitsap", 15, 
                      ifelse(Watershed_WRIA == "Kennedy-Goldsborough", 14,
@@ -104,25 +74,11 @@ turb_nums <- turb_wria %>%
                                    ifelse(Watershed_WRIA == "Quilcence-Snow", 17,
                                           ifelse(Watershed_WRIA == "Elwah-Dungeness", 18,
                                                  NA))))))
-                            
-# ifelse(<condition>, <yes>, 
-#        ifelse(<condition>, <yes>, 
-#               ifelse(<condition>, <yes>, <no>)
-#        )
-# )
-
-# plot mean turbidity by Watershed_WRIA
-turb_nums %>%
-  group_by(Watershed_WRIA) %>%
-  summarise(m.turb = mean(turbidity_NTU)) %>%
-  ggplot(aes(x = reorder(Watershed_WRIA, m.turb), y = m.turb)) +
-  geom_bar(stat="identity") +
-  theme(axis.text.x = element_text(angle = 60, hjust = 1))
-
 # sm <- turb %>%
 #   filter(Watershed_WRIA == "Skokomish-Dosewallips")
 # dim(sm)
 
+################################ mapping ################################################ 
 # turb_nums$loc=paste(turb_nums$lat, turb_nums$lon, sep=":") ## create a lat:long location variable
 # Geo <- gvisGeoMap(turb_nums, locationvar='loc', numvar="turbidity_NTU", 
 #                   options=list(height=400, dataMode='markers'))
@@ -142,8 +98,8 @@ waterIcon <- makeIcon(
 )
 
 content1 <- paste(sep = ": ",
-                 "<b>Turbidity NTU</b>",
-                 turb_nums$turbidity_NTU
+                  "<b>Turbidity NTU</b>",
+                  turb_nums$turbidity_NTU
 )
 
 content2 <- paste(sep = ": ",
@@ -159,7 +115,7 @@ content_items = c(content1,content2,content3)
 # full_content <- paste(sep = "<br>", content2,content1)
 # full_content <- paste(collapse = "<br>", content_items)
 full_content <- sprintf("Project Name: %s <br>Date: %s <br> Turbidity NTU: %s", 
-        turb_nums$Study_Name, turb_nums$start_date, turb_nums$turbidity_NTU)
+                        turb_nums$Study_Name, turb_nums$start_date, turb_nums$turbidity_NTU)
 
 m %>%
   addTiles() %>%
@@ -187,3 +143,48 @@ m %>%
 # leaflet(data = quakes[1:20,]) %>% 
 #   addTiles() %>%
 #   addMarkers(~long, ~lat, popup = ~as.character(mag))
+################################ mapping ################################################ 
+
+
+################################ EDA plots ################################################ 
+# plot a histogram of turbidity values
+turb %>%
+  filter(0 < turbidity_NTU & turbidity_NTU < 100) %>%
+  ggplot(aes(turbidity_NTU)) +
+  geom_histogram(binwidth = 0.5)
+
+# plot mean turbidity by study 
+turb %>%
+  group_by(Study_ID) %>%
+  summarise(m.turb = mean(turbidity_NTU)) %>%
+  ggplot(aes(x = reorder(Study_ID, m.turb), y = m.turb)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+# plot mean turbidity by location
+turb %>%
+  group_by(Location_ID) %>%
+  summarise(m.turb = mean(turbidity_NTU)) %>%
+  ggplot(aes(x = reorder(Location_ID, m.turb), y = m.turb)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+# plot mean turbidity by location
+turb %>%
+  group_by(Study_ID) %>%
+  summarise(m.turb = mean(turbidity_NTU),
+            last_day = max(end_date),
+            first_day = min(start_date),
+            change = ) %>%
+  ggplot(aes(x = Study_ID, y = m.turb)) +
+  geom_bar(stat="identity", fill = Location_ID) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+# plot mean turbidity by Watershed_WRIA
+turb_nums %>%
+  group_by(Watershed_WRIA) %>%
+  summarise(m.turb = mean(turbidity_NTU)) %>%
+  ggplot(aes(x = reorder(Watershed_WRIA, m.turb), y = m.turb)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+################################ EDA plots ################################################ 
