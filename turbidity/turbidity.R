@@ -133,7 +133,7 @@ turb_nums %>%
 # plot(G1)
 
 
-m <- leaflet(data = turb_nums[1:20,]) %>% 
+m <- leaflet(data = turb_nums) %>% 
   setView(lng = -122.996823, lat = 47.5642594, zoom = 9)
 
 waterIcon <- makeIcon(
@@ -141,11 +141,46 @@ waterIcon <- makeIcon(
   iconWidth = 25, iconHeight = 25
 )
 
-m %>% 
+content1 <- paste(sep = ": ",
+                 "<b>Turbidity NTU</b>",
+                 turb_nums$turbidity_NTU
+)
+
+content2 <- paste(sep = ": ",
+                  "<b>Project Name</b>",
+                  turb_nums$Study_Name
+)
+content3 <- paste(sep = ": ",
+                  "<b>Date</b>",
+                  turb_nums$start_date
+)
+
+content_items = c(content1,content2,content3)
+# full_content <- paste(sep = "<br>", content2,content1)
+# full_content <- paste(collapse = "<br>", content_items)
+full_content <- sprintf("Project Name: %s <br>Date: %s <br> Turbidity NTU: %s", 
+        turb_nums$Study_Name, turb_nums$start_date, turb_nums$turbidity_NTU)
+
+m %>%
   addTiles() %>%
-  addMarkers(~lon, ~lat, popup = ~as.character(turbidity_NTU),
+  addMarkers(~lon, ~lat, popup = full_content,
              icon = waterIcon,
              clusterOptions = markerClusterOptions())
+
+qpal <- colorQuantile("BuPu", turb_nums$turbidity_NTU, n = 5)
+m %>%
+  addProviderTiles("Stamen.Terrain", group = "Terrain") %>%
+  addCircleMarkers(~lon, ~lat, popup = full_content,
+                   radius = 10,
+                   color = ~qpal(turbidity_NTU),
+                   stroke = FALSE, fillOpacity = 0.5,
+                   group = "Water Quality") %>%
+  addLegend(pal = qpal, values = ~turbidity_NTU, opacity = 1) %>%
+  addLayersControl(
+    baseGroups = "Terrain",
+    overlayGroups = "Water Quality",
+    options = layersControlOptions(collapsed = FALSE)
+  )
 
 
 # # Show first 20 rows from the `quakes` dataset
