@@ -133,13 +133,22 @@ turb_nums %>%
 # plot(G1)
 
 
-m <- leaflet(data = turb_nums) %>% 
+m <- leaflet(data = turb_nums[1:20,]) %>% 
   setView(lng = -122.996823, lat = 47.5642594, zoom = 9)
+
+waterIcon <- makeIcon(
+  iconUrl = 'icons/water-15.svg',
+  iconWidth = 25, iconHeight = 25
+)
+
 m %>% 
   addTiles() %>%
-  addMarkers(~lon, ~lat, popup = ~as.character(turbidity_NTU))
+  addMarkers(~lon, ~lat, popup = ~as.character(turbidity_NTU),
+             icon = waterIcon,
+             clusterOptions = markerClusterOptions())
 
-# Show first 20 rows from the `quakes` dataset
-leaflet(data = quakes[1:20,]) %>% 
-  addTiles() %>%
-  addMarkers(~long, ~lat, popup = ~as.character(mag))
+
+# # Show first 20 rows from the `quakes` dataset
+# leaflet(data = quakes[1:20,]) %>% 
+#   addTiles() %>%
+#   addMarkers(~long, ~lat, popup = ~as.character(mag))
