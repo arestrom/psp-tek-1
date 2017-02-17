@@ -9,6 +9,10 @@ library(leaflet)
 # library(rgeos)
 # library(googleVis)
 
+# NOTE: http://apps.leg.wa.gov/WAC/default.aspx?dispo=true&cite=173-201A-200
+  #Turbidity shall not exceed:
+  # 5 NTU over background when the background is 50 NTU or less; or
+  # A 10 percent increase in turbidity when the background turbidity is more than 50 NTU.
 
 # load the turbidity data 
 turbidity <- read.csv('EIMResults.csv', header = TRUE)
@@ -37,21 +41,6 @@ dim(turb)
 distinct(turb, Result_Parameter_Name)
 turb
 
-### parameter names: ###
-# Study_Name <fctr>, Location_ID <fctr>,
-#   Study_Specific_Location_ID <fctr>, Location_Name <fctr>,
-#   Field_Collection_Type <fctr>, Field_Collector <fctr>,
-#   Field_Collection_Start_Date <fctr>,
-#   Field_Collection_Start_Time <fctr>,
-#   Field_Collection_Start_Date_Time <fctr>,
-#   Field_Collection_End_Date <fctr>,
-# Result_Parameter_Name <fctr>,
-#   Result_Parameter_CAS_Number <lgl>, Lab_Analysis_Date <fctr>,
-#   Lab_Analysis_Date_Accuracy <fctr>, Lab_Analysis_Time <fctr>,
-#   Result_Value <dbl>, Result_Value_Units <fctr>,
-# Calculated_Latitude_Decimal_Degrees_NAD83HARN <dbl>,
-#   Calculated_Longitude_Decimal_Degrees_NAD83HARN <dbl>,
-
 # load location data file
 locations <- read.csv('EIMLocationDetails.csv', header = TRUE)
 head(locations)
@@ -77,6 +66,9 @@ turb_nums <- turb_wria %>%
 # sm <- turb %>%
 #   filter(Watershed_WRIA == "Skokomish-Dosewallips")
 # dim(sm)
+# 
+# turb_nums %>%
+#   group_by(Study_ID, Location_ID, start_date)
 
 ################################ mapping ################################################ 
 # turb_nums$loc=paste(turb_nums$lat, turb_nums$lon, sep=":") ## create a lat:long location variable
@@ -188,3 +180,18 @@ turb_nums %>%
   geom_bar(stat="identity") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ################################ EDA plots ################################################ 
+
+### parameter names: ###
+# Study_Name <fctr>, Location_ID <fctr>,
+#   Study_Specific_Location_ID <fctr>, Location_Name <fctr>,
+#   Field_Collection_Type <fctr>, Field_Collector <fctr>,
+#   Field_Collection_Start_Date <fctr>,
+#   Field_Collection_Start_Time <fctr>,
+#   Field_Collection_Start_Date_Time <fctr>,
+#   Field_Collection_End_Date <fctr>,
+# Result_Parameter_Name <fctr>,
+#   Result_Parameter_CAS_Number <lgl>, Lab_Analysis_Date <fctr>,
+#   Lab_Analysis_Date_Accuracy <fctr>, Lab_Analysis_Time <fctr>,
+#   Result_Value <dbl>, Result_Value_Units <fctr>,
+# Calculated_Latitude_Decimal_Degrees_NAD83HARN <dbl>,
+#   Calculated_Longitude_Decimal_Degrees_NAD83HARN <dbl>,
