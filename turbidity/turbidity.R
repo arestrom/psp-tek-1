@@ -1,6 +1,13 @@
 library(tidyverse)
 library(ggmap)
+library(leaflet)
 
+library(sp)  # classes for spatial data
+library(raster)  # grids, rasters
+library(rasterVis)  # raster visualisation
+library(maptools)
+library(rgeos)
+library(googleVis)
 # load the turbidity data 
 turbidity <- read.csv('EIMResults.csv', header = TRUE)
 
@@ -115,3 +122,24 @@ turb_nums %>%
 # sm <- turb %>%
 #   filter(Watershed_WRIA == "Skokomish-Dosewallips")
 # dim(sm)
+
+# turb_nums$loc=paste(turb_nums$lat, turb_nums$lon, sep=":") ## create a lat:long location variable
+# Geo <- gvisGeoMap(turb_nums, locationvar='loc', numvar="turbidity_NTU", 
+#                   options=list(height=400, dataMode='markers'))
+# plot(Geo)
+# 
+# G1 <- gvisGeoChart(turb_nums, locationvar='loc', numvar='turbidity_NTU') 
+# 
+# plot(G1)
+
+
+m <- leaflet(data = turb_nums) %>% 
+  setView(lng = -122.996823, lat = 47.5642594, zoom = 9)
+m %>% 
+  addTiles() %>%
+  addMarkers(~lon, ~lat, popup = ~as.character(turbidity_NTU))
+
+# Show first 20 rows from the `quakes` dataset
+leaflet(data = quakes[1:20,]) %>% 
+  addTiles() %>%
+  addMarkers(~long, ~lat, popup = ~as.character(mag))
