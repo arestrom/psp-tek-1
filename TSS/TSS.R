@@ -30,21 +30,21 @@ dim(tss)
 summary(tss)
 tss
 # load location data file
-locations <- read.csv('./data/EIMLocationDetails.csv', header = TRUE)
+locations_raw <- read.csv('./data/EIMLocationDetails.csv', header = TRUE)
 head(locations)
 
 # select only ID and WRIA
-locs <- tbl_df(locations) %>%
+locs_select <- tbl_df(locations_raw) %>%
   select(Location_ID, Watershed_WRIA)
 # unique(locs$Watershed_WRIA)
 # join wria to main data file
-tss_wria <- tss %>%
-  left_join(locs, by = "Location_ID")
+tss_wria_name <- tss %>%
+  left_join(locs_select, by = "Location_ID")
 head(tss_wria)
 View(tss_wria)
 
 # label wria name with wria number
-tss_nums <- tss_wria %>% 
+tss_wria <- tss_wria_name %>% 
   mutate(WRIA_ID = ifelse(Watershed_WRIA == "Kitsap", 15, 
                      ifelse(Watershed_WRIA == "Kennedy-Goldsborough", 14,
                             ifelse(Watershed_WRIA == "Skokomish-Dosewallips", 16,
@@ -55,22 +55,22 @@ tss_nums <- tss_wria %>%
 #   filter(Watershed_WRIA == "Skokomish-Dosewallips")
 # dim(sm)
 # 
-# tss_nums %>%
+# tss_wria %>%
 #   group_by(Study_ID, Location_ID, start_date)
 
 ################################ mapping ################################################ 
-# tss_nums$loc=paste(tss_nums$lat, tss_nums$lon, sep=":") ## create a lat:long location variable
-# Geo <- gvisGeoMap(tss_nums, locationvar='loc', numvar="tss_NTU", 
+# tss_wria$loc=paste(tss_wria$lat, tss_wria$lon, sep=":") ## create a lat:long location variable
+# Geo <- gvisGeoMap(tss_wria, locationvar='loc', numvar="tss_mgL", 
 #                   options=list(height=400, dataMode='markers'))
 # plot(Geo)
 # 
-# G1 <- gvisGeoChart(tss_nums, locationvar='loc', numvar='tss_NTU') 
+# G1 <- gvisGeoChart(tss_wria, locationvar='loc', numvar='tss_mgL') 
 # 
 # plot(G1)
 
 
-m <- leaflet(data = tss_nums) %>% 
-  setView(lng = -122.996823, lat = 47.5642594, zoom = 9)
+m <- leaflet(data = tss_wria) %>% 
+  setView(lng = -122.996823, lat = 47.65, zoom = 9)
 
 waterIcon <- makeIcon(
   iconUrl = 'icons/water-15.svg',
@@ -78,24 +78,24 @@ waterIcon <- makeIcon(
 )
 
 content1 <- paste(sep = ": ",
-                  "<b>tss NTU</b>",
-                  tss_nums$tss_NTU
+                  "<b>TSS</b>",
+                  tss_wria$tss_mgL
 )
 
 content2 <- paste(sep = ": ",
                   "<b>Project Name</b>",
-                  tss_nums$Study_Name
+                  tss_wria$Study_Name
 )
 content3 <- paste(sep = ": ",
                   "<b>Date</b>",
-                  tss_nums$start_date
+                  tss_wria$start_date
 )
 
-content_items = c(content1,content2,content3)
+# content_items = c(content1,content2,content3)
 # full_content <- paste(sep = "<br>", content2,content1)
 # full_content <- paste(collapse = "<br>", content_items)
-full_content <- sprintf("Project Name: %s <br>Date: %s <br> tss NTU: %s", 
-                        tss_nums$Study_Name, tss_nums$start_date, tss_nums$tss_NTU)
+full_content <- sprintf("Project Name: %s <br>Date: %s <br> WRIA: %s <br> TSS mg/L: %s", 
+                        tss_wria$Study_Name, tss_wria$start_date, tss_wria$Watershed_WRIA, tss_wria$tss_mgL)
 
 m %>%
   addTiles() %>%
@@ -103,40 +103,62 @@ m %>%
              icon = waterIcon,
              clusterOptions = markerClusterOptions())
 
-qpal <- colorQuantile("BuPu", tss_nums$tss_NTU, n = 5)
+
+qpal <- colorQuantile("BuPu", tss_wria$tss_mgL, n = 5)
 m %>%
   addProviderTiles("Stamen.Terrain", group = "Terrain") %>%
   addCircleMarkers(~lon, ~lat, popup = full_content,
                    radius = 10,
-                   color = ~qpal(tss_NTU),
+                   color = ~qpal(tss_mgL),
                    stroke = FALSE, fillOpacity = 0.5,
                    group = "Water Quality") %>%
-  addLegend(pal = qpal, values = ~tss_NTU, opacity = 1) %>%
+  addLegend(pal = qpal, values = ~tss_mgL, opacity = 1) %>%
   addLayersControl(
     baseGroups = "Terrain",
     overlayGroups = "Water Quality",
     options = layersControlOptions(collapsed = FALSE)
   )
 
-
+factpal <- colorFactor("Dark2", tss_wria$Watershed_WRIA)
+m %>%
+  addProviderTiles("Stamen.Terrain", group = "Terrain") %>%
+  addCircleMarkers(~lon, ~lat, popup = full_content,
+                   radius = 10,
+                   color = ~factpal(Watershed_WRIA),
+                   stroke = FALSE, fillOpacity = 0.5,
+                   group = "Water Quality") %>%
+  addLegend(pal = factpal, values = ~Watershed_WRIA, opacity = 1) %>%
+  addLayersControl(
+    baseGroups = "Terrain",
+    overlayGroups = "Water Quality",
+    options = layersControlOptions(collapsed = FALSE)
+  )
 # # Show first 20 rows from the `quakes` dataset
 # leaflet(data = quakes[1:20,]) %>% 
 #   addTiles() %>%
 #   addMarkers(~long, ~lat, popup = ~as.character(mag))
 ################################ mapping ################################################ 
 
+distinct(tss, Study_ID)
+# 51 distinct studies
+distinct(tss, Location_ID)
+# 442 distinct locations
+
+by_study <- group_by(tss_wria, Study_ID)
+
+distinct(by_study, Location_ID)  
 
 ################################ EDA plots ################################################ 
 # plot a histogram of tss values
 tss %>%
-  filter(0 < tss_NTU & tss_NTU < 100) %>%
-  ggplot(aes(tss_NTU)) +
+  filter(0 < tss_mgL & tss_mgL < 100) %>%
+  ggplot(aes(tss_mgL)) +
   geom_histogram(binwidth = 0.5)
 
 # plot mean tss by study 
 tss %>%
   group_by(Study_ID) %>%
-  summarise(m.tss = mean(tss_NTU)) %>%
+  summarise(m.tss = mean(tss_mgL)) %>%
   ggplot(aes(x = reorder(Study_ID, m.tss), y = m.tss)) +
   geom_bar(stat="identity") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
@@ -144,7 +166,7 @@ tss %>%
 # plot mean tss by location
 tss %>%
   group_by(Location_ID) %>%
-  summarise(m.tss = mean(tss_NTU)) %>%
+  summarise(m.tss = mean(tss_mgL)) %>%
   ggplot(aes(x = reorder(Location_ID, m.tss), y = m.tss)) +
   geom_bar(stat="identity") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
@@ -152,7 +174,7 @@ tss %>%
 # plot mean tss by location
 tss %>%
   group_by(Study_ID) %>%
-  summarise(m.tss = mean(tss_NTU),
+  summarise(m.tss = mean(tss_mgL),
             last_day = max(end_date),
             first_day = min(start_date),
             change = ) %>%
@@ -161,25 +183,76 @@ tss %>%
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 # plot mean tss by Watershed_WRIA
-tss_nums %>%
+tss_wria %>%
   group_by(Watershed_WRIA) %>%
-  summarise(m.tss = mean(tss_NTU)) %>%
+  summarise(m.tss = mean(tss_mgL)) %>%
   ggplot(aes(x = reorder(Watershed_WRIA, m.tss), y = m.tss)) +
   geom_bar(stat="identity") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+# plot tss by date and Watershed_WRIA
+ggplot(data = tss_wria) + 
+  geom_point(mapping = aes(x = start_date, y = tss_mgL, color = Study_ID)) + 
+  facet_wrap(~ Watershed_WRIA)
 ################################ EDA plots ################################################ 
 
-### parameter names: ###
-# Study_Name <fctr>, Location_ID <fctr>,
-#   Study_Specific_Location_ID <fctr>, Location_Name <fctr>,
-#   Field_Collection_Type <fctr>, Field_Collector <fctr>,
-#   Field_Collection_Start_Date <fctr>,
-#   Field_Collection_Start_Time <fctr>,
-#   Field_Collection_Start_Date_Time <fctr>,
-#   Field_Collection_End_Date <fctr>,
-# Result_Parameter_Name <fctr>,
-#   Result_Parameter_CAS_Number <lgl>, Lab_Analysis_Date <fctr>,
-#   Lab_Analysis_Date_Accuracy <fctr>, Lab_Analysis_Time <fctr>,
-#   Result_Value <dbl>, Result_Value_Units <fctr>,
-# Calculated_Latitude_Decimal_Degrees_NAD83HARN <dbl>,
-#   Calculated_Longitude_Decimal_Degrees_NAD83HARN <dbl>,
+################################ create polygons ################################################ 
+# http://www.nickeubank.com/wp-content/uploads/2015/10/RGIS1_SpatialDataTypes_part1_vectorData.html
+# http://stackoverflow.com/questions/37573413/loading-spatialpolygonsdataframe-with-leaflet-for-r-doesnt-work
+# CRSs are not a trivial topic. In short, web mapping is basically done using
+# web mercator. Leaflet, however, needs non-projected latitude and longitude
+# coordinates as input and internally transforms them to web mercator (bad
+# design in my opinion, but we need to live with that). So for leaflet, you
+# basically just need to know that they need to be in '+init=epsg:4326' (or
+# '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs' to be more precise).
+library(sp)
+# creates SpatialPointsDataFrame (not a tbl df anymore!)
+# coordinates(tss_wria) <- c("lon", "lat")
+# L <- tss_wria$Study_ID == 'BEDI0004'
+# tss_wria[L,]
+bedi <- tss_wria %>%
+  filter(Study_ID == 'BEDI0004') %>%
+  mutate(lat = as.numeric(lat), lon = as.numeric(lon)) %>%
+  select(lat,lon)
+bedi.p <- Polygon(bedi)
+bedi.polys <- Polygons(list(dose.p), "bedi")
+
+# creates SpatialPoints
+# coordinates(bedi) <- c("lon", "lat")
+  
+dose <- tss_wria %>%
+  filter(WRIA_ID == 16) %>%
+  mutate(lat = as.numeric(lat), lon = as.numeric(lon)) %>%
+  select(lat,lon)
+dose.p <- Polygon(dose)
+dose.polys <- Polygons(list(dose.p), "Dose")
+
+# Make spatialy Polygons
+map <- SpatialPolygons(list(bedi.polys, dose.polys))
+is.projected(map)
+# Returns `NA` if no geographic coordinate system or projection; returns
+# FALSE if has geographic coordinate system but no projection.
+crs.geo <- CRS("+init=epsg:4326")
+proj4string(map) <- crs.geo  # define projection system of our data
+is.projected(map)
+
+# head(shape)
+m %>%
+  addProviderTiles("Stamen.Terrain") %>%
+  addPolygons(data = map)
+# head(dose.p)
+
+# m2 <- function(xy, n){
+#   
+#   subset <- xy
+#   
+#   alldist <- as.matrix(dist(subset))
+#   
+#   while (nrow(subset) > n) {
+#     cdists = rowSums(alldist)
+#     closest <- which(cdists == min(cdists))[1]
+#     subset <- subset[-closest,]
+#     alldist <- alldist[-closest,-closest]
+#   }
+#   return(subset)
+# }
