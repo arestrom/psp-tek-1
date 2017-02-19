@@ -15,7 +15,7 @@ library(leaflet)
   # A 10 percent increase in turbidity when the background turbidity is more than 50 NTU.
 
 # load the turbidity data 
-turbidity <- read.csv('EIMResults.csv', header = TRUE)
+turbidity <- read.csv('./data/EIMResults.csv', header = TRUE)
 
 # print out information on the variables it contains
 summary(turbidity)
@@ -42,7 +42,7 @@ distinct(turb, Result_Parameter_Name)
 turb
 
 # load location data file
-locations <- read.csv('EIMLocationDetails.csv', header = TRUE)
+locations <- read.csv('./data/EIMLocationDetails.csv', header = TRUE)
 head(locations)
 
 # select only ID and WRIA
