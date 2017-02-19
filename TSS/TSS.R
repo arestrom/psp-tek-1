@@ -165,10 +165,8 @@ m2 %>%
     overlayGroups = c("Safe TSS (TSS < 80 mg/L)", "Unsafe TSS (TSS > 80 mg/L)"),
     options = layersControlOptions(collapsed = FALSE)
   )
-# # Show first 20 rows from the `quakes` dataset
-# leaflet(data = quakes[1:20,]) %>% 
-#   addTiles() %>%
-#   addMarkers(~long, ~lat, popup = ~as.character(mag))
+# to add timeline slider:
+# http://stackoverflow.com/questions/36554605/cant-loop-with-rs-leaflet-package-to-produce-multiple-maps/36587525#36587525
 ################################ mapping ################################################ 
 
 distinct(tss, Study_ID)
@@ -308,9 +306,11 @@ proj4string(map) <- crs.geo  # define projection system of our data
 is.projected(map)
 
 # head(shape)
-m %>%
+m3 <- leaflet(data = bedi) %>% 
+  setView(lng = -122.996823, lat = 47.65, zoom = 9) %>%
   addProviderTiles("Stamen.Terrain") %>%
-  addPolygons(data = map)
+  addPolygons(data = bedi, lng = ~lon, lat = ~lat)
+m3
 # head(dose.p)
 
 # m2 <- function(xy, n){
