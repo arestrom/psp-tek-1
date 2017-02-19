@@ -20,7 +20,8 @@ tss <- tbl_df(tss) %>%
          lat = Calculated_Latitude_Decimal_Degrees_NAD83HARN,
          lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
-         end_date = as.Date(end_date, format = "%m/%d/%Y"))
+         end_date = as.Date(end_date, format = "%m/%d/%Y"),
+         logtss = log10(tss_mgL))
   # %>%
   # # mutate(duration = end_date - start_date) %>%
   # spread(key = Result_Parameter_Name, value = Result_Value)
@@ -31,7 +32,7 @@ summary(tss)
 tss
 # load location data file
 locations_raw <- read.csv('./data/EIMLocationDetails.csv', header = TRUE)
-head(locations)
+# head(locations)
 
 # select only ID and WRIA
 locs_select <- tbl_df(locations_raw) %>%
@@ -40,8 +41,8 @@ locs_select <- tbl_df(locations_raw) %>%
 # join wria to main data file
 tss_wria_name <- tss %>%
   left_join(locs_select, by = "Location_ID")
-head(tss_wria)
-View(tss_wria)
+# head(tss_wria)
+# View(tss_wria)
 
 # label wria name with wria number
 tss_wria <- tss_wria_name %>% 
@@ -95,7 +96,8 @@ content3 <- paste(sep = ": ",
 # full_content <- paste(sep = "<br>", content2,content1)
 # full_content <- paste(collapse = "<br>", content_items)
 full_content <- sprintf("Project Name: %s <br>Date: %s <br> WRIA: %s <br> TSS mg/L: %s", 
-                        tss_wria$Study_Name, tss_wria$start_date, tss_wria$Watershed_WRIA, tss_wria$tss_mgL)
+                        tss_wria$Study_Name, tss_wria$start_date, 
+                        tss_wria$Watershed_WRIA, tss_wria$tss_mgL)
 
 m %>%
   addTiles() %>%
@@ -131,6 +133,36 @@ m %>%
   addLayersControl(
     baseGroups = "Terrain",
     overlayGroups = "Water Quality",
+    options = layersControlOptions(collapsed = FALSE)
+  )
+
+all_safe_tss <- tss_wria %>%
+  mutate(safety = as.factor(ifelse(logtss >= 1.90309, "unsafe", "safe")))
+
+safe_tss <- filter(all_safe_tss, safety == 'safe')
+
+unsafe_tss <- filter(all_safe_tss, safety == 'unsafe')
+
+sfpal <- colorFactor("Set1", safe_tss$safety)
+
+m2 <- leaflet(data = safe_tss) %>% 
+  setView(lng = -122.996823, lat = 47.65, zoom = 9)
+
+m2 %>%
+  addProviderTiles("Stamen.Terrain", group = "Terrain") %>%
+  addCircleMarkers(data = safe_tss, ~lon, ~lat, popup = full_content,
+                   radius = 8,
+                   color = "green",
+                   stroke = FALSE, fillOpacity = 0.4,
+                   group = "Safe TSS (TSS < 80 mg/L)") %>%
+  addCircleMarkers(data = unsafe_tss, ~lon, ~lat, popup = full_content,
+                   radius = 8,
+                   color = "red",
+                   stroke = FALSE, fillOpacity = 0.4,
+                   group = "Unsafe TSS (TSS > 80 mg/L)") %>%
+  addLayersControl(
+    baseGroups = "Terrain",
+    overlayGroups = c("Safe TSS (TSS < 80 mg/L)", "Unsafe TSS (TSS > 80 mg/L)"),
     options = layersControlOptions(collapsed = FALSE)
   )
 # # Show first 20 rows from the `quakes` dataset
@@ -191,9 +223,48 @@ tss_wria %>%
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 # plot tss by date and Watershed_WRIA
-ggplot(data = tss_wria) + 
-  geom_point(mapping = aes(x = start_date, y = tss_mgL, color = Study_ID)) + 
+# http://www.pugetsoundnearshore.org/supporting_documents/wria14_lfa.pdf
+# The U.S. Fish and Wildlife Service recommends a maximum TSS level of 80
+# mg/L to protect salmonid fish (Fish and Wildlife Service 1995). 
+ggplot(data = tss_wria, mapping = aes(x = start_date, y = logtss)) + 
+  geom_point() + 
+  geom_smooth() +
+  geom_hline(yintercept = 1.90309, color = "red", show.legend = TRUE) +
   facet_wrap(~ Watershed_WRIA)
+
+# create good/bad tss categories
+tss_wria %>%
+  mutate(safety = ifelse(logtss >= 1.90309, "unsafe", "safe")) %>%
+  ggplot(mapping = aes(x = start_date, y = logtss)) + 
+  geom_point(mapping = aes(color = safety)) + 
+  scale_color_brewer(palette="Dark2") +
+  geom_smooth() +
+  geom_hline(yintercept = 1.90309, color = "black", show.legend = TRUE) +
+  facet_wrap(~ Watershed_WRIA)
+
+
+ggplot(data = tss_wria) + 
+  geom_point(mapping = aes(x = start_date, y = logtss)) + 
+  facet_wrap(~ Study_ID)
+
+# funding project data is from 2007-2015 ONLY
+tss_wria %>%
+  filter(format(start_date,"%Y") >= 2005) %>%
+ggplot() +
+  geom_point(mapping = aes(x = start_date, y = logtss)) +
+  facet_wrap(~ Watershed_WRIA)
+
+# funding project data is from 2007-2015 ONLY
+tss_wria %>%
+  filter(format(start_date,"%Y") >= 2007) %>%
+  ggplot() +
+  geom_point(mapping = aes(x = start_date, y = logtss)) +
+  facet_wrap(~ Location_ID)
+
+quil <- tss_wria %>%
+  filter(WRIA_ID == 17) %>%
+  mutate(lat = as.numeric(lat), lon = as.numeric(lon)) %>%
+  select(lat,lon)
 ################################ EDA plots ################################################ 
 
 ################################ create polygons ################################################ 
