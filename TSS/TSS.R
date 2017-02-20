@@ -1,6 +1,7 @@
 library(tidyverse)
 library(ggmap)
 library(leaflet)
+library(sp)
 
 # load the tss data 
 tss <- read.csv('./data/EIMResults.csv', header = TRUE)
@@ -274,7 +275,7 @@ quil <- tss_wria %>%
 # design in my opinion, but we need to live with that). So for leaflet, you
 # basically just need to know that they need to be in '+init=epsg:4326' (or
 # '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs' to be more precise).
-library(sp)
+
 # creates SpatialPointsDataFrame (not a tbl df anymore!)
 # coordinates(tss_wria) <- c("lon", "lat")
 # L <- tss_wria$Study_ID == 'BEDI0004'
@@ -313,17 +314,49 @@ m3 <- leaflet(data = bedi) %>%
 m3
 # head(dose.p)
 
-# m2 <- function(xy, n){
-#   
-#   subset <- xy
-#   
-#   alldist <- as.matrix(dist(subset))
-#   
-#   while (nrow(subset) > n) {
-#     cdists = rowSums(alldist)
-#     closest <- which(cdists == min(cdists))[1]
-#     subset <- subset[-closest,]
-#     alldist <- alldist[-closest,-closest]
-#   }
-#   return(subset)
-# }
+# need to find polygon boundary (distance points) so not overplotting
+
+bedi.c <- tss_wria %>%
+  filter(Study_ID == 'BEDI0004') 
+# %>%
+#   # unite(coords, lat, lon, sep = ", ") %>%
+#   mutate(coords = list(lat,lon))
+bedi.c <- as.data.frame(bedi.c)
+bedi.c$coords <- list(bedi.c$lat, bedi.c$lon)
+
+coords <- cbind(bedi.c$lat,bedi.c$lon)
+
+avector <- aframe[['a2']]
+
+# http://stackoverflow.com/questions/22152482/choose-n-most-distant-points-in-r
+distal_points <- function(xy, n){
+
+  subset <- xy
+
+  alldist <- as.matrix(dist(subset))
+
+  while (nrow(subset) > n) {
+    cdists = rowSums(alldist)
+    closest <- which(cdists == min(cdists))[1]
+    subset <- subset[-closest,]
+    alldist <- alldist[-closest,-closest]
+  }
+  return(subset)
+}
+dps <- distal_points(coords,5)
+# dps.p <- Polygon(dps)
+
+dps.df <- as.data.frame(dps) %>%
+  rename(lat = V1, lon = V2) %>%
+  # arrange(lon) %>% 
+  distinct(lat,lon)
+# http://stackoverflow.com/questions/33718004/drawing-a-non-self-intersecting-polygon-with-r
+# IMPORTANT: make non-intersecting!
+df2 <- dps.df[chull(dps.df),]
+
+m3 <- leaflet() %>% 
+  setView(lng = -122.996823, lat = 47.65, zoom = 9) %>%
+  addProviderTiles("Stamen.Terrain") %>%
+  addPolygons(data = df2, lng = ~lon, lat = ~lat) %>%
+  addMarkers(data = df2, ~lon, ~lat)
+m3
