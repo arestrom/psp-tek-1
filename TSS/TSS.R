@@ -284,8 +284,8 @@ bedi <- tss_wria %>%
   filter(Study_ID == 'BEDI0004') %>%
   mutate(lat = as.numeric(lat), lon = as.numeric(lon)) %>%
   select(lat,lon)
-bedi.p <- Polygon(bedi)
-bedi.polys <- Polygons(list(dose.p), "bedi")
+# bedi.p <- Polygon(bedi)
+# bedi.polys <- Polygons(list(dose.p), "bedi")
 
 # creates SpatialPoints
 # coordinates(bedi) <- c("lon", "lat")
@@ -294,20 +294,20 @@ dose <- tss_wria %>%
   filter(WRIA_ID == 16) %>%
   mutate(lat = as.numeric(lat), lon = as.numeric(lon)) %>%
   select(lat,lon)
-dose.p <- Polygon(dose)
-dose.polys <- Polygons(list(dose.p), "Dose")
+# dose.p <- Polygon(dose)
+# dose.polys <- Polygons(list(dose.p), "Dose")
 
 # Make spatialy Polygons
-map <- SpatialPolygons(list(bedi.polys, dose.polys))
-is.projected(map)
+# map <- SpatialPolygons(list(bedi.polys, dose.polys))
+# is.projected(map)
 # Returns `NA` if no geographic coordinate system or projection; returns
 # FALSE if has geographic coordinate system but no projection.
-crs.geo <- CRS("+init=epsg:4326")
-proj4string(map) <- crs.geo  # define projection system of our data
-is.projected(map)
+# crs.geo <- CRS("+init=epsg:4326")
+# proj4string(map) <- crs.geo  # define projection system of our data
+# is.projected(map)
 
 # head(shape)
-m3 <- leaflet(data = bedi) %>% 
+m3 <- leaflet() %>% 
   setView(lng = -122.996823, lat = 47.65, zoom = 9) %>%
   addProviderTiles("Stamen.Terrain") %>%
   addPolygons(data = bedi, lng = ~lon, lat = ~lat)
@@ -318,15 +318,19 @@ m3
 
 bedi.c <- tss_wria %>%
   filter(Study_ID == 'BEDI0004') 
+
+dose.c <- tss_wria %>%
+  filter(WRIA_ID == 16)
 # %>%
 #   # unite(coords, lat, lon, sep = ", ") %>%
 #   mutate(coords = list(lat,lon))
 bedi.c <- as.data.frame(bedi.c)
-bedi.c$coords <- list(bedi.c$lat, bedi.c$lon)
+dose.c <- as.data.frame(dose.c)
+# bedi.c$coords <- list(bedi.c$lat, bedi.c$lon)
 
 coords <- cbind(bedi.c$lat,bedi.c$lon)
-
-avector <- aframe[['a2']]
+doseco <- cbind(dose.c$lat,dose.c$lon)
+# avector <- aframe[['a2']]
 
 # http://stackoverflow.com/questions/22152482/choose-n-most-distant-points-in-r
 distal_points <- function(xy, n){
@@ -343,20 +347,92 @@ distal_points <- function(xy, n){
   }
   return(subset)
 }
-dps <- distal_points(coords,5)
+dps <- distal_points(coords,10)
 # dps.p <- Polygon(dps)
 
 dps.df <- as.data.frame(dps) %>%
   rename(lat = V1, lon = V2) %>%
-  # arrange(lon) %>% 
   distinct(lat,lon)
 # http://stackoverflow.com/questions/33718004/drawing-a-non-self-intersecting-polygon-with-r
 # IMPORTANT: make non-intersecting!
-df2 <- dps.df[chull(dps.df),]
+bedi.NI.poly <- dps.df[chull(dps.df),]
 
-m3 <- leaflet() %>% 
+dose.df <- as.data.frame(distal_points(doseco,10)) %>%
+  rename(lat = V1, lon = V2) %>%
+  distinct(lat,lon)
+dose.NI.poly <- dose.df[chull(dose.df),]
+
+m4 <- leaflet() %>% 
   setView(lng = -122.996823, lat = 47.65, zoom = 9) %>%
   addProviderTiles("Stamen.Terrain") %>%
-  addPolygons(data = df2, lng = ~lon, lat = ~lat) %>%
-  addMarkers(data = df2, ~lon, ~lat)
-m3
+  addPolygons(data = bedi.NI.poly, lng = ~lon, lat = ~lat) %>%
+  addPolygons(data = dose.NI.poly, lng = ~lon, lat = ~lat)
+m4
+
+get_study_poly <- function(studyid, df){
+  # extract study from dataframe
+  study <- df %>%
+    filter(Study_ID == studyid) 
+  # convert from tbl_df to dataframe
+  study <- as.data.frame(study)
+  # get just lat/lon as vector
+  coords <- cbind(study$lat,study$lon)
+  # use distal_points helper function to obtain only the n most distal points
+  dps <- distal_points(coords,10)
+  # remove duplicates and rename columns for ease of use with leaflet
+  dps.df <- as.data.frame(dps) %>%
+    rename(lat = V1, lon = V2) %>%
+    distinct(lat,lon)
+  # use chull function to make a non-intersecting polygon
+  study_poly <- dps.df[chull(dps.df),]
+  return(study_poly)
+}
+
+bedi <- get_study_poly('BEDI0004', tss_wria)
+m5 <- leaflet() %>% 
+  setView(lng = -122.996823, lat = 47.65, zoom = 9) %>%
+  addProviderTiles("Stamen.Terrain") %>%
+  addPolygons(data = bedi, lng = ~lon, lat = ~lat)
+m5
+
+
+get_study_poly2 <- function(studyid){
+  coords <- cbind(study$lat,study$lon)
+  # use distal_points helper function to obtain only the n most distal points
+  dps <- distal_points(coords,10)
+  # remove duplicates and rename columns for ease of use with leaflet
+  dps.df <- as.data.frame(dps) %>%
+    rename(lat = V1, lon = V2) %>%
+    distinct(lat,lon)
+  # use chull function to make a non-intersecting polygon
+  study_poly <- dps.df[chull(dps.df),]
+  return(study_poly)
+}
+# https://stat.ethz.ch/pipermail/r-help/2007-February/125569.html
+tss_wria <- as.data.frame(tss_wria)
+# create list of all coords
+all.coords <- cbind(tss_wria$lat,tss_wria$lon)
+# adds ALL COORDS as list to each row 
+# tss_wria$coords <- list(all.coords)
+
+
+# result <- lapply(tss_wria, cbind(tss_wria$lat,tss_wria$lon))
+study.coords <- as.data.frame(tss_wria) %>%
+  group_by(Study_ID) %>%
+  distinct(lat,lon) %>%
+  do(polycoords = distal_points(cbind(.$lat,.$lon),10)) 
+
+study.coords2 <- as.data.frame(tss_wria) %>%
+  group_by(Study_ID) %>%
+  distinct(lat,lon) %>%
+  do(coordslist = cbind(.$lat,.$lon))
+
+do(study.coords2, coordslist = distal_points(study.coords2$coordslist,10))
+# use distal_points helper function to obtain only the n most distal points
+dps <- distal_points(coords,10)
+# remove duplicates and rename columns for ease of use with leaflet
+dps.df <- as.data.frame(dps) %>%
+  rename(lat = V1, lon = V2) %>%
+  distinct(lat,lon)
+# use chull function to make a non-intersecting polygon
+study_poly <- dps.df[chull(dps.df),]
