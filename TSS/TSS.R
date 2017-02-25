@@ -152,12 +152,12 @@ m2 <- leaflet(data = safe_tss) %>%
 m2 %>%
   addProviderTiles("Stamen.Terrain", group = "Terrain") %>%
   addCircleMarkers(data = safe_tss, ~lon, ~lat, popup = full_content,
-                   radius = 8,
+                   radius = 6,
                    color = "green",
                    stroke = FALSE, fillOpacity = 0.4,
                    group = "Safe TSS (TSS < 80 mg/L)") %>%
   addCircleMarkers(data = unsafe_tss, ~lon, ~lat, popup = full_content,
-                   radius = 8,
+                   radius = 6,
                    color = "red",
                    stroke = FALSE, fillOpacity = 0.4,
                    group = "Unsafe TSS (TSS > 80 mg/L)") %>%
@@ -239,7 +239,9 @@ tss_wria %>%
   scale_color_brewer(palette="Dark2") +
   geom_smooth() +
   geom_hline(yintercept = 1.90309, color = "black", show.legend = TRUE) +
-  facet_wrap(~ Watershed_WRIA)
+  facet_wrap(~ Watershed_WRIA) +
+  xlab("Year") +
+  ylab("Log TSS (mg/L)")
 
 
 ggplot(data = tss_wria) + 
@@ -248,14 +250,14 @@ ggplot(data = tss_wria) +
 
 # funding project data is from 2007-2015 ONLY
 tss_wria %>%
-  filter(format(start_date,"%Y") >= 2005) %>%
+  filter(format(start_date,"%Y") >= 2004) %>%
 ggplot() +
   geom_point(mapping = aes(x = start_date, y = logtss)) +
   facet_wrap(~ Watershed_WRIA)
 
 # funding project data is from 2007-2015 ONLY
 tss_wria %>%
-  filter(format(start_date,"%Y") >= 2007) %>%
+  filter(format(start_date,"%Y") >= 2004) %>%
   ggplot() +
   geom_point(mapping = aes(x = start_date, y = logtss)) +
   facet_wrap(~ Location_ID)

@@ -119,7 +119,7 @@ qpal <- colorQuantile("BuPu", turb_nums$turbidity_NTU, n = 5)
 m %>%
   addProviderTiles("Stamen.Terrain", group = "Terrain") %>%
   addCircleMarkers(~lon, ~lat, popup = full_content,
-                   radius = 10,
+                   radius = 6,
                    color = ~qpal(turbidity_NTU),
                    stroke = FALSE, fillOpacity = 0.5,
                    group = "Water Quality") %>%
