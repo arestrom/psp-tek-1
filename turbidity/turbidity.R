@@ -33,7 +33,10 @@ turb <- turb.tib %>%
   rename(start_date = Field_Collection_Start_Date, end_date = Field_Collection_End_Date,
          turbidity_NTU = Result_Value,
          lat = Calculated_Latitude_Decimal_Degrees_NAD83HARN,
-         lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN)
+         lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
+  mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
+         end_date = as.Date(end_date, format = "%m/%d/%Y"),
+         logturb = log10(turbidity_NTU))
   # %>%
   # # mutate(duration = end_date - start_date) %>%
   # spread(key = Result_Parameter_Name, value = Result_Value)
@@ -179,6 +182,15 @@ turb_nums %>%
   ggplot(aes(x = reorder(Watershed_WRIA, m.turb), y = m.turb)) +
   geom_bar(stat="identity") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+ggplot(data = turb_wria, mapping = aes(x = start_date, y = logturb)) + 
+  geom_point() + 
+  geom_smooth() +
+  # geom_hline(yintercept = 1.90309, color = "red", show.legend = TRUE) +
+  facet_wrap(~ Watershed_WRIA) +
+  xlab("Year") +
+  ylab("Log Turbidity (NTU)") +
+  ggtitle("Turbidity Trends Over Time")
 ################################ EDA plots ################################################ 
 
 ### parameter names: ###
