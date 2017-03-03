@@ -255,13 +255,6 @@ ggplot() +
   geom_point(mapping = aes(x = start_date, y = logtss)) +
   facet_wrap(~ Watershed_WRIA)
 
-# funding project data is from 2007-2015 ONLY
-tss_wria %>%
-  filter(format(start_date,"%Y") >= 2004) %>%
-  ggplot() +
-  geom_point(mapping = aes(x = start_date, y = logtss)) +
-  facet_wrap(~ Location_ID)
-
 quil <- tss_wria %>%
   filter(WRIA_ID == 17) %>%
   mutate(lat = as.numeric(lat), lon = as.numeric(lon)) %>%

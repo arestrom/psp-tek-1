@@ -25,6 +25,8 @@ turb.tib <- tbl_df(turbidity)
 turb.tib
 
 # select only variables of interest, rename lengthy variable names
+# convert dates to date format
+# obtain log(x+1) since there are some negative values if use log(x)
 turb <- turb.tib %>%
   select(Study_ID, Study_Name, Location_ID, Location_Name, 
          Field_Collection_Start_Date, Field_Collection_End_Date,
@@ -36,7 +38,7 @@ turb <- turb.tib %>%
          lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
          end_date = as.Date(end_date, format = "%m/%d/%Y"),
-         logturb = log10(turbidity_NTU))
+         logturb = log10(turbidity_NTU+1))
   # %>%
   # # mutate(duration = end_date - start_date) %>%
   # spread(key = Result_Parameter_Name, value = Result_Value)
@@ -55,8 +57,8 @@ locs <- tbl_df(locations) %>%
 # join wria to main data file
 turb_wria <- turb %>%
   left_join(locs, by = "Location_ID")
-head(turb_wria)
-View(turb_wria)
+# head(turb_wria)
+# View(turb_wria)
 
 # label wria name with wria number
 turb_nums <- turb_wria %>% 
@@ -72,6 +74,45 @@ turb_nums <- turb_wria %>%
 # 
 # turb_nums %>%
 #   group_by(Study_ID, Location_ID, start_date)
+
+# load the tss data 
+tss <- read.csv('../TSS/data/EIMResults.csv', header = TRUE)
+# select only variables of interest, rename lengthy variable names
+tss2 <- tbl_df(tss) %>%
+  select(Study_ID, Study_Name, Location_ID, 
+         Field_Collection_Start_Date, Field_Collection_Start_Date_Time,
+         Result_Value, Calculated_Latitude_Decimal_Degrees_NAD83HARN,
+         Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
+  rename(start_date = Field_Collection_Start_Date, dt = Field_Collection_Start_Date_Time,
+         tss_mgL = Result_Value,
+         lat = Calculated_Latitude_Decimal_Degrees_NAD83HARN,
+         lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
+  unite(PK, Study_ID, Location_ID, dt, remove = FALSE) %>%
+  mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
+         logTSS = log10(tss_mgL))
+
+turb2 <- turb.tib %>%
+  select(Study_ID, Study_Name, Location_ID, 
+         Field_Collection_Start_Date, Field_Collection_Start_Date_Time,
+         Result_Value, Calculated_Latitude_Decimal_Degrees_NAD83HARN,
+         Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
+  rename(start_date = Field_Collection_Start_Date, dt = Field_Collection_Start_Date_Time,
+         turbidity_NTU = Result_Value,
+         lat = Calculated_Latitude_Decimal_Degrees_NAD83HARN,
+         lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
+  unite(PK, Study_ID, Location_ID, dt, remove = FALSE) %>%
+  mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
+         logTurbidity = log10(turbidity_NTU+1))
+
+dim(turb2)
+turb2 <- unique(turb2)
+tss2 <- unique(tss2)
+sm.tss2 <- select(tss2, PK, tss_mgL, logTSS)
+
+# merge tss and turbidity (only rows with BOTH measures)
+turb_tss <- turb2 %>%
+  inner_join(sm.tss2, by = "PK") %>%
+  left_join(locs, by = "Location_ID")
 
 ################################ mapping ################################################ 
 # turb_nums$loc=paste(turb_nums$lat, turb_nums$lon, sep=":") ## create a lat:long location variable
@@ -191,6 +232,46 @@ ggplot(data = turb_wria, mapping = aes(x = start_date, y = logturb)) +
   xlab("Year") +
   ylab("Log Turbidity (NTU)") +
   ggtitle("Turbidity Trends Over Time")
+
+# funding project data is from 2007-2015 ONLY
+turb_wria %>%
+  filter(format(start_date,"%Y") >= 2004) %>%
+  ggplot(mapping = aes(x = start_date, y = logturb)) +
+  geom_point() +
+  geom_smooth() +
+  facet_wrap(~ Watershed_WRIA) +
+  xlab("Year") +
+  ylab("Log Turbidity (NTU)") +
+  ggtitle("Turbidity Trends Over Time (2004-2016)")
+
+# funding project data is from 2007-2015 ONLY
+# only want longer length projects for meta-analysis
+filtered.turb <- turb_wria %>%
+  mutate(year = format(start_date,"%Y")) %>%
+  filter(year >= 2004) %>%
+  group_by(Study_ID) %>%
+  filter(n_distinct(year) >= 6)
+
+filtered.turb %>%
+  ggplot(mapping = aes(x = start_date, y = logturb)) +
+  geom_point(mapping = aes(color = Study_ID)) +
+  geom_smooth() +
+  # facet_wrap(~ Watershed_WRIA) +
+  xlab("Year") +
+  ylab("Log Turbidity (NTU)") +
+  ggtitle("Turbidity Trends Over Time (2004-2016)")
+
+turb_tss %>%
+  filter(format(start_date,"%Y") >= 1995) %>%
+  gather(logTSS,logTurbidity, key = 'param', value = 'result') %>%
+  ggplot(mapping = aes(x = start_date, y = result)) +
+  geom_point(mapping = aes(color = param)) +
+  geom_smooth(mapping = aes(x = start_date, y = result, linetype = param)) +
+  facet_grid(param~ Watershed_WRIA) +
+  xlab("Year") +
+  ylab("") +
+  ggtitle("Turbidity vs TSS") +
+  scale_x_date(date_breaks = '3 years', date_labels = '%Y')
 ################################ EDA plots ################################################ 
 
 ### parameter names: ###
