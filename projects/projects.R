@@ -1,0 +1,5 @@
+hc_df <- read.csv('locs.csv', header = TRUE)
+f_df <- read.csv('fund.csv', header = TRUE)
+mdf <- merge(x = hc_df, y = f_df, by = "ProjectNumber", all.x = TRUE)
+# write.csv(mdf, file = "merge.csv",row.names=FALSE,quotes=FALSE)
+head(mdf)
