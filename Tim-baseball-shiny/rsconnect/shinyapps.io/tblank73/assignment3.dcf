@@ -1,0 +1,11 @@
+name: assignment3
+title: Assignment3
+account: tblank73
+server: shinyapps.io
+appId: 158909
+bundleId: 741178
+url: https://tblank73.shinyapps.io/assignment3/
+when: 1489120881.61504
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: testfile.R|tester/app.R
