@@ -1,6 +1,7 @@
 library(tidyverse)
 # library(ggmap)
 library(leaflet)
+library(MazamaSpatialUtils)
 
 # library(sp)  # classes for spatial data
 # library(raster)  # grids, rasters
@@ -50,7 +51,7 @@ locations <- read.csv('./data/EIMLocationDetails.csv', header = TRUE) %>%
 
 # join wria to main data file
 turb_wria <- turb %>%
-  left_join(locs, by = "Location_ID")
+  left_join(locations, by = "Location_ID")
 
 # label wria name with wria number
 turb_nums <- turb_wria %>% 
@@ -106,7 +107,20 @@ sm.tss2 <- select(tss2, PK, tss_mgL, logTSS)
 # merge tss and turbidity (only rows with BOTH measures)
 turb_tss <- turb2 %>%
   inner_join(sm.tss2, by = "PK") %>%
-  left_join(locs, by = "Location_ID")
+  left_join(locations, by = "Location_ID")
+dim(turb_tss)
+
+# merge tss and turbidity (all rows from turbidity measures)
+TURB_tss <- turb2 %>%
+  left_join(sm.tss2, by = "PK") %>%
+  left_join(locations, by = "Location_ID")
+dim(TURB_tss)
+
+# merge tss and turbidity (ALL ROWS)
+TURB_TSS <- turb2 %>%
+  full_join(sm.tss2, by = "PK") %>%
+  left_join(locations, by = "Location_ID")
+dim(TURB_tss)
 
 ################################ mapping ################################################ 
 # turb_nums$loc=paste(turb_nums$lat, turb_nums$lon, sep=":") ## create a lat:long location variable
@@ -268,3 +282,11 @@ turb_tss %>%
   scale_x_date(date_breaks = '3 years', date_labels = '%Y')
 ################################ EDA plots ################################################ 
 
+################################ HUCs ################################################ 
+# following introductory vignette at 
+# https://cran.r-project.org/web/packages/MazamaSpatialUtils/vignettes/introduction.html
+setSpatialDataDir('~/Data/Spatial')
+# installSpatialData()
+loadSpatialData('WBDHU')
+
+################################ HUCs ################################################ 
