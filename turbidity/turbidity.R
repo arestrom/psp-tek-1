@@ -1,5 +1,5 @@
 library(tidyverse)
-library(ggmap)
+# library(ggmap)
 library(leaflet)
 
 # library(sp)  # classes for spatial data
@@ -7,7 +7,6 @@ library(leaflet)
 # library(rasterVis)  # raster visualisation
 # library(maptools)
 # library(rgeos)
-# library(googleVis)
 
 # NOTE: http://apps.leg.wa.gov/WAC/default.aspx?dispo=true&cite=173-201A-200
   #Turbidity shall not exceed:
@@ -21,13 +20,10 @@ turbidity <- read.csv('./data/EIMResults.csv', header = TRUE)
 summary(turbidity)
 
 # create a data frame tbl for easy printing
-turb.tib <- tbl_df(turbidity)
-turb.tib
-
 # select only variables of interest, rename lengthy variable names
 # convert dates to date format
 # obtain log(x+1) since there are some negative values if use log(x)
-turb <- turb.tib %>%
+turb <- tbl_df(turbidity) %>%
   select(Study_ID, Study_Name, Location_ID, Location_Name, 
          Field_Collection_Start_Date, Field_Collection_End_Date,
          Result_Value, Calculated_Latitude_Decimal_Degrees_NAD83HARN,
@@ -39,26 +35,22 @@ turb <- turb.tib %>%
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
          end_date = as.Date(end_date, format = "%m/%d/%Y"),
          logturb = log10(turbidity_NTU+1))
-  # %>%
-  # # mutate(duration = end_date - start_date) %>%
-  # spread(key = Result_Parameter_Name, value = Result_Value)
+
 dim(turb)
-distinct(turb, Result_Parameter_Name)
-turb
+min(turb$end_date)
+max(turb$end_date)
+distinct(turb, Location_ID)
+# turb
 
 # load location data file
-locations <- read.csv('./data/EIMLocationDetails.csv', header = TRUE)
-head(locations)
-
 # select only ID and WRIA
-locs <- tbl_df(locations) %>%
+locations <- read.csv('./data/EIMLocationDetails.csv', header = TRUE) %>%
   select(Location_ID, Watershed_WRIA)
 # unique(locs$Watershed_WRIA)
+
 # join wria to main data file
 turb_wria <- turb %>%
   left_join(locs, by = "Location_ID")
-# head(turb_wria)
-# View(turb_wria)
 
 # label wria name with wria number
 turb_nums <- turb_wria %>% 
@@ -68,16 +60,11 @@ turb_nums <- turb_wria %>%
                                    ifelse(Watershed_WRIA == "Quilcence-Snow", 17,
                                           ifelse(Watershed_WRIA == "Elwah-Dungeness", 18,
                                                  NA))))))
-# sm <- turb %>%
-#   filter(Watershed_WRIA == "Skokomish-Dosewallips")
-# dim(sm)
-# 
-# turb_nums %>%
-#   group_by(Study_ID, Location_ID, start_date)
 
 # load the tss data 
 tss <- read.csv('../TSS/data/EIMResults.csv', header = TRUE)
 # select only variables of interest, rename lengthy variable names
+# create Primary Key for merging with turbidity
 tss2 <- tbl_df(tss) %>%
   select(Study_ID, Study_Name, Location_ID, 
          Field_Collection_Start_Date, Field_Collection_Start_Date_Time,
@@ -91,7 +78,14 @@ tss2 <- tbl_df(tss) %>%
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
          logTSS = log10(tss_mgL))
 
-turb2 <- turb.tib %>%
+dim(tss2)
+min(tss2$start_date)
+max(tss2$start_date)
+distinct(tss2, Location_ID)
+
+# create a new turbidity data frame with a Primary Key (Study_ID, Location_ID, datetime)
+# for merging with the tss data
+turb2 <- tbl_df(turbidity) %>%
   select(Study_ID, Study_Name, Location_ID, 
          Field_Collection_Start_Date, Field_Collection_Start_Date_Time,
          Result_Value, Calculated_Latitude_Decimal_Degrees_NAD83HARN,
@@ -274,17 +268,3 @@ turb_tss %>%
   scale_x_date(date_breaks = '3 years', date_labels = '%Y')
 ################################ EDA plots ################################################ 
 
-### parameter names: ###
-# Study_Name <fctr>, Location_ID <fctr>,
-#   Study_Specific_Location_ID <fctr>, Location_Name <fctr>,
-#   Field_Collection_Type <fctr>, Field_Collector <fctr>,
-#   Field_Collection_Start_Date <fctr>,
-#   Field_Collection_Start_Time <fctr>,
-#   Field_Collection_Start_Date_Time <fctr>,
-#   Field_Collection_End_Date <fctr>,
-# Result_Parameter_Name <fctr>,
-#   Result_Parameter_CAS_Number <lgl>, Lab_Analysis_Date <fctr>,
-#   Lab_Analysis_Date_Accuracy <fctr>, Lab_Analysis_Time <fctr>,
-#   Result_Value <dbl>, Result_Value_Units <fctr>,
-# Calculated_Latitude_Decimal_Degrees_NAD83HARN <dbl>,
-#   Calculated_Longitude_Decimal_Degrees_NAD83HARN <dbl>,
