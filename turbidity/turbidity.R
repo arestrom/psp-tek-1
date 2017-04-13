@@ -18,7 +18,7 @@ library(MazamaSpatialUtils)
 turbidity <- read.csv('./data/EIMResults.csv', header = TRUE)
 
 # print out information on the variables it contains
-summary(turbidity)
+# summary(turbidity)
 
 # create a data frame tbl for easy printing
 # select only variables of interest, rename lengthy variable names
@@ -37,90 +37,107 @@ turb <- tbl_df(turbidity) %>%
          end_date = as.Date(end_date, format = "%m/%d/%Y"),
          logturb = log10(turbidity_NTU+1))
 
-dim(turb)
-min(turb$end_date)
-max(turb$end_date)
-distinct(turb, Location_ID)
+# dim(turb)
+# min(turb$end_date)
+# max(turb$end_date)
+# distinct(turb, Location_ID)
 # turb
 
 # load location data file
 # select only ID and WRIA
-locations <- read.csv('./data/EIMLocationDetails.csv', header = TRUE) %>%
+turbidity_locations <- read.csv('./data/EIMLocationDetails.csv', header = TRUE) %>%
   select(Location_ID, Watershed_WRIA)
 # unique(locs$Watershed_WRIA)
 
-# join wria to main data file
-turb_wria <- turb %>%
-  left_join(locations, by = "Location_ID")
+# create a turbidity data frame 
+# for merging with the tss data
 
-# label wria name with wria number
-turb_nums <- turb_wria %>% 
+turbidity <- read.csv('./data/EIMResults.csv', header = TRUE) %>%
+  select(Study_ID, Study_Name, Location_ID, 
+         Field_Collection_Start_Date, Field_Collection_Start_Date_Time,
+         Result_Value, Calculated_Latitude_Decimal_Degrees_NAD83HARN,
+         Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
+  rename(start_date = Field_Collection_Start_Date, dt = Field_Collection_Start_Date_Time,
+         measurement_value = Result_Value, 
+         lat = Calculated_Latitude_Decimal_Degrees_NAD83HARN,
+         lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
+  # unite(PK, Study_ID, Location_ID, dt, remove = FALSE) %>%
+  mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
+         logValue = log10(measurement_value+1),
+         measurement_type = 'turbidity_NTU') %>%
+  # join wria to main data file
+  # label wria name with wria number
+  left_join(turbidity_locations, by = "Location_ID") %>% 
   mutate(WRIA_ID = ifelse(Watershed_WRIA == "Kitsap", 15, 
-                     ifelse(Watershed_WRIA == "Kennedy-Goldsborough", 14,
-                            ifelse(Watershed_WRIA == "Skokomish-Dosewallips", 16,
-                                   ifelse(Watershed_WRIA == "Quilcence-Snow", 17,
-                                          ifelse(Watershed_WRIA == "Elwah-Dungeness", 18,
-                                                 NA))))))
+                          ifelse(Watershed_WRIA == "Kennedy-Goldsborough", 14,
+                                 ifelse(Watershed_WRIA == "Skokomish-Dosewallips", 16,
+                                        ifelse(Watershed_WRIA == "Quilcence-Snow", 17,
+                                               ifelse(Watershed_WRIA == "Elwah-Dungeness", 18,
+                                                      NA))))))
+
+
+
+# load tss location data file
+# select only ID and WRIA
+tss_locations <- read.csv('../TSS/data/EIMLocationDetails.csv', header = TRUE) %>%
+  select(Location_ID, Watershed_WRIA)
 
 # load the tss data 
-tss <- read.csv('../TSS/data/EIMResults.csv', header = TRUE)
 # select only variables of interest, rename lengthy variable names
 # create Primary Key for merging with turbidity
-tss2 <- tbl_df(tss) %>%
+tss <- read.csv('../TSS/data/EIMResults.csv', header = TRUE) %>%
   select(Study_ID, Study_Name, Location_ID, 
          Field_Collection_Start_Date, Field_Collection_Start_Date_Time,
          Result_Value, Calculated_Latitude_Decimal_Degrees_NAD83HARN,
          Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
   rename(start_date = Field_Collection_Start_Date, dt = Field_Collection_Start_Date_Time,
-         tss_mgL = Result_Value,
+         measurement_value = Result_Value,
          lat = Calculated_Latitude_Decimal_Degrees_NAD83HARN,
          lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
-  unite(PK, Study_ID, Location_ID, dt, remove = FALSE) %>%
+  # unite(PK, Study_ID, Location_ID, dt, remove = FALSE) %>%
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
-         logTSS = log10(tss_mgL))
+         logValue = log10(measurement_value+1),
+         measurement_type = 'tss_mgL') %>%
+  left_join(tss_locations, by = "Location_ID") %>% 
+  mutate(WRIA_ID = ifelse(Watershed_WRIA == "Kitsap", 15, 
+                          ifelse(Watershed_WRIA == "Kennedy-Goldsborough", 14,
+                                 ifelse(Watershed_WRIA == "Skokomish-Dosewallips", 16,
+                                        ifelse(Watershed_WRIA == "Quilcence-Snow", 17,
+                                               ifelse(Watershed_WRIA == "Elwah-Dungeness", 18,
+                                                      NA))))))
 
-dim(tss2)
-min(tss2$start_date)
-max(tss2$start_date)
-distinct(tss2, Location_ID)
 
-# create a new turbidity data frame with a Primary Key (Study_ID, Location_ID, datetime)
-# for merging with the tss data
-turb2 <- tbl_df(turbidity) %>%
-  select(Study_ID, Study_Name, Location_ID, 
-         Field_Collection_Start_Date, Field_Collection_Start_Date_Time,
-         Result_Value, Calculated_Latitude_Decimal_Degrees_NAD83HARN,
-         Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
-  rename(start_date = Field_Collection_Start_Date, dt = Field_Collection_Start_Date_Time,
-         turbidity_NTU = Result_Value,
-         lat = Calculated_Latitude_Decimal_Degrees_NAD83HARN,
-         lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
-  unite(PK, Study_ID, Location_ID, dt, remove = FALSE) %>%
-  mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
-         logTurbidity = log10(turbidity_NTU+1))
+# add both dataframes together, then clean up data
+TURB_TSS <- rbind(turbidity,tss)
 
-dim(turb2)
-turb2 <- unique(turb2)
-tss2 <- unique(tss2)
-sm.tss2 <- select(tss2, PK, tss_mgL, logTSS)
+#update IDs
+df3$ID <- 1:nrow(df3)
 
-# merge tss and turbidity (only rows with BOTH measures)
-turb_tss <- turb2 %>%
-  inner_join(sm.tss2, by = "PK") %>%
-  left_join(locations, by = "Location_ID")
-dim(turb_tss)
-
-# merge tss and turbidity (all rows from turbidity measures)
-TURB_tss <- turb2 %>%
-  left_join(sm.tss2, by = "PK") %>%
-  left_join(locations, by = "Location_ID")
-dim(TURB_tss)
-
-# merge tss and turbidity (ALL ROWS)
-TURB_TSS <- turb2 %>%
-  full_join(sm.tss2, by = "PK") %>%
-  left_join(locations, by = "Location_ID")
-dim(TURB_TSS)
+# # dim(turb2)
+# turb2 <- unique(turb2)
+# tss2 <- unique(tss2)
+# sm.tss2 <- select(tss2, PK, tss_mgL, logTSS)
+# 
+# # merge tss and turbidity (only rows with BOTH measures)
+# turb_tss <- turb2 %>%
+#   inner_join(sm.tss2, by = "PK") %>%
+#   left_join(locations, by = "Location_ID")
+# dim(turb_tss)
+# 
+# # merge tss and turbidity (all rows from turbidity measures)
+# TURB_tss <- turb2 %>%
+#   left_join(sm.tss2, by = "PK") %>%
+#   left_join(locations, by = "Location_ID")
+# dim(TURB_tss)
+# 
+# # merge tss and turbidity (ALL ROWS)
+# TURB_TSS <- turb2 %>%
+#   full_join(tss2, by = "PK") 
+# # %>%
+# #   left_join(locations, by = "Location_ID")
+# dim(TURB_TSS)
+# 
+# tssnas <- tss2[is.na(tss2$Location_ID),]
 
 ################################ mapping ################################################ 
 # turb_nums$loc=paste(turb_nums$lat, turb_nums$lon, sep=":") ## create a lat:long location variable
