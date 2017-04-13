@@ -1,5 +1,6 @@
 library(tidyverse)
 library(stringr)
+library(MazamaSpatialUtils)
 
 #################### EAGL DATA #################### 
 eagl_df <- read.csv('./data/eagl.csv', header = TRUE) %>%
@@ -42,11 +43,47 @@ mdf <- merge(x = hc_df, y = f_df, by = "ProjectNumber", all.x = TRUE) %>%
 
 
 #################### MERGE #################### 
+
 all_projects <- bind_rows(mdf, eagl_df)
 
-# write.csv(mdf, file = "merge.csv",row.names=FALSE,quotes=FALSE)
+#################### MERGE #################### 
 
-# mdf <- tbl_df(mdf)
-# mdf
-# eagl_df <- tbl_df(eagl_df)
-# eagl_df
+################################ HUCs ################################################ 
+# following introductory vignette at 
+# https://cran.r-project.org/web/packages/MazamaSpatialUtils/vignettes/introduction.html
+
+# need to install the data separately via command line (see mazama github)
+setSpatialDataDir('~/Data/Spatial')
+loadSpatialData('WBDHU')
+# only need to do the command below once (i think)
+# installSpatialData()
+
+# testing country stuff
+# loadSpatialData('NaturalEarthAdm1')
+# country <- tbl_df(getCountry(all_projects$lon,all_projects$lat, allData=TRUE))
+
+# get the HUC 12 and HUC 10 id's for each row
+huc_ids <- all_projects %>%
+  mutate(HUC12_id = getHUC(lon, lat, SPDF = WBDHU12),
+         HUC10_id = getHUC(lon, lat, SPDF = WBDHU10))
+
+# get the HUC 12 Names for each HUC ID in the dataset
+huc12 <- tbl_df(getHUC(all_projects$lon,all_projects$lat, SPDF = WBDHU12, allData=TRUE)) %>%
+  # unite(coords, latitude, longitude, remove = FALSE) %>%
+  rename(HUC12_id = HUC, HUC12_Name = HUCName) %>%
+  select(HUC12_id, HUC12_Name)
+
+huc12 <- distinct(huc12)
+
+# get the HUC 10 Names for each HUC ID in the dataset
+huc10 <- tbl_df(getHUC(all_projects$lon,all_projects$lat, SPDF = WBDHU10, allData=TRUE)) %>%
+  rename(HUC10_id = HUC, HUC10_Name = HUCName) %>%
+  select(HUC10_id, HUC10_Name)
+
+huc10 <- distinct(huc10)
+
+# join the HUC Names to the HUC ids for each row
+project_huc <- huc_ids %>%
+  inner_join(huc12, by = 'HUC12_id') %>%
+  inner_join(huc10, by = 'HUC10_id')
+################################ HUCs ################################################ 
