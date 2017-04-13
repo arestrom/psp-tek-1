@@ -123,6 +123,9 @@ huc10 <- distinct(huc10)
 water_huc <- huc_ids %>%
   inner_join(huc12, by = 'HUC12_id') %>%
   inner_join(huc10, by = 'HUC10_id')
+
+saveRDS(water_huc, "./data/water_huc.rds")
+# whmod2 <- readRDS("./data/water_huc.rds")
 ################################ HUCs ################################################ 
 
 
