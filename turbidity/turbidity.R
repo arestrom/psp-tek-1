@@ -24,12 +24,12 @@ turbidity <- read.csv('./data/EIMResults.csv', header = TRUE) %>%
          Result_Value, Calculated_Latitude_Decimal_Degrees_NAD83HARN,
          Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
   rename(start_date = Field_Collection_Start_Date, 
-         measurement_value = Result_Value, 
+         measurement = Result_Value, 
          lat = Calculated_Latitude_Decimal_Degrees_NAD83HARN,
          lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
          logMeasurement = log10(measurement_value+1),
-         measurement_type = 'Turbidity',
+         result_type = 'Turbidity',
          unit = 'NTU') %>%
   # join wria to main data file
   # label wria name with wria number
@@ -56,12 +56,12 @@ tss <- read.csv('../TSS/data/EIMResults.csv', header = TRUE) %>%
          Result_Value, Calculated_Latitude_Decimal_Degrees_NAD83HARN,
          Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
   rename(start_date = Field_Collection_Start_Date,
-         measurement_value = Result_Value,
+         measurement = Result_Value,
          lat = Calculated_Latitude_Decimal_Degrees_NAD83HARN,
          lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
          logMeasurement = log10(measurement_value+1),
-         measurement_type = 'TSS',
+         result_type = 'TSS',
          unit = 'mg/L') %>%
   left_join(tss_locations, by = "Location_ID") %>% 
   mutate(WRIA_ID = ifelse(Watershed_WRIA == "Kitsap", 15, 
