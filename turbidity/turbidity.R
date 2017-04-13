@@ -28,7 +28,7 @@ turbidity <- read.csv('./data/EIMResults.csv', header = TRUE) %>%
          lat = Calculated_Latitude_Decimal_Degrees_NAD83HARN,
          lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
-         logMeasurement = log10(measurement_value+1),
+         logMeasurement = log10(measurement+1),
          result_type = 'Turbidity',
          unit = 'NTU') %>%
   # join wria to main data file
@@ -60,7 +60,7 @@ tss <- read.csv('../TSS/data/EIMResults.csv', header = TRUE) %>%
          lat = Calculated_Latitude_Decimal_Degrees_NAD83HARN,
          lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
-         logMeasurement = log10(measurement_value+1),
+         logMeasurement = log10(measurement+1),
          result_type = 'TSS',
          unit = 'mg/L') %>%
   left_join(tss_locations, by = "Location_ID") %>% 
