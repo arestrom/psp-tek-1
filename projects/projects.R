@@ -88,5 +88,5 @@ project_huc <- huc_ids %>%
   inner_join(huc10, by = 'HUC10_id')
 
 saveRDS(project_huc, "./data/project_huc.rds")
-ph <- readRDS("./data/project_huc.rds")
+
 ################################ HUCs ################################################ 
