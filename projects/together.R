@@ -1,6 +1,6 @@
 library(tidyverse)
 # library(stringr)
-library(MazamaSpatialUtils)
+# library(MazamaSpatialUtils)
 library(lsr) 
 
 
@@ -33,7 +33,7 @@ chum_counts <- readRDS("../psp-chum/data/tidychum.rds") %>%
   left_join(chum_locations)
 
 ph10 <- readRDS("./data/project_huc.rds") %>%
-  filter(HUC10_Name %in% unique(chum$HUC10_Name))  %>%
+  filter(HUC10_Name %in% unique(chum_counts$HUC10_Name))  %>%
   group_by(HUC10_Name) %>%
   mutate(meanyr = mean(as.numeric(year)),
          medianyr = median(as.numeric(year)))
@@ -52,7 +52,7 @@ huc10_med <- ph10 %>%
 #             numyrs = n_distinct(year))
 
 ph12 <- readRDS("./data/project_huc.rds") %>%
-  filter(HUC12_Name %in% unique(chum$HUC12_Name)) %>%
+  filter(HUC12_Name %in% unique(chum_counts$HUC12_Name)) %>%
   group_by(HUC12_Name) %>%
   mutate(meanyr = mean(as.numeric(year)),
          medianyr = median(as.numeric(year)))
@@ -71,7 +71,7 @@ huc12_med <- ph12 %>%
 #             numyrs = n_distinct(year))
 
 wa10 <- readRDS("../turbidity/data/water_huc.rds") %>%
-  filter(HUC10_Name %in% unique(chum$HUC10_Name)) %>%
+  filter(HUC10_Name %in% unique(chum_counts$HUC10_Name)) %>%
   mutate(year = format(start_date,"%Y")) %>%
   left_join(huc10_med, by = "HUC10_Name") %>%
   group_by(HUC10_Name) %>%
@@ -80,7 +80,7 @@ wa10 <- readRDS("../turbidity/data/water_huc.rds") %>%
                                     'during')))
          
 wa12 <- readRDS("../turbidity/data/water_huc.rds") %>%
- filter(HUC12_Name %in% unique(chum$HUC12_Name)) %>%
+ filter(HUC12_Name %in% unique(chum_counts$HUC12_Name)) %>%
  mutate(year = format(start_date,"%Y")) %>%
  left_join(huc12_med, by = "HUC12_Name") %>%
  group_by(HUC12_Name) %>%
@@ -100,10 +100,19 @@ chum10 <- chum_counts %>%
   mutate(TimePeriod = ifelse(year > medianyr, 'after',
                              ifelse(year < medianyr, 'before',
                                     'during'))) %>%
+  filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
   spread(TimePeriod, count) %>%
-  mutate(cohensd = cohensD(before, after))
+  mutate(cohensd = cohensD(before, after)) %>%
+  gather('TimePeriod', 'count', `before`, `after`)
 
-# filter(is.na(TimePeriod)) %>%
-# filter(TimePeriod == 'before', TimePeriod == 'after') %>%
-#   %>%
-#   gather(before, after, 'TimePeriod', 'count')
+chum12 <- chum_counts %>%
+  left_join(huc12_med, by = "HUC12_Name") %>%
+  group_by(HUC12_Name) %>%
+  mutate(TimePeriod = ifelse(year > medianyr, 'after',
+                             ifelse(year < medianyr, 'before',
+                                    'during'))) %>%
+  filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
+  spread(TimePeriod, count) %>%
+  mutate(cohensd = cohensD(before, after)) %>%
+  gather('TimePeriod', 'count', `before`, `after`)
+
