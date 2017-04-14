@@ -107,68 +107,50 @@ chumtwo$jitterlng <- as.numeric(jitter(chumtwo$lng, factor = 10))
 chumtwo$jitterlat <- as.numeric(jitter(chumtwo$lat, factor = 10))
 
 ############################# ADD IN HUCS ############################# 
-# following introductory vignette at 
-# https://cran.r-project.org/web/packages/MazamaSpatialUtils/vignettes/introduction.html
 
-# need to install the data separately via command line (see mazama github)
-setSpatialDataDir('~/Data/Spatial')
-# THIS TAKES A WHILE
-loadSpatialData('WBDHU')
-# only need to do the command below once (i think)
-# installSpatialData()
-
-# get the HUC 12 and HUC 10 id's for each row
-# THIS TAKES A WHILE
-huc_ids <- chumtwo %>%
-  mutate(HUC12_id = getHUC(lng, lat, SPDF = WBDHU12),
-         HUC10_id = getHUC(lng, lat, SPDF = WBDHU10))
-
-# THIS TAKES A WHILE
-# get the HUC 12 Names for each HUC ID in the dataset
-huc12 <- tbl_df(getHUC(chumtwo$lng,chumtwo$lat, SPDF = WBDHU12, allData=TRUE)) %>%
-  # unite(coords, latitude, longitude, remove = FALSE) %>%
-  rename(HUC12_id = HUC, HUC12_Name = HUCName) %>%
-  select(HUC12_id, HUC12_Name)
-
-huc12 <- distinct(huc12)
-
-# THIS TAKES A WHILE
-# get the HUC 10 Names for each HUC ID in the dataset
-huc10 <- tbl_df(getHUC(chumtwo$lng,chumtwo$lat, SPDF = WBDHU10, allData=TRUE)) %>%
-  rename(HUC10_id = HUC, HUC10_Name = HUCName) %>%
-  select(HUC10_id, HUC10_Name)
-
-huc10 <- distinct(huc10)
-
-# join the HUC Names to the HUC ids for each row
-chum_huc <- huc_ids %>%
-  inner_join(huc12, by = 'HUC12_id') %>%
-  inner_join(huc10, by = 'HUC10_id')
-
-# because HUCing takes a while, save the output to an r data file that can be loaded in the app
-saveRDS(chum_huc, "./data/chum_huc.rds")
-# test that loading works
+# load saved data
 ch <- readRDS("./data/chum_huc.rds")
 
-# print out distinct HUC names (chum are the smallest group, limits all other measurements)
-unique(ch$HUC10_Name)
-# [1] "Little Quillcene River-Frontal Hood Canal"
-# [2] "Jefferson Creek-Hamma Hamma River"        
-# [3] "Tahuya River-Frontal Hood Canal"          
-# [4] "Hood Canal"                               
-# [5] "Lilliwaup Creek-Frontal Hood Canal"       
-# [6] "Skokomish River-Frontal Hood Canal" 
-
-unique(ch$HUC12_Name)
-# [1] "Spencer Creek-Frontal Dabob Bay"   
-# [2] "Hamma Hamma River"                 
-# [3] "Tahuya River"                      
-# [4] "Hood Canal"                        
-# [5] "Big Beef Creek-Frontal Hood Canal" 
-# [6] "Tarboo Creek-Frontal Dabob Bay"    
-# [7] "Dewatto River"                     
-# [8] "Finch Creek-Frontal Hood Canal"    
-# [9] "Skokomish River-Frontal Hood Canal"
+# # following introductory vignette at 
+# # https://cran.r-project.org/web/packages/MazamaSpatialUtils/vignettes/introduction.html
+# 
+# # need to install the data separately via command line (see mazama github)
+# setSpatialDataDir('~/Data/Spatial')
+# # THIS TAKES A WHILE
+# loadSpatialData('WBDHU')
+# # only need to do the command below once (i think)
+# # installSpatialData()
+# 
+# # get the HUC 12 and HUC 10 id's for each row
+# # THIS TAKES A WHILE
+# huc_ids <- chumtwo %>%
+#   mutate(HUC12_id = getHUC(lng, lat, SPDF = WBDHU12),
+#          HUC10_id = getHUC(lng, lat, SPDF = WBDHU10))
+# 
+# # THIS TAKES A WHILE
+# # get the HUC 12 Names for each HUC ID in the dataset
+# huc12 <- tbl_df(getHUC(chumtwo$lng,chumtwo$lat, SPDF = WBDHU12, allData=TRUE)) %>%
+#   # unite(coords, latitude, longitude, remove = FALSE) %>%
+#   rename(HUC12_id = HUC, HUC12_Name = HUCName) %>%
+#   select(HUC12_id, HUC12_Name)
+# 
+# huc12 <- distinct(huc12)
+# 
+# # THIS TAKES A WHILE
+# # get the HUC 10 Names for each HUC ID in the dataset
+# huc10 <- tbl_df(getHUC(chumtwo$lng,chumtwo$lat, SPDF = WBDHU10, allData=TRUE)) %>%
+#   rename(HUC10_id = HUC, HUC10_Name = HUCName) %>%
+#   select(HUC10_id, HUC10_Name)
+# 
+# huc10 <- distinct(huc10)
+# 
+# # join the HUC Names to the HUC ids for each row
+# chum_huc <- huc_ids %>%
+#   inner_join(huc12, by = 'HUC12_id') %>%
+#   inner_join(huc10, by = 'HUC10_id')
+# 
+# # because HUCing takes a while, save the output to an r data file that can be loaded in the app
+# saveRDS(chum_huc, "./data/chum_huc.rds")
 
 ############################# ADD IN HUCS ############################# 
 
@@ -213,6 +195,8 @@ colnames(tidychum) <- c("year", "site", "count")
 tidychum$count <- as.numeric(gsub(",","",tidychum$count))
 # dealing with N/A values
 tidychum <- na.omit(tidychum)
+
+# saveRDS(tidychum, "./data/tidychum.rds")
 
 chumchoices <- c("Select All", 
                  "Anderson Creek - Natural",
