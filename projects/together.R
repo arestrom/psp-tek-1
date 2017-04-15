@@ -102,7 +102,7 @@ water12 <- readRDS("../turbidity/data/water_huc.rds") %>%
 # group by measurement type (TSS or turbidity), then by HUC 10
 # categorize each row as before, during or after the median project year in each HUC
 water10 <- readRDS("../turbidity/data/water_huc.rds") %>%
-  filter(HUC10_Name %in% unique(chum_counts$HUC12_Name)) %>%
+  filter(HUC10_Name %in% unique(chum_counts$HUC10_Name)) %>%
   mutate(year = format(start_date,"%Y")) %>%
   left_join(huc10_med, by = "HUC10_Name") %>%
   group_by(result_type, HUC10_Name) %>%
@@ -228,7 +228,10 @@ chum10 <- chum_counts %>%
   left_join(achum10, by = "HUC10_Name") %>%
   mutate(status = ifelse(meanbefore > meanafter, 'worse',
                          ifelse(meanbefore < meanafter, 'improving',
-                                'no change')))
+                                'no change')),
+         color = ifelse(status == 'worse', 'red',
+                        ifelse(status == 'improving', 'green',
+                               'black')))
 
 # read in the chum count dataframe, 
 # add median project year for each HUC
@@ -313,28 +316,27 @@ m12 %>%
     options = layersControlOptions(collapsed = FALSE)
   )
 
-m10 <- leaflet(data = chum10) %>% 
-  setView(lng = -102.996823, lat = 47.5642594, zoom = 9)
-
-m10 %>%
+m10 <- leaflet() %>% 
+  setView(lng = -122.996823, lat = 47.5642594, zoom = 9) %>%
   addProviderTiles("Stamen.Terrain") %>%
-  addCircleMarkers(~lon, ~lat, popup = chum10$status,
+  addCircleMarkers(ph10$lon, ph10$lat, popup = ph10$year,
+                   radius = 4,
+                   color = 'orange',
+                   stroke = FALSE, fillOpacity = 1,
+                   group = "Projects") %>%
+  addCircleMarkers(chum10$lon, chum10$lat, popup = chum10$status,
                    radius = 6,
                    color = chum10$color,
                    stroke = FALSE, fillOpacity = 0.5,
                    group = "Chum") %>%
-  addCircleMarkers(ph10$lon, ph10$lat, popup = ph10$year,
-                   radius = 6,
-                   color = 'orange',
-                   stroke = FALSE, fillOpacity = 0.5,
-                   group = "Projects") %>%
   addCircleMarkers(wa10$lon, wa10$lat, popup = wa10$measurement,
                    radius = 6,
                    color = wa10$color,
-                   stroke = FALSE, fillOpacity = 0.5,
+                   stroke = FALSE, fillOpacity = 0.2,
                    group = "Water") %>%
   addLayersControl(
     baseGroups = c("Chum", "Water"),
     overlayGroups = "Projects",
     options = layersControlOptions(collapsed = FALSE)
   )
+m10
