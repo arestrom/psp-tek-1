@@ -110,6 +110,19 @@ water10 <- readRDS("../turbidity/data/water_huc.rds") %>%
                              ifelse(year < medianyr, 'before',
                                     'during')))
 
+# create a dataframe with the mean water quality measurements before/after projects
+# obtain the mean water quality measurement for each HUC for each time period
+bwa10 <- water10 %>%
+  filter(TimePeriod == 'before') %>%
+  spread(TimePeriod, measurement) %>%
+  summarise(meanbefore = mean(before))
+
+awa10 <- water10 %>%
+  filter(TimePeriod == 'after') %>%
+  spread(TimePeriod, measurement) %>%
+  summarise(meanafter = mean(after))
+
+
 # calculate the cohensD for each measurement in each HUC (add new column)
 # then, tidy the output dataframe
 wa10 <- water10 %>%
@@ -120,7 +133,15 @@ wa10 <- water10 %>%
   filter(!is.na(measurement)) %>%
   mutate(effectsize = ifelse(cohensd < 0.5, 'small',
                              ifelse(cohensd >= 0.8, 'large',
-                                    'medium')))
+                                    'medium'))) %>%
+  left_join(bwa10, by = "HUC10_Name") %>%
+  left_join(awa10, by = "HUC10_Name") %>%
+  mutate(status = ifelse(meanbefore > meanafter, 'worse',
+                         ifelse(meanbefore < meanafter, 'improving',
+                                'no change')),
+         color = ifelse(status == 'worse', 'red',
+                        ifelse(status == 'improving', 'green',
+                               'black')))
 
 
 
@@ -291,18 +312,29 @@ m12 %>%
     overlayGroups = "Projects",
     options = layersControlOptions(collapsed = FALSE)
   )
-  
-qpal <- colorQuantile("BuPu", chum12$cohensd)
-m %>%
-  addProviderTiles("Stamen.Terrain", group = "Terrain") %>%
-  addCircleMarkers(~lon, ~lat, 
+
+m10 <- leaflet(data = chum10) %>% 
+  setView(lng = -102.996823, lat = 47.5642594, zoom = 9)
+
+m10 %>%
+  addProviderTiles("Stamen.Terrain") %>%
+  addCircleMarkers(~lon, ~lat, popup = chum10$status,
                    radius = 6,
-                   fillColor = ~qpal(cohensd),
+                   color = chum10$color,
                    stroke = FALSE, fillOpacity = 0.5,
                    group = "Chum") %>%
-  # addLegend(pal = qpal, values = ~cohensd, opacity = 1) %>%
+  addCircleMarkers(ph10$lon, ph10$lat, popup = ph10$year,
+                   radius = 6,
+                   color = 'orange',
+                   stroke = FALSE, fillOpacity = 0.5,
+                   group = "Projects") %>%
+  addCircleMarkers(wa10$lon, wa10$lat, popup = wa10$measurement,
+                   radius = 6,
+                   color = wa10$color,
+                   stroke = FALSE, fillOpacity = 0.5,
+                   group = "Water") %>%
   addLayersControl(
-    baseGroups = "Terrain",
-    overlayGroups = "Chum",
+    baseGroups = c("Chum", "Water"),
+    overlayGroups = "Projects",
     options = layersControlOptions(collapsed = FALSE)
   )
