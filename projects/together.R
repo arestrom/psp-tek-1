@@ -122,13 +122,43 @@ awa10 <- water10 %>%
   spread(TimePeriod, measurement) %>%
   summarise(meanafter = mean(after))
 
+process_water <- function(df, bwaName, awaName, HUCX_Name) {
+  newdf <- df %>%
+    filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
+    spread(TimePeriod, measurement) %>%
+    mutate(cohensd = cohensD(before, after)) %>%
+    filter(!cohensd == 'NaN') %>%
+    gather('TimePeriod', 'measurement', `before`, `after`) %>%
+    filter(!is.na(measurement)) %>%
+    mutate(effectsize = ifelse(cohensd < 0.5, 'small',
+                               ifelse(cohensd >= 0.8, 'large',
+                                      'medium'))) %>%
+    left_join(bwaName, by = HUCX_Name) %>%
+    left_join(awaName, by = HUCX_Name) %>%
+    mutate(status = ifelse(meanbefore > meanafter, 'worse',
+                           ifelse(meanbefore < meanafter, 'improving',
+                                  'no change')),
+           color = ifelse(status == 'worse', '#e41a1c',
+                          ifelse(status == 'improving', '#4daf4a',
+                                 'black')),
+           coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
+                                ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
+                                       ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
+                                              ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
+                                                     ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
+                                                            ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
+                                                                   NA)))))))
+  return(newdf)
+}
 
+wa10 <- process_water(water10, bwa10, awa10, 'HUC10_Name')
 # calculate the cohensD for each measurement in each HUC (add new column)
 # then, tidy the output dataframe
 wa10 <- water10 %>%
   filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
   spread(TimePeriod, measurement) %>%
   mutate(cohensd = cohensD(before, after)) %>%
+  filter(!cohensd == 'NaN') %>%
   gather('TimePeriod', 'measurement', `before`, `after`) %>%
   filter(!is.na(measurement)) %>%
   mutate(effectsize = ifelse(cohensd < 0.5, 'small',
@@ -139,9 +169,16 @@ wa10 <- water10 %>%
   mutate(status = ifelse(meanbefore > meanafter, 'worse',
                          ifelse(meanbefore < meanafter, 'improving',
                                 'no change')),
-         color = ifelse(status == 'worse', 'red',
-                        ifelse(status == 'improving', 'green',
-                               'black')))
+         color = ifelse(status == 'worse', '#e41a1c',
+                        ifelse(status == 'improving', '#4daf4a',
+                               'black')),
+         coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
+                              ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
+                                     ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
+                                            ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
+                                                   ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
+                                                          ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
+                                                                 NA)))))))
 
 
 
@@ -165,6 +202,7 @@ wa12 <- water12 %>%
   filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
   spread(TimePeriod, measurement) %>%
   mutate(cohensd = cohensD(before, after)) %>%
+  filter(!cohensd == 'NaN') %>%
   gather('TimePeriod', 'measurement', `before`, `after`) %>%
   filter(!is.na(measurement)) %>%
   mutate(effectsize = ifelse(cohensd < 0.5, 'small',
@@ -175,9 +213,20 @@ wa12 <- water12 %>%
   mutate(status = ifelse(meanbefore > meanafter, 'worse',
                          ifelse(meanbefore < meanafter, 'improving',
                                 'no change')),
-         color = ifelse(status == 'worse', 'red',
-                        ifelse(status == 'improving', 'green',
-                               'black')))
+         color = ifelse(status == 'worse', '#e41a1c',
+                        ifelse(status == 'improving', '#4daf4a',
+                               'black')),
+         coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
+                              ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
+                                     ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
+                                            ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
+                                                   ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
+                                                          ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
+                                                                 NA))))))) %>%
+  summarise()
+# %>%
+#   filter(year == max(year))
+
 # read in the chum count dataframe, 
 # add median project year for each HUC
 # group by HUC 10
@@ -219,6 +268,7 @@ chum10 <- chum_counts %>%
   filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
   spread(TimePeriod, count) %>%
   mutate(cohensd = cohensD(before, after)) %>%
+  filter(!cohensd == 'NaN') %>%
   gather('TimePeriod', 'count', `before`, `after`) %>%
   filter(!is.na(count)) %>%
   mutate(effectsize = ifelse(cohensd < 0.5, 'small',
@@ -229,9 +279,16 @@ chum10 <- chum_counts %>%
   mutate(status = ifelse(meanbefore > meanafter, 'worse',
                          ifelse(meanbefore < meanafter, 'improving',
                                 'no change')),
-         color = ifelse(status == 'worse', 'red',
-                        ifelse(status == 'improving', 'green',
-                               'black')))
+         color = ifelse(status == 'worse', '#e41a1c',
+                        ifelse(status == 'improving', '#4daf4a',
+                               'black')),
+         coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
+                              ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
+                                     ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
+                                            ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
+                                                   ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
+                                                          ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
+                                                                 NA)))))))
 
 # read in the chum count dataframe, 
 # add median project year for each HUC
@@ -264,7 +321,7 @@ achum12 <- chum_counts %>%
 # group by HUC 12
 # categorize each row as before, during or after the median project year in each HUC
 # calculate the cohensD in each HUC (add new column)
-# then, tidy the output dataframe
+# then, tidy the output dataframe (remove NaN cohensD)
 chum12 <- chum_counts %>%
   left_join(huc12_med, by = "HUC12_Name") %>%
   group_by(HUC12_Name) %>%
@@ -274,6 +331,7 @@ chum12 <- chum_counts %>%
   filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
   spread(TimePeriod, count) %>%
   mutate(cohensd = cohensD(before, after)) %>%
+  filter(!cohensd == 'NaN') %>%
   gather('TimePeriod', 'count', `before`, `after`) %>%
   filter(!is.na(count)) %>%
   mutate(effectsize = ifelse(cohensd < 0.5, 'small',
@@ -284,59 +342,79 @@ chum12 <- chum_counts %>%
   mutate(status = ifelse(meanbefore > meanafter, 'worse',
                          ifelse(meanbefore < meanafter, 'improving',
                                 'no change')),
-         color = ifelse(status == 'worse', 'red',
-                         ifelse(status == 'improving', 'green',
-                                'black')))
-
+         color = ifelse(status == 'worse', '#e41a1c',
+                         ifelse(status == 'improving', '#4daf4a',
+                                'black')),
+         coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
+                              ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
+                                     ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
+                                            ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
+                                                   ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
+                                                          ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
+                                                                 NA))))))) %>%
+  filter(year == max(year))
+# c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850')
 # cohen's D: 'small effect' = 0.2, med effect = 0.5, large effect = 0.8
 
 m12 <- leaflet(data = chum12) %>% 
-  setView(lng = -122.996823, lat = 47.5642594, zoom = 9)
-
-m12 %>%
+  setView(lng = -122.996823, lat = 47.5642594, zoom = 9) %>%
   addProviderTiles("Stamen.Terrain") %>%
-  addCircleMarkers(~lon, ~lat, popup = chum12$status,
-                   radius = 6,
-                   color = chum12$color,
-                   stroke = FALSE, fillOpacity = 0.5,
-                   group = "Chum") %>%
-  addCircleMarkers(ph12$lon, ph12$lat, popup = ph12$year,
-                   radius = 6,
-                   color = 'orange',
-                   stroke = FALSE, fillOpacity = 0.5,
+  addCircleMarkers(ph12$lon, ph12$lat, 
+                   radius = 4,
+                   color = '#984ea3',
+                   stroke = FALSE, fillOpacity = 1,
                    group = "Projects") %>%
-  addCircleMarkers(wa12$lon, wa12$lat, popup = wa12$measurement,
-                   radius = 6,
-                   color = wa12$color,
-                   stroke = FALSE, fillOpacity = 0.5,
+  addCircleMarkers(chum12$lon, chum12$lat, 
+                   radius = 5,
+                   color = chum12$coloreffect,
+                   stroke = FALSE, fillOpacity = 0.8,
+                   group = "Chum") %>%
+  addCircleMarkers(wa12$lon, wa12$lat, 
+                   radius = 5,
+                   color = wa12$coloreffect,
+                   stroke = FALSE, fillOpacity = 0.8,
                    group = "Water") %>%
   addLayersControl(
     baseGroups = c("Chum", "Water"),
     overlayGroups = "Projects",
     options = layersControlOptions(collapsed = FALSE)
-  )
+  ) %>%
+  addLegend(colors = c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850'),
+            labels = c('large/worse', 'medium/worse', 'small/worse', 
+                       'small/improving', 'medium/improving', 'large/improving'),
+            position = 'bottomleft',
+            title = 'Effect Size/Status')
+m12
+
+# wa10IMP <- filter(wa10, status == 'improving')
+# greens <- colorFactor("Greens", wa10IMP$effectsize)
 
 m10 <- leaflet() %>% 
   setView(lng = -122.996823, lat = 47.5642594, zoom = 9) %>%
   addProviderTiles("Stamen.Terrain") %>%
-  addCircleMarkers(ph10$lon, ph10$lat, popup = ph10$year,
+  addCircleMarkers(ph10$lon, ph10$lat,
                    radius = 4,
-                   color = 'orange',
+                   color = '#984ea3',
                    stroke = FALSE, fillOpacity = 1,
                    group = "Projects") %>%
-  addCircleMarkers(chum10$lon, chum10$lat, popup = chum10$status,
-                   radius = 6,
-                   color = chum10$color,
+  addCircleMarkers(chum10$lon, chum10$lat,
+                   radius = 5,
+                   color = chum10$coloreffect,
                    stroke = FALSE, fillOpacity = 0.5,
                    group = "Chum") %>%
-  addCircleMarkers(wa10$lon, wa10$lat, popup = wa10$measurement,
-                   radius = 6,
-                   color = wa10$color,
+  addCircleMarkers(wa10$lon, wa10$lat, 
+                   radius = 5,
+                   color = wa10$coloreffect,
                    stroke = FALSE, fillOpacity = 0.2,
                    group = "Water") %>%
   addLayersControl(
     baseGroups = c("Chum", "Water"),
     overlayGroups = "Projects",
     options = layersControlOptions(collapsed = FALSE)
-  )
+  ) %>%
+  addLegend(colors = c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850'),
+            labels = c('large/worse', 'medium/worse', 'small/worse', 
+                       'small/improving', 'medium/improving', 'large/improving'),
+            position = 'bottomleft',
+            title = 'Effect Size/Status')
 m10
