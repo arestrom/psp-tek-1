@@ -4,6 +4,8 @@ library(tidyverse)
 library(lsr) #cohensD function package
 library(leaflet)
 
+######################## BEGIN PROJ ########################
+
 # read in the project-huc dataframe
 ph <- readRDS("./data/project_huc.rds") 
 
@@ -88,6 +90,10 @@ huc12_med <- ph12 %>%
 #             minyr = min(year),
 #             numyrs = n_distinct(year))
 
+######################## END PROJ ########################
+
+######################## BEGIN WATER ########################
+
 # read in the water quality dataframe, 
 # filtered to only include measurements in fish HUC12s
 # add median project year for each HUC
@@ -125,15 +131,26 @@ unique(water10$HUC10_Name)
 
 # create a dataframe with the mean water quality measurements before/after projects
 # obtain the mean water quality measurement for each HUC for each time period
-bwa10 <- water10 %>%
-  filter(TimePeriod == 'before') %>%
-  spread(TimePeriod, measurement) %>%
-  summarise(meanbefore = mean(before))
+before_after <- function(type, df, value) {
+  df <- if (type == 'before') {
+    df %>% filter(TimePeriod == 'before') %>%
+      spread_('TimePeriod', value) %>%
+      summarise(meanbefore = mean(before))
+  } else if (type == 'after') {
+    df %>% filter(TimePeriod == 'after') %>%
+      spread_('TimePeriod', value) %>%
+      summarise(meanafter = mean(after))
+  } 
+  return(df)
+}
 
-awa10 <- water10 %>%
-  filter(TimePeriod == 'after') %>%
-  spread(TimePeriod, measurement) %>%
-  summarise(meanafter = mean(after))
+bwa10 <- before_after('before', water10, 'measurement')
+
+awa10 <- before_after('after', water10, 'measurement')
+
+bwa12 <- before_after('before', water12, 'measurement')
+
+awa12 <- before_after('after', water12, 'measurement')
 
 
 # calculate the cohensD for each measurement in each HUC (add new column)
@@ -162,24 +179,13 @@ wa10 <- water10 %>%
                                             ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
                                                    ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
                                                           ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
-                                                                 NA)))))))
+                                                                 NA))))))) %>%
+  filter(TimePeriod == 'after')
 
 unique(wa10$HUC10_Name)
 # [1] "Little Quillcene River-Frontal Hood Canal"
 # [2] "Tahuya River-Frontal Hood Canal"          
 # [3] "Skokomish River-Frontal Hood Canal" 
-
-# create a dataframe with the mean water quality measurements before/after projects
-# obtain the mean water quality measurement for each HUC for each time period
-bwa12 <- water12 %>%
-  filter(TimePeriod == 'before') %>%
-  spread(TimePeriod, measurement) %>%
-  summarise(meanbefore = mean(before))
-
-awa12 <- water12 %>%
-  filter(TimePeriod == 'after') %>%
-  spread(TimePeriod, measurement) %>%
-  summarise(meanafter = mean(after))
 
 # calculate the cohensD for each measurement in each HUC (add new column)
 # then, tidy the output dataframe     
@@ -216,31 +222,36 @@ wa12 <- water12 %>%
 #   summarise(mean_measurement = mean(measurement))
 # %>%
 #   filter(year == max(year))
+######################## END WATER ########################
+
+
+######################## BEGIN CHUM ########################
+
+chum12 <- chum_counts %>%
+  left_join(huc12_med, by = "HUC12_Name") %>%
+  group_by(HUC12_Name) %>%
+  mutate(TimePeriod = ifelse(year > medianyr, 'after',
+                             ifelse(year < medianyr, 'before',
+                                    'during')))
+chum10 <- chum_counts %>%
+  left_join(huc10_med, by = "HUC10_Name") %>%
+  group_by(HUC10_Name) %>%
+  mutate(TimePeriod = ifelse(year > medianyr, 'after',
+                             ifelse(year < medianyr, 'before',
+                                    'during')))
 
 # read in the chum count dataframe, 
 # add median project year for each HUC
-# group by HUC 10
+# group by HUC
 # categorize each row as before, during or after the median project year in each HUC
 # obtain the mean salmon count for each HUC for each time period
-bchum10 <- chum_counts %>%
-  left_join(huc10_med, by = "HUC10_Name") %>%
-  group_by(HUC10_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
-                                    'during'))) %>%
-  filter(TimePeriod == 'before') %>%
-  spread(TimePeriod, count) %>%
-  summarise(meanbefore = mean(before))
+bchum10 <- before_after('before', chum10, 'count')
 
-achum10 <- chum_counts %>%
-  left_join(huc10_med, by = "HUC10_Name") %>%
-  group_by(HUC10_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
-                                    'during'))) %>%
-  filter(TimePeriod == 'after') %>%
-  spread(TimePeriod, count) %>%
-  summarise(meanafter = mean(after))
+achum10 <- before_after('after', chum10, 'count')
+
+bchum12 <- before_after('before', chum12, 'count')
+
+achum12 <- before_after('after', chum12, 'count')
 
 # read in the chum count dataframe, 
 # add median project year for each HUC
@@ -249,12 +260,7 @@ achum10 <- chum_counts %>%
 # calculate the cohensD in each HUC (add new column)
 # then, tidy the output dataframe
 # join with summary mean by time period, then classify each according to change in mean fish count
-chum10 <- chum_counts %>%
-  left_join(huc10_med, by = "HUC10_Name") %>%
-  group_by(HUC10_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
-                                    'during'))) %>%
+ch10 <- chum10 %>%
   filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
   spread(TimePeriod, count) %>%
   mutate(cohensd = cohensD(before, after)) %>%
@@ -278,33 +284,8 @@ chum10 <- chum_counts %>%
                                             ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
                                                    ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
                                                           ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
-                                                                 NA)))))))
-
-# read in the chum count dataframe, 
-# add median project year for each HUC
-# group by HUC 12
-# categorize each row as before, during or after the median project year in each HUC
-# obtain the mean salmon count for each HUC for each time period
-bchum12 <- chum_counts %>%
-  left_join(huc12_med, by = "HUC12_Name") %>%
-  group_by(HUC12_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
-                                    'during'))) %>%
-  filter(TimePeriod == 'before') %>%
-  spread(TimePeriod, count) %>%
-  summarise(meanbefore = mean(before))
-
-achum12 <- chum_counts %>%
-  left_join(huc12_med, by = "HUC12_Name") %>%
-  group_by(HUC12_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
-                                    'during'))) %>%
-  filter(TimePeriod == 'after') %>%
-  spread(TimePeriod, count) %>%
-  summarise(meanafter = mean(after))
-
+                                                                 NA))))))) %>%
+  filter(TimePeriod == 'after')
 
 # read in the chum count dataframe, 
 # add median project year for each HUC
@@ -312,12 +293,8 @@ achum12 <- chum_counts %>%
 # categorize each row as before, during or after the median project year in each HUC
 # calculate the cohensD in each HUC (add new column)
 # then, tidy the output dataframe (remove NaN cohensD)
-chum12 <- chum_counts %>%
-  left_join(huc12_med, by = "HUC12_Name") %>%
-  group_by(HUC12_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
-                                    'during'))) %>%
+
+ch12 <- chum12 %>%
   filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
   spread(TimePeriod, count) %>%
   mutate(cohensd = cohensD(before, after)) %>%
@@ -333,8 +310,8 @@ chum12 <- chum_counts %>%
                          ifelse(meanbefore < meanafter, 'improving',
                                 'no change')),
          color = ifelse(status == 'worse', '#e41a1c',
-                         ifelse(status == 'improving', '#4daf4a',
-                                'black')),
+                        ifelse(status == 'improving', '#4daf4a',
+                               'black')),
          coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
                               ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
                                      ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
@@ -342,9 +319,14 @@ chum12 <- chum_counts %>%
                                                    ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
                                                           ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
                                                                  NA))))))) %>%
-  filter(year == max(year))
+  filter(TimePeriod == 'after')
+
+######################## END CHUM ########################
+
 # c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850')
 # cohen's D: 'small effect' = 0.2, med effect = 0.5, large effect = 0.8
+
+######################## BEGIN MAP ########################
 
 m12 <- leaflet(data = chum12) %>% 
   setView(lng = -122.996823, lat = 47.5642594, zoom = 9) %>%
@@ -354,9 +336,9 @@ m12 <- leaflet(data = chum12) %>%
                    color = '#984ea3',
                    stroke = FALSE, fillOpacity = 1,
                    group = "Projects") %>%
-  addCircleMarkers(chum12$lon, chum12$lat, 
+  addCircleMarkers(ch12$lon, ch12$lat, 
                    radius = 5,
-                   color = chum12$coloreffect,
+                   color = ch12$coloreffect,
                    stroke = FALSE, fillOpacity = 0.8,
                    group = "Chum") %>%
   addCircleMarkers(wa12$lon, wa12$lat, 
@@ -387,9 +369,9 @@ m10 <- leaflet() %>%
                    color = '#984ea3',
                    stroke = FALSE, fillOpacity = 1,
                    group = "Projects") %>%
-  addCircleMarkers(chum10$lon, chum10$lat,
+  addCircleMarkers(ch10$lon, ch10$lat,
                    radius = 5,
-                   color = chum10$coloreffect,
+                   color = ch10$coloreffect,
                    stroke = FALSE, fillOpacity = 0.5,
                    group = "Chum") %>%
   addCircleMarkers(wa10$lon, wa10$lat, 
@@ -408,3 +390,6 @@ m10 <- leaflet() %>%
             position = 'bottomleft',
             title = 'Effect Size/Status')
 m10
+
+######################## END MAP ########################
+
