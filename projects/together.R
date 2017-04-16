@@ -44,6 +44,12 @@ ph10 <- readRDS("./data/project_huc.rds") %>%
   group_by(HUC10_Name) %>%
   mutate(meanyr = mean(as.numeric(year)),
          medianyr = median(as.numeric(year)))
+unique(ph10$HUC10_Name)
+# [1] "Skokomish River-Frontal Hood Canal"       
+# [2] "Little Quillcene River-Frontal Hood Canal"
+# [3] "Hood Canal"                               
+# [4] "Tahuya River-Frontal Hood Canal"          
+# [5] "Lilliwaup Creek-Frontal Hood Canal"   
 
 # create a HUC10-median year entity to merge with outcome dataframes below
 huc10_med <- ph10 %>%
@@ -109,6 +115,13 @@ water10 <- readRDS("../turbidity/data/water_huc.rds") %>%
   mutate(TimePeriod = ifelse(year > medianyr, 'after',
                              ifelse(year < medianyr, 'before',
                                     'during')))
+unique(water10$HUC10_Name)
+# [1] "Tahuya River-Frontal Hood Canal"          
+# [2] "Little Quillcene River-Frontal Hood Canal"
+# [3] "Jefferson Creek-Hamma Hamma River"        
+# [4] "Skokomish River-Frontal Hood Canal"       
+# [5] "Lilliwaup Creek-Frontal Hood Canal"       
+# [6] "Hood Canal" 
 
 # create a dataframe with the mean water quality measurements before/after projects
 # obtain the mean water quality measurement for each HUC for each time period
@@ -122,36 +135,7 @@ awa10 <- water10 %>%
   spread(TimePeriod, measurement) %>%
   summarise(meanafter = mean(after))
 
-process_water <- function(df, bwaName, awaName, HUCX_Name) {
-  newdf <- df %>%
-    filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
-    spread(TimePeriod, measurement) %>%
-    mutate(cohensd = cohensD(before, after)) %>%
-    filter(!cohensd == 'NaN') %>%
-    gather('TimePeriod', 'measurement', `before`, `after`) %>%
-    filter(!is.na(measurement)) %>%
-    mutate(effectsize = ifelse(cohensd < 0.5, 'small',
-                               ifelse(cohensd >= 0.8, 'large',
-                                      'medium'))) %>%
-    left_join(bwaName, by = HUCX_Name) %>%
-    left_join(awaName, by = HUCX_Name) %>%
-    mutate(status = ifelse(meanbefore > meanafter, 'worse',
-                           ifelse(meanbefore < meanafter, 'improving',
-                                  'no change')),
-           color = ifelse(status == 'worse', '#e41a1c',
-                          ifelse(status == 'improving', '#4daf4a',
-                                 'black')),
-           coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
-                                ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
-                                       ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
-                                              ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
-                                                     ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
-                                                            ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
-                                                                   NA)))))))
-  return(newdf)
-}
 
-wa10 <- process_water(water10, bwa10, awa10, 'HUC10_Name')
 # calculate the cohensD for each measurement in each HUC (add new column)
 # then, tidy the output dataframe
 wa10 <- water10 %>%
@@ -164,8 +148,8 @@ wa10 <- water10 %>%
   mutate(effectsize = ifelse(cohensd < 0.5, 'small',
                              ifelse(cohensd >= 0.8, 'large',
                                     'medium'))) %>%
-  left_join(bwa10, by = "HUC10_Name") %>%
-  left_join(awa10, by = "HUC10_Name") %>%
+  left_join(bwa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
+  left_join(awa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
   mutate(status = ifelse(meanbefore > meanafter, 'worse',
                          ifelse(meanbefore < meanafter, 'improving',
                                 'no change')),
@@ -180,7 +164,10 @@ wa10 <- water10 %>%
                                                           ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
                                                                  NA)))))))
 
-
+unique(wa10$HUC10_Name)
+# [1] "Little Quillcene River-Frontal Hood Canal"
+# [2] "Tahuya River-Frontal Hood Canal"          
+# [3] "Skokomish River-Frontal Hood Canal" 
 
 # create a dataframe with the mean water quality measurements before/after projects
 # obtain the mean water quality measurement for each HUC for each time period
@@ -194,8 +181,6 @@ awa12 <- water12 %>%
   spread(TimePeriod, measurement) %>%
   summarise(meanafter = mean(after))
 
-
-
 # calculate the cohensD for each measurement in each HUC (add new column)
 # then, tidy the output dataframe     
 wa12 <- water12 %>%
@@ -208,8 +193,8 @@ wa12 <- water12 %>%
   mutate(effectsize = ifelse(cohensd < 0.5, 'small',
                              ifelse(cohensd >= 0.8, 'large',
                                     'medium'))) %>%
-  left_join(bwa12, by = "HUC12_Name") %>%
-  left_join(awa12, by = "HUC12_Name") %>%
+  left_join(bwa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
+  left_join(awa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
   mutate(status = ifelse(meanbefore > meanafter, 'worse',
                          ifelse(meanbefore < meanafter, 'improving',
                                 'no change')),
@@ -223,7 +208,12 @@ wa12 <- water12 %>%
                                                    ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
                                                           ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
                                                                  NA))))))) %>%
-  summarise()
+    filter(TimePeriod == 'after')
+# %>%
+#   ungroup() %>%
+#   filter(TimePeriod == 'after') %>%
+#   group_by(result_type, HUC12_Name, Location_ID, year, effectsize, status) %>%
+#   summarise(mean_measurement = mean(measurement))
 # %>%
 #   filter(year == max(year))
 
