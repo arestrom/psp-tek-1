@@ -152,6 +152,28 @@ bwa12 <- before_after('before', water12, 'measurement')
 
 awa12 <- before_after('after', water12, 'measurement')
 
+add_status_colors <- function(data) {
+  data %>% mutate(status = ifelse(meanbefore < meanafter, 'worse',
+                       ifelse(meanbefore > meanafter, 'improving',
+                              'no change')),
+                   color = ifelse(status == 'worse', '#e41a1c',
+                          ifelse(status == 'improving', '#4daf4a',
+                                 'black')),
+                   coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
+                                ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
+                                       ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
+                                              ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
+                                                     ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
+                                                            ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
+                                                                   NA)))))))
+}
+
+mean_mpg = function(data, group_col) {
+  data %>% group_by(group_col) %>% summarize(mean_mpg = mean(mpg))
+}
+mean_mpg = function(data, group_col) {
+  data %>% group_by_(.dots = lazyeval::lazy(group_col)) %>% summarize(mean_mpg = mean(mpg))
+}
 
 # remove rows without a TimePeriod (no project in that HUC to get a median year)
 # create a column of measurements for before and after project implementation in each HUC
@@ -172,19 +194,7 @@ wa10 <- water10 %>%
                                     'medium'))) %>%
   left_join(bwa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
   left_join(awa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
-  mutate(status = ifelse(meanbefore < meanafter, 'worse',
-                         ifelse(meanbefore > meanafter, 'improving',
-                                'no change')),
-         color = ifelse(status == 'worse', '#e41a1c',
-                        ifelse(status == 'improving', '#4daf4a',
-                               'black')),
-         coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
-                              ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
-                                     ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
-                                            ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
-                                                   ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
-                                                          ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
-                                                                 NA))))))) %>%
+  do()%>%
   filter(TimePeriod == 'after')
 
 unique(wa10$HUC10_Name)
@@ -211,20 +221,8 @@ wa12 <- water12 %>%
                                     'medium'))) %>%
   left_join(bwa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
   left_join(awa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
-  mutate(status = ifelse(meanbefore < meanafter, 'worse',
-                         ifelse(meanbefore > meanafter, 'improving',
-                                'no change')),
-         color = ifelse(status == 'worse', '#e41a1c',
-                        ifelse(status == 'improving', '#4daf4a',
-                               'black')),
-         coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
-                              ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
-                                     ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
-                                            ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
-                                                   ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
-                                                          ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
-                                                                 NA))))))) %>%
-    filter(TimePeriod == 'after')
+  add_status_colors() %>%
+  filter(TimePeriod == 'after')
 # %>%
 #   ungroup() %>%
 #   filter(TimePeriod == 'after') %>%
@@ -303,7 +301,6 @@ ch10 <- chum10 %>%
 # categorize each row as before, during or after the median project year in each HUC
 # calculate the cohensD in each HUC (add new column)
 # then, tidy the output dataframe (remove NaN cohensD)
-
 ch12 <- chum12 %>%
   filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
   spread(TimePeriod, count) %>%
