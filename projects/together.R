@@ -153,8 +153,13 @@ bwa12 <- before_after('before', water12, 'measurement')
 awa12 <- before_after('after', water12, 'measurement')
 
 
+# remove rows without a TimePeriod (no project in that HUC to get a median year)
+# create a column of measurements for before and after project implementation in each HUC
 # calculate the cohensD for each measurement in each HUC (add new column)
-# then, tidy the output dataframe
+# then, categorize the effect size
+# then add a column with the mean measurement value before/after project implementation
+# then categorize each measurement (higher mean TSS or tubidity is worse)
+# then apply a binary color category and a diverging color scale (based on effect size and status)
 wa10 <- water10 %>%
   filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
   spread(TimePeriod, measurement) %>%
@@ -167,8 +172,8 @@ wa10 <- water10 %>%
                                     'medium'))) %>%
   left_join(bwa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
   left_join(awa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
-  mutate(status = ifelse(meanbefore > meanafter, 'worse',
-                         ifelse(meanbefore < meanafter, 'improving',
+  mutate(status = ifelse(meanbefore < meanafter, 'worse',
+                         ifelse(meanbefore > meanafter, 'improving',
                                 'no change')),
          color = ifelse(status == 'worse', '#e41a1c',
                         ifelse(status == 'improving', '#4daf4a',
@@ -187,8 +192,13 @@ unique(wa10$HUC10_Name)
 # [2] "Tahuya River-Frontal Hood Canal"          
 # [3] "Skokomish River-Frontal Hood Canal" 
 
+# remove rows without a TimePeriod (no project in that HUC to get a median year)
+# create a column of measurements for before and after project implementation in each HUC
 # calculate the cohensD for each measurement in each HUC (add new column)
-# then, tidy the output dataframe     
+# then, categorize the effect size
+# then add a column with the mean measurement value before/after project implementation
+# then categorize each measurement (higher mean TSS or tubidity is worse)
+# then apply a binary color category and a diverging color scale (based on effect size and status)    
 wa12 <- water12 %>%
   filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
   spread(TimePeriod, measurement) %>%
@@ -201,8 +211,8 @@ wa12 <- water12 %>%
                                     'medium'))) %>%
   left_join(bwa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
   left_join(awa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
-  mutate(status = ifelse(meanbefore > meanafter, 'worse',
-                         ifelse(meanbefore < meanafter, 'improving',
+  mutate(status = ifelse(meanbefore < meanafter, 'worse',
+                         ifelse(meanbefore > meanafter, 'improving',
                                 'no change')),
          color = ifelse(status == 'worse', '#e41a1c',
                         ifelse(status == 'improving', '#4daf4a',
@@ -372,12 +382,12 @@ m10 <- leaflet() %>%
   addCircleMarkers(ch10$lon, ch10$lat,
                    radius = 5,
                    color = ch10$coloreffect,
-                   stroke = FALSE, fillOpacity = 0.5,
+                   stroke = FALSE, fillOpacity = 0.8,
                    group = "Chum") %>%
   addCircleMarkers(wa10$lon, wa10$lat, 
                    radius = 5,
                    color = wa10$coloreffect,
-                   stroke = FALSE, fillOpacity = 0.2,
+                   stroke = FALSE, fillOpacity = 0.8,
                    group = "Water") %>%
   addLayersControl(
     baseGroups = c("Chum", "Water"),
