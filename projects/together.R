@@ -152,8 +152,39 @@ bwa12 <- before_after('before', water12, 'measurement')
 
 awa12 <- before_after('after', water12, 'measurement')
 
+# remove rows without a TimePeriod (no project in that HUC to get a median year)
+# create a column of measurements for before and after project implementation in each HUC
+# calculate the cohensD for each measurement in each HUC (add new column)
+# then, categorize the effect size
+apply_cohensD <- function(data, outcome) {
+  if (outcome == 'water') { data %>%
+      filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
+      spread(TimePeriod, measurement) %>%
+      mutate(cohensd = cohensD(before, after)) %>%
+      filter(!cohensd == 'NaN') %>%
+      gather('TimePeriod', 'measurement', `before`, `after`) %>%
+      filter(!is.na(measurement)) %>%
+      mutate(effectsize = ifelse(cohensd < 0.5, 'small',
+                                 ifelse(cohensd >= 0.8, 'large',
+                                        'medium')))
+  } else if (outcome == 'chum') { data %>%
+      filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
+      spread(TimePeriod, count) %>%
+      mutate(cohensd = cohensD(before, after)) %>%
+      filter(!cohensd == 'NaN') %>%
+      gather('TimePeriod', 'count', `before`, `after`) %>%
+      filter(!is.na(count)) %>%
+      mutate(effectsize = ifelse(cohensd < 0.5, 'small',
+                                 ifelse(cohensd >= 0.8, 'large',
+                                        'medium')))
+  }
+}
+
+# categorize each measurement (higher mean TSS or tubidity is worse)
+# then apply a binary color category and a diverging color scale (based on effect size and status)
 add_status_colors <- function(data, outcome) {
-  if (outcome == 'water') {data %>% mutate(status = ifelse(meanbefore < meanafter, 'worse',
+  if (outcome == 'water') { data %>% 
+                  mutate(status = ifelse(meanbefore < meanafter, 'worse',
                                   ifelse(meanbefore > meanafter, 'improving',
                                          'no change')),
                   color = ifelse(status == 'worse', '#e41a1c',
@@ -169,44 +200,29 @@ add_status_colors <- function(data, outcome) {
   } else if (outcome == 'chum') { data %>% mutate(status = ifelse(meanbefore > meanafter, 'worse',
                                                                   ifelse(meanbefore < meanafter, 'improving',
                                                                          'no change')),
-                                                  color = ifelse(status == 'worse', '#e41a1c',
-                                                                 ifelse(status == 'improving', '#4daf4a',
-                                                                        'black')),
-                                                  coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
-                                                                       ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
-                                                                              ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
-                                                                                     ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
-                                                                                            ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
-                                                                                                   ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
-                                                                                                          NA)))))))
+                                            color = ifelse(status == 'worse', '#e41a1c',
+                                                           ifelse(status == 'improving', '#4daf4a',
+                                                                  'black')),
+                                            coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
+                                                                 ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
+                                                                        ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
+                                                                               ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
+                                                                                      ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
+                                                                                             ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
+                                                                                                    NA)))))))
       
     }
-}
-
-mean_mpg = function(data, group_col) {
-  data %>% group_by(group_col) %>% summarize(mean_mpg = mean(mpg))
-}
-mean_mpg = function(data, group_col) {
-  data %>% group_by_(.dots = lazyeval::lazy(group_col)) %>% summarize(mean_mpg = mean(mpg))
 }
 
 # remove rows without a TimePeriod (no project in that HUC to get a median year)
 # create a column of measurements for before and after project implementation in each HUC
 # calculate the cohensD for each measurement in each HUC (add new column)
 # then, categorize the effect size
-# then add a column with the mean measurement value before/after project implementation
-# then categorize each measurement (higher mean TSS or tubidity is worse)
-# then apply a binary color category and a diverging color scale (based on effect size and status)
+# add a column with the mean measurement value before/after project implementation
+# apply function created above
+# filter out before measurements
 wa10 <- water10 %>%
-  filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
-  spread(TimePeriod, measurement) %>%
-  mutate(cohensd = cohensD(before, after)) %>%
-  filter(!cohensd == 'NaN') %>%
-  gather('TimePeriod', 'measurement', `before`, `after`) %>%
-  filter(!is.na(measurement)) %>%
-  mutate(effectsize = ifelse(cohensd < 0.5, 'small',
-                             ifelse(cohensd >= 0.8, 'large',
-                                    'medium'))) %>%
+  apply_cohensD ('water') %>%
   left_join(bwa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
   left_join(awa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
   add_status_colors('water') %>%
@@ -225,15 +241,7 @@ unique(wa10$HUC10_Name)
 # then categorize each measurement (higher mean TSS or tubidity is worse)
 # then apply a binary color category and a diverging color scale (based on effect size and status)    
 wa12 <- water12 %>%
-  filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
-  spread(TimePeriod, measurement) %>%
-  mutate(cohensd = cohensD(before, after)) %>%
-  filter(!cohensd == 'NaN') %>%
-  gather('TimePeriod', 'measurement', `before`, `after`) %>%
-  filter(!is.na(measurement)) %>%
-  mutate(effectsize = ifelse(cohensd < 0.5, 'small',
-                             ifelse(cohensd >= 0.8, 'large',
-                                    'medium'))) %>%
+  apply_cohensD('water') %>%
   left_join(bwa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
   left_join(awa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
   add_status_colors('water') %>%
@@ -284,15 +292,7 @@ achum12 <- before_after('after', chum12, 'count')
 # then, tidy the output dataframe
 # join with summary mean by time period, then classify each according to change in mean fish count
 ch10 <- chum10 %>%
-  filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
-  spread(TimePeriod, count) %>%
-  mutate(cohensd = cohensD(before, after)) %>%
-  filter(!cohensd == 'NaN') %>%
-  gather('TimePeriod', 'count', `before`, `after`) %>%
-  filter(!is.na(count)) %>%
-  mutate(effectsize = ifelse(cohensd < 0.5, 'small',
-                             ifelse(cohensd >= 0.8, 'large',
-                                    'medium'))) %>%
+  apply_cohensD('chum') %>%
   left_join(bchum10, by = "HUC10_Name") %>%
   left_join(achum10, by = "HUC10_Name") %>%
   add_status_colors('chum') %>%
@@ -305,15 +305,7 @@ ch10 <- chum10 %>%
 # calculate the cohensD in each HUC (add new column)
 # then, tidy the output dataframe (remove NaN cohensD)
 ch12 <- chum12 %>%
-  filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
-  spread(TimePeriod, count) %>%
-  mutate(cohensd = cohensD(before, after)) %>%
-  filter(!cohensd == 'NaN') %>%
-  gather('TimePeriod', 'count', `before`, `after`) %>%
-  filter(!is.na(count)) %>%
-  mutate(effectsize = ifelse(cohensd < 0.5, 'small',
-                             ifelse(cohensd >= 0.8, 'large',
-                                    'medium'))) %>%
+  apply_cohensD('chum') %>%
   left_join(bchum12, by = "HUC12_Name") %>%
   left_join(achum12, by = "HUC12_Name") %>%
   add_status_colors('chum') %>%
