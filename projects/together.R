@@ -152,20 +152,35 @@ bwa12 <- before_after('before', water12, 'measurement')
 
 awa12 <- before_after('after', water12, 'measurement')
 
-add_status_colors <- function(data) {
-  data %>% mutate(status = ifelse(meanbefore < meanafter, 'worse',
-                       ifelse(meanbefore > meanafter, 'improving',
-                              'no change')),
-                   color = ifelse(status == 'worse', '#e41a1c',
-                          ifelse(status == 'improving', '#4daf4a',
-                                 'black')),
-                   coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
-                                ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
-                                       ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
-                                              ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
-                                                     ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
-                                                            ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
-                                                                   NA)))))))
+add_status_colors <- function(data, outcome) {
+  if (outcome == 'water') {data %>% mutate(status = ifelse(meanbefore < meanafter, 'worse',
+                                  ifelse(meanbefore > meanafter, 'improving',
+                                         'no change')),
+                  color = ifelse(status == 'worse', '#e41a1c',
+                                 ifelse(status == 'improving', '#4daf4a',
+                                        'black')),
+                  coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
+                                       ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
+                                              ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
+                                                     ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
+                                                            ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
+                                                                   ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
+                                                                          NA)))))))
+  } else if (outcome == 'chum') { data %>% mutate(status = ifelse(meanbefore > meanafter, 'worse',
+                                                                  ifelse(meanbefore < meanafter, 'improving',
+                                                                         'no change')),
+                                                  color = ifelse(status == 'worse', '#e41a1c',
+                                                                 ifelse(status == 'improving', '#4daf4a',
+                                                                        'black')),
+                                                  coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
+                                                                       ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
+                                                                              ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
+                                                                                     ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
+                                                                                            ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
+                                                                                                   ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
+                                                                                                          NA)))))))
+      
+    }
 }
 
 mean_mpg = function(data, group_col) {
@@ -194,7 +209,7 @@ wa10 <- water10 %>%
                                     'medium'))) %>%
   left_join(bwa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
   left_join(awa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
-  do()%>%
+  add_status_colors('water') %>%
   filter(TimePeriod == 'after')
 
 unique(wa10$HUC10_Name)
@@ -221,7 +236,7 @@ wa12 <- water12 %>%
                                     'medium'))) %>%
   left_join(bwa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
   left_join(awa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
-  add_status_colors() %>%
+  add_status_colors('water') %>%
   filter(TimePeriod == 'after')
 # %>%
 #   ungroup() %>%
@@ -280,19 +295,7 @@ ch10 <- chum10 %>%
                                     'medium'))) %>%
   left_join(bchum10, by = "HUC10_Name") %>%
   left_join(achum10, by = "HUC10_Name") %>%
-  mutate(status = ifelse(meanbefore > meanafter, 'worse',
-                         ifelse(meanbefore < meanafter, 'improving',
-                                'no change')),
-         color = ifelse(status == 'worse', '#e41a1c',
-                        ifelse(status == 'improving', '#4daf4a',
-                               'black')),
-         coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
-                              ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
-                                     ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
-                                            ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
-                                                   ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
-                                                          ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
-                                                                 NA))))))) %>%
+  add_status_colors('chum') %>%
   filter(TimePeriod == 'after')
 
 # read in the chum count dataframe, 
@@ -313,19 +316,7 @@ ch12 <- chum12 %>%
                                     'medium'))) %>%
   left_join(bchum12, by = "HUC12_Name") %>%
   left_join(achum12, by = "HUC12_Name") %>%
-  mutate(status = ifelse(meanbefore > meanafter, 'worse',
-                         ifelse(meanbefore < meanafter, 'improving',
-                                'no change')),
-         color = ifelse(status == 'worse', '#e41a1c',
-                        ifelse(status == 'improving', '#4daf4a',
-                               'black')),
-         coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
-                              ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
-                                     ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
-                                            ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
-                                                   ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
-                                                          ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
-                                                                 NA))))))) %>%
+  add_status_colors('chum') %>%
   filter(TimePeriod == 'after')
 
 ######################## END CHUM ########################
