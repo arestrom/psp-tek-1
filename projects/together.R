@@ -14,26 +14,6 @@ chum_locations <- readRDS("../psp-chum/data/chum_huc.rds") %>%
   rename (lon = lng, site = River.site) %>%
   select(-(Permanent:Line.NR))
 
-# print out distinct HUC names (chum are the smallest group, limits all other measurements)
-unique(chum$HUC10_Name)
-# [1] "Little Quillcene River-Frontal Hood Canal"
-# [2] "Jefferson Creek-Hamma Hamma River"        
-# [3] "Tahuya River-Frontal Hood Canal"          
-# [4] "Hood Canal"                               
-# [5] "Lilliwaup Creek-Frontal Hood Canal"       
-# [6] "Skokomish River-Frontal Hood Canal" 
-
-unique(chum$HUC12_Name)
-# [1] "Spencer Creek-Frontal Dabob Bay"   
-# [2] "Hamma Hamma River"                 
-# [3] "Tahuya River"                      
-# [4] "Hood Canal"                        
-# [5] "Big Beef Creek-Frontal Hood Canal" 
-# [6] "Tarboo Creek-Frontal Dabob Bay"    
-# [7] "Dewatto River"                     
-# [8] "Finch Creek-Frontal Hood Canal"    
-# [9] "Skokomish River-Frontal Hood Canal"
-
 # read in the chum-counts dataframe, join with location/huc data
 chum_counts <- readRDS("../psp-chum/data/tidychum.rds") %>%
   left_join(chum_locations)
@@ -46,12 +26,6 @@ ph10 <- readRDS("./data/project_huc.rds") %>%
   group_by(HUC10_Name) %>%
   mutate(meanyr = mean(as.numeric(year)),
          medianyr = median(as.numeric(year)))
-unique(ph10$HUC10_Name)
-# [1] "Skokomish River-Frontal Hood Canal"       
-# [2] "Little Quillcene River-Frontal Hood Canal"
-# [3] "Hood Canal"                               
-# [4] "Tahuya River-Frontal Hood Canal"          
-# [5] "Lilliwaup Creek-Frontal Hood Canal"   
 
 # create a HUC10-median year entity to merge with outcome dataframes below
 huc10_med <- ph10 %>%
@@ -121,13 +95,6 @@ water10 <- readRDS("../turbidity/data/water_huc.rds") %>%
   mutate(TimePeriod = ifelse(year > medianyr, 'after',
                              ifelse(year < medianyr, 'before',
                                     'during')))
-unique(water10$HUC10_Name)
-# [1] "Tahuya River-Frontal Hood Canal"          
-# [2] "Little Quillcene River-Frontal Hood Canal"
-# [3] "Jefferson Creek-Hamma Hamma River"        
-# [4] "Skokomish River-Frontal Hood Canal"       
-# [5] "Lilliwaup Creek-Frontal Hood Canal"       
-# [6] "Hood Canal" 
 
 # create a dataframe with the mean water quality measurements before/after projects
 # obtain the mean water quality measurement for each HUC for each time period
@@ -228,11 +195,6 @@ wa10 <- water10 %>%
   add_status_colors('water') %>%
   filter(TimePeriod == 'after')
 
-unique(wa10$HUC10_Name)
-# [1] "Little Quillcene River-Frontal Hood Canal"
-# [2] "Tahuya River-Frontal Hood Canal"          
-# [3] "Skokomish River-Frontal Hood Canal" 
-
 # remove rows without a TimePeriod (no project in that HUC to get a median year)
 # create a column of measurements for before and after project implementation in each HUC
 # calculate the cohensD for each measurement in each HUC (add new column)
@@ -246,6 +208,7 @@ wa12 <- water12 %>%
   left_join(awa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
   add_status_colors('water') %>%
   filter(TimePeriod == 'after')
+
 # %>%
 #   ungroup() %>%
 #   filter(TimePeriod == 'after') %>%
@@ -383,3 +346,81 @@ m10
 
 ######################## END MAP ########################
 
+######################## SUMMARY INFO ########################
+
+###### projects ######
+# 21 HUCs, 1 NA
+unique(ph$HUC10_Name)
+
+# 46 HUCs, 1 NA
+unique(ph$HUC12_Name)
+
+unique(ph10$HUC10_Name)
+# [1] "Skokomish River-Frontal Hood Canal"       
+# [2] "Little Quillcene River-Frontal Hood Canal"
+# [3] "Hood Canal"                               
+# [4] "Tahuya River-Frontal Hood Canal"          
+# [5] "Lilliwaup Creek-Frontal Hood Canal"   
+
+# 7 HUC 12s
+unique(ph12$HUC12_Name)
+
+###### chum ######
+# print out distinct HUC names (chum are the smallest group, limits all other measurements)
+unique(chum$HUC10_Name)
+# [1] "Little Quillcene River-Frontal Hood Canal"
+# [2] "Jefferson Creek-Hamma Hamma River"        
+# [3] "Tahuya River-Frontal Hood Canal"          
+# [4] "Hood Canal"                               
+# [5] "Lilliwaup Creek-Frontal Hood Canal"       
+# [6] "Skokomish River-Frontal Hood Canal" 
+
+unique(chum$HUC12_Name)
+# [1] "Spencer Creek-Frontal Dabob Bay"   
+# [2] "Hamma Hamma River"                 
+# [3] "Tahuya River"                      
+# [4] "Hood Canal"                        
+# [5] "Big Beef Creek-Frontal Hood Canal" 
+# [6] "Tarboo Creek-Frontal Dabob Bay"    
+# [7] "Dewatto River"                     
+# [8] "Finch Creek-Frontal Hood Canal"    
+# [9] "Skokomish River-Frontal Hood Canal"
+
+# 7 HUC 12s in ch12 (2 lacking sufficient temporal data)
+unique(ch12$HUC12_Name)
+
+# 5 HUC 10s in ch10 (1 lacking sufficient temporal data)
+unique(ch10$HUC10_Name)
+
+###### water ######
+water <- readRDS("../turbidity/data/water_huc.rds")
+# 23 HUC 10s
+unique(water$HUC10_Name)
+unique(water$HUC12_Name)
+
+# 5 HUC 10s
+wa_pr <- filter(water, HUC10_Name %in% unique(ph10$HUC10_Name))
+unique(wa_pr$HUC10_Name)
+# 17 HUC 12s
+unique(wa_pr$HUC12_Name)
+
+# 9 HUC 12s (water & chum)
+unique(water12$HUC12_Name)
+
+unique(water10$HUC10_Name)
+# [1] "Tahuya River-Frontal Hood Canal"          
+# [2] "Little Quillcene River-Frontal Hood Canal"
+# [3] "Jefferson Creek-Hamma Hamma River"        
+# [4] "Skokomish River-Frontal Hood Canal"       
+# [5] "Lilliwaup Creek-Frontal Hood Canal"       
+# [6] "Hood Canal" 
+
+unique(wa10$HUC10_Name)
+# [1] "Little Quillcene River-Frontal Hood Canal"
+# [2] "Tahuya River-Frontal Hood Canal"          
+# [3] "Skokomish River-Frontal Hood Canal" 
+
+# 2 HUC 12's
+unique(wa12$HUC12_Name)
+
+######################## SUMMARY INFO ########################
