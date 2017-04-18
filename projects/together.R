@@ -279,6 +279,17 @@ ch12 <- chum12 %>%
 # c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850')
 # cohen's D: 'small effect' = 0.2, med effect = 0.5, large effect = 0.8
 
+######################## BEGIN DATA EXPORT ########################
+
+saveRDS(ch12, "../shinyapp/data/together_chum_huc12.rds")
+saveRDS(ch10, "../shinyapp/data/together_chum_huc10.rds")
+saveRDS(wa12, "../shinyapp/data/together_water_huc12.rds")
+saveRDS(wa10, "../shinyapp/data/together_water_huc10.rds")
+saveRDS(ph12, "../shinyapp/data/together_chum_project_huc12.rds")
+saveRDS(ph10, "../shinyapp/data/together_chum_project_huc10.rds")
+
+######################## END DATA EXPORT ########################
+
 ######################## BEGIN MAP ########################
 
 m12 <- leaflet(data = chum12) %>% 
