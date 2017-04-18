@@ -29,8 +29,8 @@ ph10 <- readRDS("./data/project_huc.rds") %>%
 
 # create a HUC10-median year entity to merge with outcome dataframes below
 huc10_med <- ph10 %>%
-  select(HUC10_Name, medianyr) %>%
-  group_by(HUC10_Name, medianyr) %>%
+  select(HUC10_Name, meanyr) %>%
+  group_by(HUC10_Name, meanyr) %>%
   summarise()
 
 # sum10<- ph10 %>%
@@ -52,8 +52,8 @@ ph12 <- readRDS("./data/project_huc.rds") %>%
 
 # create a HUC12-median year entity to merge with outcome dataframes below
 huc12_med <- ph12 %>%
-  select(HUC12_Name, medianyr) %>%
-  group_by(HUC12_Name, medianyr) %>%
+  select(HUC12_Name, meanyr) %>%
+  group_by(HUC12_Name, meanyr) %>%
   summarise()
 # 
 # sum12<- ph12 %>%
@@ -78,8 +78,8 @@ water12 <- readRDS("../turbidity/data/water_huc.rds") %>%
   mutate(year = format(start_date,"%Y")) %>%
   left_join(huc12_med, by = "HUC12_Name") %>%
   group_by(result_type, HUC12_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
+  mutate(TimePeriod = ifelse(year > meanyr, 'after',
+                             ifelse(year < meanyr, 'before',
                                     'during')))
 
 # read in the water quality dataframe, 
@@ -92,8 +92,8 @@ water10 <- readRDS("../turbidity/data/water_huc.rds") %>%
   mutate(year = format(start_date,"%Y")) %>%
   left_join(huc10_med, by = "HUC10_Name") %>%
   group_by(result_type, HUC10_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
+  mutate(TimePeriod = ifelse(year > meanyr, 'after',
+                             ifelse(year < meanyr, 'before',
                                     'during')))
 
 # create a dataframe with the mean water quality measurements before/after projects
@@ -224,14 +224,14 @@ wa12 <- water12 %>%
 chum12 <- chum_counts %>%
   left_join(huc12_med, by = "HUC12_Name") %>%
   group_by(HUC12_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
+  mutate(TimePeriod = ifelse(year > meanyr, 'after',
+                             ifelse(year < meanyr, 'before',
                                     'during')))
 chum10 <- chum_counts %>%
   left_join(huc10_med, by = "HUC10_Name") %>%
   group_by(HUC10_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
+  mutate(TimePeriod = ifelse(year > meanyr, 'after',
+                             ifelse(year < meanyr, 'before',
                                     'during')))
 
 # read in the chum count dataframe, 
