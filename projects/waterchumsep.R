@@ -4,7 +4,7 @@ library(tidyverse)
 library(lsr) #cohensD function package
 library(leaflet)
 
-######################## BEGIN PROJ ########################
+######################## BEGIN CHUM PROJ ########################
 
 # read in the project-huc dataframe
 ph <- readRDS("./data/project_huc.rds") 
@@ -21,7 +21,7 @@ chum_counts <- readRDS("../psp-chum/data/tidychum.rds") %>%
 # create a HUC-10 project dataframe, 
 # filtered to only include projects in fish HUC10s
 # calculate the median project implementation year for each HUC10
-ph10 <- readRDS("./data/project_huc.rds") %>%
+ph10 <- ph %>%
   filter(HUC10_Name %in% unique(chum_counts$HUC10_Name))  %>%
   group_by(HUC10_Name) %>%
   mutate(meanyr = mean(as.numeric(year)),
@@ -44,7 +44,7 @@ huc10_med <- ph10 %>%
 # create a HUC-12 project dataframe, 
 # filtered to only include projects in fish HUC12s
 # calculate the median project implementation year for each HUC12
-ph12 <- readRDS("./data/project_huc.rds") %>%
+ph12 <- ph %>%
   filter(HUC12_Name %in% unique(chum_counts$HUC12_Name)) %>%
   group_by(HUC12_Name) %>%
   mutate(meanyr = mean(as.numeric(year)),
@@ -55,46 +55,49 @@ huc12_med <- ph12 %>%
   select(HUC12_Name, medianyr) %>%
   group_by(HUC12_Name, medianyr) %>%
   summarise()
-# 
-# sum12<- ph12 %>%
-#   group_by(HUC12_Name) %>%
-#   summarise(meanyr = mean(year),
-#             medianyr = median(year),
-#             maxyr = max(year),
-#             minyr = min(year),
-#             numyrs = n_distinct(year))
 
-######################## END PROJ ########################
+######################## END CHUM PROJ ########################
 
-######################## BEGIN WATER ########################
+######################## BEGIN WATER PROJ ########################
 
-# read in the water quality dataframe, 
-# filtered to only include measurements in fish HUC12s
-# add median project year for each HUC
-# group by measurement type (TSS or turbidity), then by HUC 12
-# categorize each row as before, during or after the median project year in each HUC
-water12 <- readRDS("../turbidity/data/water_huc.rds") %>%
-  filter(HUC12_Name %in% unique(chum_counts$HUC12_Name)) %>%
-  mutate(year = format(start_date,"%Y")) %>%
-  left_join(huc12_med, by = "HUC12_Name") %>%
-  group_by(result_type, HUC12_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
-                                    'during')))
+# read in water quality rdata
+water <- readRDS("../turbidity/data/water_huc.rds")
 
-# read in the water quality dataframe, 
-# filtered to only include measurements in fish HUC10s
-# add median project year for each HUC
-# group by measurement type (TSS or turbidity), then by HUC 10
-# categorize each row as before, during or after the median project year in each HUC
-water10 <- readRDS("../turbidity/data/water_huc.rds") %>%
-  filter(HUC10_Name %in% unique(chum_counts$HUC10_Name)) %>%
-  mutate(year = format(start_date,"%Y")) %>%
-  left_join(huc10_med, by = "HUC10_Name") %>%
-  group_by(result_type, HUC10_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
-                                    'during')))
+# create a HUC-10 project dataframe, 
+# filtered to only include projects in water HUC10s
+# calculate the median project implementation year for each HUC10
+wa_ph10 <- ph %>%
+  filter(HUC10_Name %in% unique(water$HUC10_Name))  %>%
+  group_by(HUC10_Name) %>%
+  mutate(meanyr = mean(as.numeric(year)),
+         medianyr = median(as.numeric(year)))
+
+# create a HUC10-median year entity to merge with outcome dataframes below
+wa_huc10_med <- wa_ph10 %>%
+  select(HUC10_Name, medianyr) %>%
+  group_by(HUC10_Name, medianyr) %>%
+  summarise()
+
+
+# create a HUC-12 project dataframe, 
+# filtered to only include projects in fish HUC12s
+# calculate the median project implementation year for each HUC12
+wa_ph12 <- ph %>%
+  filter(HUC12_Name %in% unique(water$HUC12_Name)) %>%
+  group_by(HUC12_Name) %>%
+  mutate(meanyr = mean(as.numeric(year)),
+         medianyr = median(as.numeric(year)))
+
+
+# create a HUC12-median year entity to merge with outcome dataframes below
+wa_huc12_med <- wa_ph12 %>%
+  select(HUC12_Name, medianyr) %>%
+  group_by(HUC12_Name, medianyr) %>%
+  summarise()
+
+######################## END WATER PROJ ########################
+
+######################## BEGIN FUNCTION TOWN ########################
 
 # create a dataframe with the mean water quality measurements before/after projects
 # obtain the mean water quality measurement for each HUC for each time period
@@ -110,14 +113,6 @@ before_after <- function(type, df, value) {
   } 
   return(df)
 }
-
-bwa10 <- before_after('before', water10, 'measurement')
-
-awa10 <- before_after('after', water10, 'measurement')
-
-bwa12 <- before_after('before', water12, 'measurement')
-
-awa12 <- before_after('after', water12, 'measurement')
 
 # remove rows without a TimePeriod (no project in that HUC to get a median year)
 # create a column of measurements for before and after project implementation in each HUC
@@ -146,6 +141,7 @@ apply_cohensD <- function(data, outcome) {
                                         'medium')))
   }
 }
+
 
 # categorize each measurement (higher mean TSS or tubidity is worse)
 # then apply a binary color category and a diverging color scale (based on effect size and status)
@@ -180,6 +176,44 @@ add_status_colors <- function(data, outcome) {
     
   }
 }
+
+######################## END FUNCTION TOWN ########################
+
+######################## BEGIN WATER ########################
+
+# read in the water quality dataframe, 
+# add median project year for each HUC
+# group by measurement type (TSS or turbidity), then by HUC 12
+# categorize each row as before, during or after the median project year in each HUC
+water12 <- water %>%
+  filter(HUC12_Name %in% unique(wa_ph12$HUC12_Name)) %>%
+  mutate(year = format(start_date,"%Y")) %>%
+  left_join(wa_huc12_med, by = "HUC12_Name") %>%
+  group_by(result_type, HUC12_Name) %>%
+  mutate(TimePeriod = ifelse(year > medianyr, 'after',
+                             ifelse(year < medianyr, 'before',
+                                    'during')))
+
+# read in the water quality dataframe, 
+# add median project year for each HUC
+# group by measurement type (TSS or turbidity), then by HUC 10
+# categorize each row as before, during or after the median project year in each HUC
+water10 <- water %>%
+  filter(HUC10_Name %in% unique(wa_ph10$HUC10_Name)) %>%
+  mutate(year = format(start_date,"%Y")) %>%
+  left_join(wa_huc10_med, by = "HUC10_Name") %>%
+  group_by(result_type, HUC10_Name) %>%
+  mutate(TimePeriod = ifelse(year > medianyr, 'after',
+                             ifelse(year < medianyr, 'before',
+                                    'during')))
+
+bwa10 <- before_after('before', water10, 'measurement')
+
+awa10 <- before_after('after', water10, 'measurement')
+
+bwa12 <- before_after('before', water12, 'measurement')
+
+awa12 <- before_after('after', water12, 'measurement')
 
 # remove rows without a TimePeriod (no project in that HUC to get a median year)
 # create a column of measurements for before and after project implementation in each HUC
@@ -279,17 +313,35 @@ ch12 <- chum12 %>%
 # c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850')
 # cohen's D: 'small effect' = 0.2, med effect = 0.5, large effect = 0.8
 
+######################## BEGIN DATA EXPORT ########################
+
+saveRDS(ch12, "../shinyapp/data/chum_huc12.rds")
+saveRDS(ch10, "../shinyapp/data/chum_huc10.rds")
+saveRDS(wa12, "../shinyapp/data/water_huc12.rds")
+saveRDS(wa10, "../shinyapp/data/water_huc10.rds")
+saveRDS(wa_ph12, "../shinyapp/data/water_project_huc12.rds")
+saveRDS(wa_ph10, "../shinyapp/data/water_project_huc10.rds")
+saveRDS(ph12, "../shinyapp/data/chum_project_huc12.rds")
+saveRDS(ph10, "../shinyapp/data/chum_project_huc10.rds")
+
+######################## END DATA EXPORT ########################
+
 ######################## BEGIN MAP ########################
 
 m12 <- leaflet(data = chum12) %>% 
   setView(lng = -122.996823, lat = 47.5642594, zoom = 9) %>%
-  addProviderTiles("Stamen.Terrain") %>%
-  addCircleMarkers(ph12$lon, ph12$lat, 
+  addProviderTiles("Esri.WorldImagery") %>%
+  addCircleMarkers(ph12$lon, ph12$lat,
                    radius = 4,
                    color = '#984ea3',
                    stroke = FALSE, fillOpacity = 1,
-                   group = "Projects") %>%
-  addCircleMarkers(ch12$lon, ch12$lat, 
+                   group = "Chum Projects") %>%
+  addCircleMarkers(wa_ph12$lon, wa_ph12$lat,
+                   radius = 4,
+                   color = '#984ea3',
+                   stroke = FALSE, fillOpacity = 1,
+                   group = "Water Projects") %>%
+  addCircleMarkers(ch12$lon, ch12$lat,
                    radius = 5,
                    color = ch12$coloreffect,
                    stroke = FALSE, fillOpacity = 0.8,
@@ -301,7 +353,7 @@ m12 <- leaflet(data = chum12) %>%
                    group = "Water") %>%
   addLayersControl(
     baseGroups = c("Chum", "Water"),
-    overlayGroups = "Projects",
+    overlayGroups = c("Chum Projects", "Water Projects"),
     options = layersControlOptions(collapsed = FALSE)
   ) %>%
   addLegend(colors = c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850'),
@@ -316,12 +368,17 @@ m12
 
 m10 <- leaflet() %>% 
   setView(lng = -122.996823, lat = 47.5642594, zoom = 9) %>%
-  addProviderTiles("Stamen.Terrain") %>%
+  addProviderTiles("Esri.WorldImagery") %>%
   addCircleMarkers(ph10$lon, ph10$lat,
                    radius = 4,
                    color = '#984ea3',
                    stroke = FALSE, fillOpacity = 1,
-                   group = "Projects") %>%
+                   group = "Chum Projects") %>%
+  addCircleMarkers(wa_ph10$lon, wa_ph10$lat,
+                   radius = 4,
+                   color = '#984ea3',
+                   stroke = FALSE, fillOpacity = 1,
+                   group = "Water Projects") %>%
   addCircleMarkers(ch10$lon, ch10$lat,
                    radius = 5,
                    color = ch10$coloreffect,
@@ -334,7 +391,7 @@ m10 <- leaflet() %>%
                    group = "Water") %>%
   addLayersControl(
     baseGroups = c("Chum", "Water"),
-    overlayGroups = "Projects",
+    overlayGroups = c("Chum Projects", "Water Projects"),
     options = layersControlOptions(collapsed = FALSE)
   ) %>%
   addLegend(colors = c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850'),
@@ -365,6 +422,12 @@ unique(ph10$HUC10_Name)
 # 7 HUC 12s
 unique(ph12$HUC12_Name)
 
+# 19 water-project HUC 10s
+unique(wa_ph10$HUC10_Name)
+
+# 37 water-project HUC 12s
+unique(wa_ph12$HUC12_Name)
+
 ###### chum ######
 # print out distinct HUC names (chum are the smallest group, limits all other measurements)
 unique(chum$HUC10_Name)
@@ -393,34 +456,23 @@ unique(ch12$HUC12_Name)
 unique(ch10$HUC10_Name)
 
 ###### water ######
-water <- readRDS("../turbidity/data/water_huc.rds")
 # 23 HUC 10s
 unique(water$HUC10_Name)
 unique(water$HUC12_Name)
 
-# 5 HUC 10s
-wa_pr <- filter(water, HUC10_Name %in% unique(ph10$HUC10_Name))
-unique(wa_pr$HUC10_Name)
-# 17 HUC 12s
-unique(wa_pr$HUC12_Name)
+# # 5 HUC 10s
+# wa_pr <- filter(water, HUC10_Name %in% unique(ph10$HUC10_Name))
+# unique(wa_pr$HUC10_Name)
+# # 17 HUC 12s
+# unique(wa_pr$HUC12_Name)
 
-# 9 HUC 12s (water & chum)
+# 68 HUC 12s (water)
 unique(water12$HUC12_Name)
-
+# 23 HUC 10s (water)
 unique(water10$HUC10_Name)
-# [1] "Tahuya River-Frontal Hood Canal"          
-# [2] "Little Quillcene River-Frontal Hood Canal"
-# [3] "Jefferson Creek-Hamma Hamma River"        
-# [4] "Skokomish River-Frontal Hood Canal"       
-# [5] "Lilliwaup Creek-Frontal Hood Canal"       
-# [6] "Hood Canal" 
-
+# 11 HUC 10s (water-project-time)
 unique(wa10$HUC10_Name)
-# [1] "Little Quillcene River-Frontal Hood Canal"
-# [2] "Tahuya River-Frontal Hood Canal"          
-# [3] "Skokomish River-Frontal Hood Canal" 
-
-# 2 HUC 12's
+# 17 HUC 12's (water-project-time)
 unique(wa12$HUC12_Name)
 
 ######################## SUMMARY INFO ########################
