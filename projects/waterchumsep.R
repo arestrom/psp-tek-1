@@ -7,7 +7,9 @@ library(leaflet)
 ######################## BEGIN CHUM PROJ ########################
 
 # read in the project-huc dataframe
-ph <- readRDS("./data/project_huc.rds") 
+ph <- readRDS("./data/project_huc.rds")
+
+ph$id <- 1:nrow(ph)
 
 # read in the chum-huc dataframe, tidy data
 chum_locations <- readRDS("../psp-chum/data/chum_huc.rds") %>%
@@ -313,16 +315,92 @@ ch12 <- chum12 %>%
 # c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850')
 # cohen's D: 'small effect' = 0.2, med effect = 0.5, large effect = 0.8
 
+ch12_formerge <- ch12 %>%
+  select(year, lon, lat, Description, HUC12_id, HUC12_Name, 
+         medianyr:coloreffect) %>%
+  rename(description = Description, measurement = count,
+         HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
+  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '12') 
+
+chum_formerge <- ch10 %>%
+  select(year, lon, lat, Description, HUC10_id, HUC10_Name, 
+         medianyr:coloreffect) %>%
+  rename(description = Description, measurement = count,
+         HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
+  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '10') %>%
+  rbind(ch12_formerge)
+
+wa12_formerge <- wa12 %>%
+  select(lon, lat, Study_Name, result_type, measurement, unit,
+         HUC12_id, HUC12_Name, year:coloreffect) %>%
+  rename(description = Study_Name,
+         HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
+  mutate(HUC_level = '12', year = as.numeric(year)) 
+
+water_formerge <- wa10 %>%
+  select(lon, lat, Study_Name, result_type, measurement, unit,
+         HUC10_id, HUC10_Name, year:coloreffect) %>%
+  rename(description = Study_Name,
+         HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
+  mutate(HUC_level = '10', year = as.numeric(year)) %>%
+  rbind(wa12_formerge)
+
+wa_ph12_formerge <- wa_ph12 %>%
+  select(id, year, name, cost:HUC12_id, HUC12_Name, 
+         medianyr) %>%
+  rename(description = name, measurement = cost,
+         HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
+  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '12',
+         color = '#984ea3')
+
+water_projects_formerge <- wa_ph10 %>%
+  select(id, year, name, cost:lon, HUC10_id, HUC10_Name, 
+         medianyr) %>%
+  rename(description = name, measurement = cost,
+         HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
+  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '10',
+         color = '#984ea3') %>%
+  rbind(wa_ph12_formerge)
+
+ph12_formerge <- ph12 %>%
+  select(id, year, name, cost:HUC12_id, HUC12_Name, 
+         medianyr) %>%
+  rename(description = name, measurement = cost,
+         HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
+  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '12',
+         color = '#984ea3')
+
+chum_projects_formerge <- ph10 %>%
+  select(id, year, name, cost:lon, HUC10_id, HUC10_Name, 
+         medianyr) %>%
+  rename(description = name, measurement = cost,
+         HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
+  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '10',
+         color = '#984ea3') %>%
+  rbind(ph12_formerge)
+
+all_projects_formerge <- rbind(chum_projects_formerge, water_projects_formerge) %>%
+  distinct(id, HUC_id, .keep_all = TRUE) %>%
+  select(-id)
+
+# add both dataframes together
+all_dfs <- rbind(chum_formerge,water_formerge) %>% rbind(all_projects_formerge)
+
+# add unique ID column
+all_dfs$id <- 1:nrow(all_dfs)
+
+saveRDS(all_dfs, "../shinyapp/data/ALL-separate.rds")
+
 ######################## BEGIN DATA EXPORT ########################
 
-saveRDS(ch12, "../shinyapp/data/chum_huc12.rds")
-saveRDS(ch10, "../shinyapp/data/chum_huc10.rds")
-saveRDS(wa12, "../shinyapp/data/water_huc12.rds")
-saveRDS(wa10, "../shinyapp/data/water_huc10.rds")
-saveRDS(wa_ph12, "../shinyapp/data/water_project_huc12.rds")
-saveRDS(wa_ph10, "../shinyapp/data/water_project_huc10.rds")
-saveRDS(ph12, "../shinyapp/data/chum_project_huc12.rds")
-saveRDS(ph10, "../shinyapp/data/chum_project_huc10.rds")
+# saveRDS(ch12, "../shinyapp/data/chum_huc12.rds")
+# saveRDS(ch10, "../shinyapp/data/chum_huc10.rds")
+# saveRDS(wa12, "../shinyapp/data/water_huc12.rds")
+# saveRDS(wa10, "../shinyapp/data/water_huc10.rds")
+# saveRDS(wa_ph12, "../shinyapp/data/water_project_huc12.rds")
+# saveRDS(wa_ph10, "../shinyapp/data/water_project_huc10.rds")
+# saveRDS(ph12, "../shinyapp/data/chum_project_huc12.rds")
+# saveRDS(ph10, "../shinyapp/data/chum_project_huc10.rds")
 
 ######################## END DATA EXPORT ########################
 
