@@ -16,12 +16,12 @@ library(magrittr) # for lovely magrittr piping
 library(leaflet) # for mapping
 library(ggplot2) # for plotting
 library(forcats) # for changing factor level names
-library(MazamaSpatialUtils) # 
+library(MazamaSpatialUtils) # for lat-long to HUC conversion
 
 # # all the data manipulation bits here
 # # loading in spatial data, using readOGR
-# prj_hydro.mp <- readOGR(dsn=path.expand("./data"), layer="WBD_PRJ_HYDRO") 
-# 
+# prj_hydro.mp <- readOGR(dsn=path.expand("./data"), layer="WBD_PRJ_HYDRO")
+# # 
 # read in CSV of chum measurement locations that I got
 # manually from using MapShaper
 chumPermCodes <- read.csv("data/hoodCanalChumSiteReachCodes.csv",
@@ -39,7 +39,7 @@ chumPermCodes <- read.csv("data/hoodCanalChumSiteReachCodes.csv",
 # pare down chumReachCodes data
 keeps <-c("River.site", "Description", "Permanent")
 chumSiteInfo <- chumPermCodes[keeps]
-# 
+# # 
 # # convert the projection to lat long
 # chumsites <- spTransform(chum_sites.mp, CRS("+init=epsg:4326"))
 # 
@@ -56,7 +56,7 @@ chumSiteInfo <- chumPermCodes[keeps]
 # chumsite_json <- geojson_json(ptchumsites)
 # 
 # # saving out this geojson - for fault tolerance
-# geojson_write(chumsite_json, 
+# geojson_write(chumsite_json,
 #               file = "chumsite.json")
 
 # read in saved GeoJSON file as sp object
@@ -122,15 +122,15 @@ chumtwo$jitterlat <- as.numeric(jitter(chumtwo$lat, factor = 10))
 # load saved data
 ch <- readRDS("./data/chum_huc.rds")
 
-# # following introductory vignette at 
-# # https://cran.r-project.org/web/packages/MazamaSpatialUtils/vignettes/introduction.html
-# 
+# following introductory vignette at
+# https://cran.r-project.org/web/packages/MazamaSpatialUtils/vignettes/introduction.html
+
 # # need to install the data separately via command line (see mazama github)
 # setSpatialDataDir('~/Data/Spatial')
 # # THIS TAKES A WHILE
 # loadSpatialData('WBDHU')
 # # only need to do the command below once (i think)
-# # installSpatialData()
+# installSpatialData()
 # 
 # # get the HUC 12 and HUC 10 id's for each row
 # # THIS TAKES A WHILE
