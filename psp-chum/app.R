@@ -16,7 +16,7 @@ library(magrittr) # for lovely magrittr piping
 library(leaflet) # for mapping
 library(ggplot2) # for plotting
 library(forcats) # for changing factor level names
-library(MazamaSpatialUtils) 
+library(MazamaSpatialUtils) # 
 
 # # all the data manipulation bits here
 # # loading in spatial data, using readOGR
@@ -99,7 +99,18 @@ chumtwo <- chumtwo %>%
                                  "Tahuya River - Hatch" = "22. Tahuya Summer Chum: Hatch-Origin Spawners (Prop.)",
                                  "Tahuya River - Natural" = "23. Tahuya Summer Chum: Natural-Origin Spawners (Prop)",
                                  "Union River - Hatch" = "24. Union Summer Chum: Index Hatchery Escapement",
-                                 "Union River - Natural" = "25. Union Summer Chum: Index Natural Escapement"))
+                                 "Union River - Natural" = "25. Union Summer Chum: Index Natural Escapement",
+                                 "Chimacum Creek - Hatch" = "1. Chimacum Creek Summer Chum: Hatch-Origin Spawners (Prop.)",
+                                 "Chumacum Creek - Natural" = "2. Chimacum Creek Summer Chum: Natural-Origin Spawners (Prop)",
+                                 "Dungeness River - Natural" = "3. Dungeness Summer Chum: Natural-Origin Spawners (Prop)",
+                                 "Jimmycomelately Creek - Hatchery Escapement" = "4. Jimmycomelately Creek Summer Chum: Index Hatchery Escapement",
+                                 "Jimmycomelately Creek - Natural Escapement" = "5. Jimmycomelately Creek Summer Chum: Index Natural Escapement",
+                                 "Jimmycomelately Creek - Natural Spawners" = "6. Jimmycomelately Creek Summer Chum: Natural-Origin Spawners (Prop)",
+                                 "Snow/Salmon Creeks - Escapement" = "7. Snow/Salmon Creeks Summer Chum: Escapement (Proportion)",
+                                 "Salmon Creek - Hatch" = "8. Snow/Salmon Creeks Summer Chum: Index Hatchery Escapement",
+                                 "Snow Creek - Hatch" = "9. Snow/Salmon Creeks Summer Chum: Index Hatchery Escapement",
+                                 "Salmon Creek - Natural" = "10. Snow/Salmon Creeks Summer Chum: Index Natural Escapement",
+                                 "Snow Creek - Natural" = "11. Snow/Salmon Creeks Summer Chum: Index Natural Escapement"))
 
 # because we have points at the same lat/long, I'm going to jitter that data only for the visualization
 
@@ -154,8 +165,12 @@ ch <- readRDS("./data/chum_huc.rds")
 
 ############################# ADD IN HUCS ############################# 
 
-# load in the yearly data
-chumSiteData <- as.data.frame(read.csv("data/hoodCanalSummerChumStats.csv", header = TRUE))
+# load in the yearly data from the two csv files
+chumSiteData1 <- as.data.frame(read.csv("data/hoodCanalSummerChumStats.csv", header = TRUE))
+chumSiteData2 <- as.data.frame(read.csv("data/straitJuanDeFucaSummerChumStats.csv", header = TRUE))
+
+# merge the two data frames, keeping all rows
+chumSiteData <- merge(chumSiteData1, chumSiteData2, by="Year", all=TRUE)
 
 # rename all of the yearly data columns
 newnames <- c("Year",
@@ -183,7 +198,18 @@ newnames <- c("Year",
               "Tahuya River - Hatch",
               "Tahuya River - Natural",
               "Union River - Hatch",
-              "Union River - Natural")
+              "Union River - Natural",
+              "Chimacum Creek - Hatch",
+              "Chumacum Creek - Natural",
+              "Dungeness River - Natural",
+              "Jimmycomelately Creek - Hatchery Escapement",
+              "Jimmycomelately Creek - Natural Escapement",
+              "Jimmycomelately Creek - Natural Spawners",
+              "Snow/Salmon Creeks - Escapement",
+              "Salmon Creek - Hatch",
+              "Snow Creek - Hatch",
+              "Salmon Creek - Natural",
+              "Snow Creek - Natural")
 
 colnames(chumSiteData) <- newnames
 
@@ -223,7 +249,18 @@ chumchoices <- c("Select All",
                  "Tahuya River - Hatch",
                  "Tahuya River - Natural",
                  "Union River - Hatch",
-                 "Union River - Natural")
+                 "Union River - Natural",
+                 "Chimacum Creek - Hatch",
+                 "Chumacum Creek - Natural",
+                 "Dungeness River - Natural",
+                 "Jimmycomelately Creek - Hatchery Escapement",
+                 "Jimmycomelately Creek - Natural Escapement",
+                 "Jimmycomelately Creek - Natural Spawners",
+                 "Snow/Salmon Creeks - Escapement",
+                 "Salmon Creek - Hatch",
+                 "Snow Creek - Hatch",
+                 "Salmon Creek - Natural",
+                 "Snow Creek - Natural")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(

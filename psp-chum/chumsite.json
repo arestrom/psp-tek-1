@@ -39,6 +39,33 @@
       "type": "Feature",
       "id": 1,
       "properties": {
+        "Permanent_": "{C341A980-1965-41E3-A1E3-BF5C7D137CC6}",
+        "FDate": "2016/02/23",
+        "Resolution": 2,
+        "GNIS_ID": "01521382",
+        "GNIS_Name": "Jimmycomelately Creek",
+        "LengthKM": 0.4474,
+        "ReachCode": "17110020000372",
+        "FlowDir": 1,
+        "FType": 460,
+        "FCode": 46006,
+        "MainPath": 0,
+        "InNetwork": 0,
+        "Visibility": 0,
+        "Shape_Leng": 0.0048,
+        "Lines.NR": 2,
+        "Lines.ID": "4467",
+        "Line.NR": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-123.0072, 48.0221]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "properties": {
         "Permanent_": "123613254",
         "FDate": "2012/02/26",
         "Resolution": 2,
@@ -53,7 +80,7 @@
         "InNetwork": 0,
         "Visibility": 0,
         "Shape_Leng": 0.0138,
-        "Lines.NR": 2,
+        "Lines.NR": 3,
         "Lines.ID": "5503",
         "Line.NR": 1
       },
@@ -64,7 +91,61 @@
     },
     {
       "type": "Feature",
-      "id": 2,
+      "id": 3,
+      "properties": {
+        "Permanent_": "113836273",
+        "FDate": "2012/02/26",
+        "Resolution": 2,
+        "GNIS_ID": "01526028",
+        "GNIS_Name": "Snow Creek",
+        "LengthKM": 1.782,
+        "ReachCode": "17110020000240",
+        "FlowDir": 1,
+        "FType": 460,
+        "FCode": 46006,
+        "MainPath": 0,
+        "InNetwork": 0,
+        "Visibility": 0,
+        "Shape_Leng": 0.0173,
+        "Lines.NR": 4,
+        "Lines.ID": "5928",
+        "Line.NR": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-122.8847, 47.9899]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "properties": {
+        "Permanent_": "155185581",
+        "FDate": "2012/02/26",
+        "Resolution": 2,
+        "GNIS_ID": "01517711",
+        "GNIS_Name": "Chimacum Creek",
+        "LengthKM": 0.387,
+        "ReachCode": "17110019013233",
+        "FlowDir": 1,
+        "FType": 460,
+        "FCode": 46006,
+        "MainPath": 0,
+        "InNetwork": 0,
+        "Visibility": 0,
+        "Shape_Leng": 0.0049,
+        "Lines.NR": 5,
+        "Lines.ID": "8236",
+        "Line.NR": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-122.7844, 48.0505]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
       "properties": {
         "Permanent_": "123611089",
         "FDate": "2012/02/26",
@@ -81,7 +162,7 @@
         "InNetwork": 0,
         "Visibility": 0,
         "Shape_Leng": 0.0032,
-        "Lines.NR": 3,
+        "Lines.NR": 6,
         "Lines.ID": "8646",
         "Line.NR": 1
       },
@@ -92,7 +173,7 @@
     },
     {
       "type": "Feature",
-      "id": 3,
+      "id": 6,
       "properties": {
         "Permanent_": "123616426",
         "FDate": "2012/02/26",
@@ -109,7 +190,7 @@
         "InNetwork": 0,
         "Visibility": 0,
         "Shape_Leng": 0.0175,
-        "Lines.NR": 4,
+        "Lines.NR": 7,
         "Lines.ID": "10682",
         "Line.NR": 1
       },
@@ -120,7 +201,34 @@
     },
     {
       "type": "Feature",
-      "id": 4,
+      "id": 7,
+      "properties": {
+        "Permanent_": "113836265",
+        "FDate": "2012/02/26",
+        "Resolution": 2,
+        "GNIS_ID": "01525388",
+        "GNIS_Name": "Salmon Creek",
+        "LengthKM": 0.156,
+        "ReachCode": "17110020000231",
+        "FlowDir": 1,
+        "FType": 460,
+        "FCode": 46006,
+        "MainPath": 0,
+        "InNetwork": 0,
+        "Visibility": 0,
+        "Shape_Leng": 0.0017,
+        "Lines.NR": 8,
+        "Lines.ID": "11284",
+        "Line.NR": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-122.8892, 47.9893]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
       "properties": {
         "Permanent_": "159010682",
         "FDate": "2012/02/26",
@@ -137,7 +245,7 @@
         "InNetwork": 0,
         "Visibility": 0,
         "Shape_Leng": 0.0184,
-        "Lines.NR": 5,
+        "Lines.NR": 9,
         "Lines.ID": "11470",
         "Line.NR": 1
       },
@@ -148,7 +256,7 @@
     },
     {
       "type": "Feature",
-      "id": 5,
+      "id": 9,
       "properties": {
         "Permanent_": "159019563",
         "FDate": "2012/02/26",
@@ -164,7 +272,7 @@
         "InNetwork": 0,
         "Visibility": 0,
         "Shape_Leng": 0.006,
-        "Lines.NR": 6,
+        "Lines.NR": 10,
         "Lines.ID": "13571",
         "Line.NR": 1
       },
@@ -175,7 +283,7 @@
     },
     {
       "type": "Feature",
-      "id": 6,
+      "id": 10,
       "properties": {
         "Permanent_": "159013186",
         "FDate": "2016/02/23",
@@ -191,7 +299,7 @@
         "InNetwork": 0,
         "Visibility": 0,
         "Shape_Leng": 0.0049,
-        "Lines.NR": 7,
+        "Lines.NR": 11,
         "Lines.ID": "15529",
         "Line.NR": 1
       },
@@ -202,7 +310,7 @@
     },
     {
       "type": "Feature",
-      "id": 7,
+      "id": 11,
       "properties": {
         "Permanent_": "159014919",
         "FDate": "2012/02/26",
@@ -218,7 +326,7 @@
         "InNetwork": 0,
         "Visibility": 0,
         "Shape_Leng": 0.0155,
-        "Lines.NR": 8,
+        "Lines.NR": 12,
         "Lines.ID": "17174",
         "Line.NR": 1
       },
@@ -229,7 +337,7 @@
     },
     {
       "type": "Feature",
-      "id": 8,
+      "id": 12,
       "properties": {
         "Permanent_": "159019565",
         "FDate": "2012/02/26",
@@ -245,7 +353,7 @@
         "InNetwork": 0,
         "Visibility": 0,
         "Shape_Leng": 0.0011,
-        "Lines.NR": 9,
+        "Lines.NR": 13,
         "Lines.ID": "18007",
         "Line.NR": 1
       },
@@ -256,7 +364,35 @@
     },
     {
       "type": "Feature",
-      "id": 9,
+      "id": 13,
+      "properties": {
+        "Permanent_": "166774373",
+        "FDate": "2015/07/15",
+        "Resolution": 2,
+        "GNIS_ID": "01528593",
+        "GNIS_Name": "Dungeness River",
+        "LengthKM": 0.8741,
+        "ReachCode": "17110020000844",
+        "FlowDir": 1,
+        "WBArea_Per": "113836911",
+        "FType": 558,
+        "FCode": 55800,
+        "MainPath": 0,
+        "InNetwork": 0,
+        "Visibility": 0,
+        "Shape_Leng": 0.0089,
+        "Lines.NR": 14,
+        "Lines.ID": "20353",
+        "Line.NR": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-123.1294, 48.1524]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 14,
       "properties": {
         "Permanent_": "160976354",
         "FDate": "2012/02/26",
@@ -273,7 +409,7 @@
         "InNetwork": 0,
         "Visibility": 0,
         "Shape_Leng": 0.0009,
-        "Lines.NR": 10,
+        "Lines.NR": 15,
         "Lines.ID": "23473",
         "Line.NR": 1
       },
@@ -284,7 +420,7 @@
     },
     {
       "type": "Feature",
-      "id": 10,
+      "id": 15,
       "properties": {
         "Permanent_": "166417709",
         "FDate": "2012/02/26",
@@ -301,7 +437,7 @@
         "InNetwork": 0,
         "Visibility": 0,
         "Shape_Leng": 0.0026,
-        "Lines.NR": 11,
+        "Lines.NR": 16,
         "Lines.ID": "23722",
         "Line.NR": 1
       },
@@ -312,7 +448,7 @@
     },
     {
       "type": "Feature",
-      "id": 11,
+      "id": 16,
       "properties": {
         "Permanent_": "159018693",
         "FDate": "2012/02/26",
@@ -328,7 +464,7 @@
         "InNetwork": 0,
         "Visibility": 0,
         "Shape_Leng": 0.0008,
-        "Lines.NR": 12,
+        "Lines.NR": 17,
         "Lines.ID": "26028",
         "Line.NR": 1
       },
@@ -339,7 +475,7 @@
     },
     {
       "type": "Feature",
-      "id": 12,
+      "id": 17,
       "properties": {
         "Permanent_": "123616744",
         "FDate": "2012/02/26",
@@ -355,7 +491,7 @@
         "InNetwork": 0,
         "Visibility": 0,
         "Shape_Leng": 0.0014,
-        "Lines.NR": 13,
+        "Lines.NR": 18,
         "Lines.ID": "26734",
         "Line.NR": 1
       },

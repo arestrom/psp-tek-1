@@ -12,8 +12,8 @@ library(ggplot2) # for plotting
 library(forcats) # for factor revalue with tidyverse
 
 ## ----load spatial data---------------------------------------------------
-# loading in spatial data, using readOGR - WORKS!!!
-prj_hydro.mp <- readOGR(dsn=path.expand("./Hood_Canal_Prj_Area_NEW"), layer="WBD_PRJ_HYDRO")
+# loading in spatial data, using readOGR
+prj_hydro.mp <- readOGR(dsn=path.expand("./data"), layer="WBD_PRJ_HYDRO")
 
 
 ## ----see spatial data----------------------------------------------------
@@ -23,7 +23,7 @@ prj_hydro.mp <- readOGR(dsn=path.expand("./Hood_Canal_Prj_Area_NEW"), layer="WBD
 ## ----filter spatial data-------------------------------------------------
 # read in CSV of chum measurement locations that I got
 # manually from using MapShaper
-chumPermCodes <- read.csv("hoodCanalChumSiteReachCodes.csv",
+chumPermCodes <- read.csv("data/hoodCanalChumSiteReachCodes.csv",
                            header=TRUE)
 # build vector of Permanent IDs to filter on
 wantedChumSites <-
@@ -36,7 +36,7 @@ chum_sites.mp <- prj_hydro.mp %>%
 # reset the rownames
 rownames(chum_sites.mp@data) <- 1:nrow(chum_sites.mp@data)
 
-# pare down chumReachCodes data
+# pare down chumPermCodes data
 keeps <-c("River.site", "Description", "Permanent")
 chumSiteInfo <- chumPermCodes[keeps]
 
@@ -69,13 +69,15 @@ chum_to_map <- geojsonio::geojson_read("chumsite.json",
 ## ------------------------------------------------------------------------
 # convert to plain ol data frame for easy combining
 chumsite_df <- as.data.frame(chum_to_map)
-names(chumsite_df)[names(chumsite_df) == "coords.x1"] <- "lng"
-names(chumsite_df)[names(chumsite_df) == "coords.x2"] <- "lat"
+# convert name to get matching keys for merge
 names(chumsite_df)[names(chumsite_df) == "Permanent_"] <- "Permanent"
-names(chumsite_df)[names(chumsite_df) == "River.site"] <- "Site"
-
 # merge with the chumsite info
 chumtwo <- merge(chumsite_df,chumSiteInfo,by="Permanent")
+# convert more names for ease of use
+names(chumtwo)[names(chumtwo) == "coords.x1"] <- "lon"
+names(chumtwo)[names(chumtwo) == "coords.x2"] <- "lat"
+names(chumtwo)[names(chumtwo) == "River.site"] <- "Site"
+
 
 # retool data so names match those in chumdata
 chumtwo <- chumtwo %>% 
@@ -104,7 +106,18 @@ chumtwo <- chumtwo %>%
      "Tahuya River - Hatch" = "22. Tahuya Summer Chum: Hatch-Origin Spawners (Prop.)",
      "Tahuya River - Natural" = "23. Tahuya Summer Chum: Natural-Origin Spawners (Prop)",
      "Union River - Hatch" = "24. Union Summer Chum: Index Hatchery Escapement",
-     "Union River - Natural" = "25. Union Summer Chum: Index Natural Escapement"))
+     "Union River - Natural" = "25. Union Summer Chum: Index Natural Escapement",
+     "Chimacum Creek - Hatch" = "1. Chimacum Creek Summer Chum: Hatch-Origin Spawners (Prop.)",
+     "Chumacum Creek - Natural" = "2. Chimacum Creek Summer Chum: Natural-Origin Spawners (Prop)",
+     "Dungeness River - Natural" = "3. Dungeness Summer Chum: Natural-Origin Spawners (Prop)",
+     "Jimmycomelately Creek - Hatchery Escapement" = "4. Jimmycomelately Creek Summer Chum: Index Hatchery Escapement",
+     "Jimmycomelately Creek - Natural Escapement" = "5. Jimmycomelately Creek Summer Chum: Index Natural Escapement",
+     "Jimmycomelately Creek - Natural Spawners" = "6. Jimmycomelately Creek Summer Chum: Natural-Origin Spawners (Prop)",
+     "Snow/Salmon Creeks - Escapement" = "7. Snow/Salmon Creeks Summer Chum: Escapement (Proportion)",
+     "Salmon Creek - Hatch" = "8. Snow/Salmon Creeks Summer Chum: Index Hatchery Escapement",
+     "Snow Creek - Hatch" = "9. Snow/Salmon Creeks Summer Chum: Index Hatchery Escapement",
+     "Salmon Creek - Natural" = "10. Snow/Salmon Creeks Summer Chum: Index Natural Escapement",
+     "Snow Creek - Natural" = "11. Snow/Salmon Creeks Summer Chum: Index Natural Escapement"))
 
 # create label for chum measurement sites
 chumlabel <- sprintf("Chum Site: %s <br><br>Measurement: %s <br><br>Description: %s",
@@ -116,20 +129,24 @@ chumlabel <- sprintf("Chum Site: %s <br><br>Measurement: %s <br><br>Description:
 ## ------------------------------------------------------------------------
 # because we have points at the same lat/long, I'm going to jitter that data only for the visualization
 
-chumtwo$jitterlng <- as.numeric(jitter(chumtwo$lng, factor = 10))
+chumtwo$jitterlon <- as.numeric(jitter(chumtwo$lon, factor = 10))
 chumtwo$jitterlat <- as.numeric(jitter(chumtwo$lat, factor = 10))
 
 leaflet(chumtwo) %>%
   setView(lng = -123, lat = 47.65, zoom = 9) %>%
   addProviderTiles("Esri.WorldImagery") %>% 
-  addCircleMarkers(lng = ~jitterlng, 
+  addCircleMarkers(lng = ~jitterlon, 
                    lat = ~jitterlat,
                    color = "#42d4f4",
                    popup = chumlabel)
 
 ## ----data wrangle and make plots-----------------------------------------
-# load in the yearly data
-chumSiteData <- as.data.frame(read.csv("hoodCanalSummerChumStats.csv", header = TRUE))
+# load in the yearly data from the two csv files
+chumSiteData1 <- as.data.frame(read.csv("data/hoodCanalSummerChumStats.csv", header = TRUE))
+chumSiteData2 <- as.data.frame(read.csv("data/straitJuanDeFucaSummerChumStats.csv", header = TRUE))
+
+# merge the two data frames, keeping all rows
+chumSiteData <- merge(chumSiteData1, chumSiteData2, by="Year", all=TRUE)
 
 # rename all of the yearly data columns
 newnames <- c("Year",
@@ -157,7 +174,18 @@ newnames <- c("Year",
               "Tahuya River - Hatch",
               "Tahuya River - Natural",
               "Union River - Hatch",
-              "Union River - Natural")
+              "Union River - Natural",
+              "Chimacum Creek - Hatch",
+              "Chumacum Creek - Natural",
+              "Dungeness River - Natural",
+              "Jimmycomelately Creek - Hatchery Escapement",
+              "Jimmycomelately Creek - Natural Escapement",
+              "Jimmycomelately Creek - Natural Spawners",
+              "Snow/Salmon Creeks - Escapement",
+              "Salmon Creek - Hatch",
+              "Snow Creek - Hatch",
+              "Salmon Creek - Natural",
+              "Snow Creek - Natural")
 
 colnames(chumSiteData) <- newnames
 
