@@ -279,14 +279,69 @@ ch12 <- chum12 %>%
 # c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850')
 # cohen's D: 'small effect' = 0.2, med effect = 0.5, large effect = 0.8
 
+ch12_formerge <- ch12 %>%
+  select(year, lon, lat, Description, HUC12_id, HUC12_Name, 
+         medianyr:coloreffect) %>%
+  rename(description = Description, measurement = count,
+         HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
+  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '12') 
+
+chum_formerge <- ch10 %>%
+  select(year, lon, lat, Description, HUC10_id, HUC10_Name, 
+         medianyr:coloreffect) %>%
+  rename(description = Description, measurement = count,
+         HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
+  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '10') %>%
+  rbind(ch12_formerge)
+
+wa12_formerge <- wa12 %>%
+  select(lon, lat, Study_Name, result_type, measurement, unit,
+         HUC12_id, HUC12_Name, year:coloreffect) %>%
+  rename(description = Study_Name,
+         HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
+  mutate(HUC_level = '12', year = as.numeric(year)) 
+
+water_formerge <- wa10 %>%
+  select(lon, lat, Study_Name, result_type, measurement, unit,
+         HUC10_id, HUC10_Name, year:coloreffect) %>%
+  rename(description = Study_Name,
+         HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
+  mutate(HUC_level = '10', year = as.numeric(year)) %>%
+  rbind(wa12_formerge)
+
+ph12_formerge <- ph12 %>%
+  select(year, name, cost:HUC12_id, HUC12_Name, 
+         medianyr) %>%
+  rename(description = name, measurement = cost,
+         HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
+  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '12',
+         color = '#984ea3')
+
+projects_formerge <- ph10 %>%
+  select(year, name, cost:lon, HUC10_id, HUC10_Name, 
+         medianyr) %>%
+  rename(description = name, measurement = cost,
+         HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
+  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '10',
+         color = '#984ea3') %>%
+  rbind(ph12_formerge)
+
+# add both dataframes together
+all_dfs <- rbind(chum_formerge,water_formerge) %>% rbind(projects_formerge)
+
+# add unique ID column
+all_dfs$id <- 1:nrow(all_dfs)
+
+saveRDS(all_dfs, "../shinyapp/data/ALL_together.rds")
+
 ######################## BEGIN DATA EXPORT ########################
 
-saveRDS(ch12, "../shinyapp/data/together_chum_huc12.rds")
-saveRDS(ch10, "../shinyapp/data/together_chum_huc10.rds")
-saveRDS(wa12, "../shinyapp/data/together_water_huc12.rds")
-saveRDS(wa10, "../shinyapp/data/together_water_huc10.rds")
-saveRDS(ph12, "../shinyapp/data/together_chum_project_huc12.rds")
-saveRDS(ph10, "../shinyapp/data/together_chum_project_huc10.rds")
+# saveRDS(ch12, "../shinyapp/data/together_chum_huc12.rds")
+# saveRDS(ch10, "../shinyapp/data/together_chum_huc10.rds")
+# saveRDS(wa12, "../shinyapp/data/together_water_huc12.rds")
+# saveRDS(wa10, "../shinyapp/data/together_water_huc10.rds")
+# saveRDS(ph12, "../shinyapp/data/together_chum_project_huc12.rds")
+# saveRDS(ph10, "../shinyapp/data/together_chum_project_huc10.rds")
 
 ######################## END DATA EXPORT ########################
 
