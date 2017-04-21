@@ -6,261 +6,251 @@ library(ggmap)
 library(tidyverse)
 library(stringr)
 library(scales)
-locations <- read.csv('./data/EIMLocationDetails.csv', header = TRUE)
+df <- readRDS("./data/ALL-separate-2.rds")
 
 
-# Define UI for application that draws a histogram
 ui <- navbarPage(theme = shinytheme("sandstone"),
-  "Opening Up the Data",
-  
-  tabPanel("Water Quality Data",
-  # water quality data
-   sidebarLayout(
-      sidebarPanel(
-         radioButtons(inputId = "mapfeatures",
-                      label = "Select water quality feature:",
-                      c("Turbidity", "TSS")),
-         checkboxGroupInput("wriaselect",
-                            "WRIAs",
-                            c("Elwah-Dungeness", 
-                              "Kennedy-Goldsborough", 
-                              "Kitsap", 
-                              "Quilcence-Snow",
-                              "Skokomish-Dosewallips"),
-                            selected = unique(locations$Watershed_WRIA))
-      , width = 2),
-      mainPanel(
-         leafletOutput("watermap",
-                       height = 675,
-                       width = 1200)
-
-      ))),
-  tabPanel("Project Data",
-           sidebarLayout(
-             sidebarPanel(
-               #selectizeInput("projectinput",
-                #              label = "Select Project(s)",
-                 #             choices = unique(all_projects$name),
-                  #            multiple = TRUE),
-               checkboxGroupInput("wriaselect1",
-                                  "WRIAs",
-                                  c("Elwah-Dungeness", 
-                                    "Kennedy-Goldsborough", 
-                                    "Kitsap", 
-                                    "Quilcence-Snow",
-                                    "Skokomish-Dosewallips"),
-                                  selected = unique(locations$Watershed_WRIA)),
-               width = 2
-             ),
-             mainPanel(leafletOutput("projectmap",
-                                     height = 675,
-                                     width = 1200))
-           ))
-   #)
-
-  )
-
-###########PROJECT DATA###############
-
-#################### EAGL DATA #################### 
-eagl_df <- read.csv('./data/eagl.csv', header = TRUE) %>%
-  select(Funding.Fiscal.Year, WRIA, Project.Title, 
-         Funding.Provided, Latitude, Longitude) %>%
-  rename(year = Funding.Fiscal.Year, name = Project.Title, WRIA_ID = WRIA,
-         cost = Funding.Provided, lat = Latitude, lon = Longitude) %>%
-  # remove missing coordinates
-  filter(!lat %in% c('#N/A', '0'),
-         !lon %in% c('#N/A', '0')) %>%
-  # convert dollar strings ($50,000.00) to numeric values (50000) 
-  mutate(cost_sm = str_sub(cost, 2, -4),
-         cost = as.numeric(gsub(",", "", cost_sm)),
-         lat = as.numeric(levels(lat))[lat],
-         lon = as.numeric(levels(lon))[lon]) %>%
-  select(-cost_sm)
-
-# label wria number with wria name
-eagl_df <- eagl_df %>% 
-  mutate(WRIA_Name = ifelse(WRIA_ID == 15, "Kitsap",
-                            ifelse(WRIA_ID == 14, "Kennedy-Goldsborough",
-                                   ifelse(WRIA_ID == 16, "Skokomish-Dosewallips",
-                                          ifelse(WRIA_ID == 17, "Quilcence-Snow",
-                                                 ifelse(WRIA_ID == 18, "Elwah-Dungeness",
-                                                        NA))))))
-
-#################### PRISM DATA #################### 
-hc_df <- read.csv('./data/locs.csv', header = TRUE)
-f_df <- read.csv('./data/fund.csv', header = TRUE)
-
-mdf <- merge(x = hc_df, y = f_df, by = "ProjectNumber", all.x = TRUE) %>%
-  select(ProjectNumber, ProjectYear, ProjectName.x, HUC, WRIA, 
-         PrimaryProgramAmount, ProjectLatitude, ProjectLongitude) %>%
-  rename(id = ProjectNumber, year = ProjectYear, name = ProjectName.x, 
-         cost = PrimaryProgramAmount, lat = ProjectLatitude, lon = ProjectLongitude) %>%
-  # create wria number and wria name columns from combo string
-  separate(WRIA, into = c("WRIA_Name", "WRIA_ID"), sep = " \\(", convert = TRUE) %>%
-  mutate(WRIA_ID = as.numeric(str_sub(WRIA_ID, 1, -2))) %>%
-  filter(!is.na(lat), !is.na(cost))
+                 "Opening Up the Data",
+                 # first tab panel for point data
+                 tabPanel("Point View",
+                          # water quality data
+                          sidebarLayout(
+                            sidebarPanel(
+                              # feature selection
+                              radioButtons(inputId = "mapfeatures",
+                                           label = "Select variable:",
+                                           c("Turbidity", "TSS", "Investment", "Chum Salmon")),
+                              # HUC level selection
+                              radioButtons(inputId = "huc",
+                                           label = "HUC level:",
+                                           c(10, 12)),
+                               width = 2),
+                            mainPanel(
+                              # map of points
+                              leafletOutput("watermap",
+                                            height = 675,
+                                            width = 800),
+                              # table output to test dynamic clicking/plot creation
+                              tableOutput("myTable")
+                              
+                            ))),
+                 # second tab panel for HUCs
+                 tabPanel("HUC View",
+                          sidebarLayout(
+                            sidebarPanel(
+                              # select features to view effects
+                              radioButtons(inputId = "mapfeatures1",
+                                           label = "Select outcome:",
+                                           c("Turbidity", "TSS", "Chum Salmon")),
+                              # select HUC level
+                              radioButtons(inputId = "huclevel",
+                                           label = "HUC level:",
+                                           c(10, 12)),
+                              checkboxInput(inputID = "colorblind",
+                                           label = "Colorblind Friendly Key:",
+                                           value = FALSE),
+                              width = 2
+                            ),
+                            # map output
+                            mainPanel(leafletOutput("hucmap",
+                                                    height = 675,
+                                                    width = 800))
+                          ))
+                 
+                 
+)
 
 
-#################### MERGE #################### 
 
-all_projects <- bind_rows(mdf, eagl_df)
-
-all_projects <- within(all_projects, cost_quantile <- as.integer(cut(cost, quantile(cost, probs=0:5/5), include.lowest=TRUE)))
-
-all_projects$marker_size <- 
-  cut( 
-    # input data
-    all_projects$cost_quantile, 
-    # cut points
-    c( 0, 1, 2, 3, 4, 6) , 
-    # label values (character strings work too)
-    labels = c(5,7,8,9,11) ,
-    # interval closed on the right?
-    right = FALSE
-  )
+## code for marker size within the df ##
+#reactive_df <- reactive({within(reactive_df(), cost_quantile <- as.integer(cut(unique(measurement, quantile(measurement, probs=0:5/5), include.lowest=TRUE))))})
+# reactive_df()$marker_size <- reactive({
+#   cut(
+# #input data
+#    reactive_df()$cost_quantile,
+# #cut points
+#    c( 0, 1, 2, 3, 4, 6) ,
+# #label values (character strings work too)
+#    labels = c(5,7,8,9,11) ,
+# #interval closed on the right?
+#    right = FALSE)})
+#  
+## end marker size code ##
 
 server <- function(input, output, session) {
   
-  # load location data file
-  # select only ID and WRIA
-  turbidity_locations <- read.csv('./data/EIMLocationDetails.csv', header = TRUE) %>%
-    select(Location_ID, Watershed_WRIA)
-  # unique(locs$Watershed_WRIA)
+### point code ###
+  # read in the shapefiles
+  huc10_df <- readRDS("./data/huc10.rds")
+  huc12_df <- readRDS("./data/huc12.rds")
   
-  # create a turbidity data frame 
-  # for merging with the tss data
-  # select only variables of interest, rename lengthy variable names
-  # convert dates to date format
-  # obtain log(x+1) since there are some negative values if use log(x) (for plots)
-  turbidity <- read.csv('./data/EIMResults.csv', header = TRUE) %>%
-    select(Study_ID, Study_Name, Location_ID, 
-           Field_Collection_Start_Date, Field_Collection_Start_Date_Time,
-           Result_Value, Calculated_Latitude_Decimal_Degrees_NAD83HARN,
-           Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
-    rename(start_date = Field_Collection_Start_Date, 
-           measurement = Result_Value, 
-           lat = Calculated_Latitude_Decimal_Degrees_NAD83HARN,
-           lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
-    mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
-           logMeasurement = log10(measurement+1),
-           result_type = 'Turbidity',
-           unit = 'NTU') %>%
-    # join wria to main data file
-    # label wria name with wria number
-    left_join(turbidity_locations, by = "Location_ID") %>% 
-    mutate(WRIA_ID = ifelse(Watershed_WRIA == "Kitsap", 15, 
-                            ifelse(Watershed_WRIA == "Kennedy-Goldsborough", 14,
-                                   ifelse(Watershed_WRIA == "Skokomish-Dosewallips", 16,
-                                          ifelse(Watershed_WRIA == "Quilcence-Snow", 17,
-                                                 ifelse(Watershed_WRIA == "Elwah-Dungeness", 18,
-                                                        NA))))))
-  
-  
-  
-  # load tss location data file
-  # select only ID and WRIA
-  tss_locations <- read.csv('../TSS/data/EIMLocationDetails.csv', header = TRUE) %>%
-    select(Location_ID, Watershed_WRIA)
-  
-  # load the tss data 
-  # select only variables of interest, rename lengthy variable names
-  tss <- read.csv('../TSS/data/EIMResults.csv', header = TRUE) %>%
-    select(Study_ID, Study_Name, Location_ID, 
-           Field_Collection_Start_Date, Field_Collection_Start_Date_Time,
-           Result_Value, Calculated_Latitude_Decimal_Degrees_NAD83HARN,
-           Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
-    rename(start_date = Field_Collection_Start_Date,
-           measurement = Result_Value,
-           lat = Calculated_Latitude_Decimal_Degrees_NAD83HARN,
-           lon = Calculated_Longitude_Decimal_Degrees_NAD83HARN) %>%
-    mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
-           logMeasurement = log10(measurement+1),
-           result_type = 'TSS',
-           unit = 'mg/L') %>%
-    left_join(tss_locations, by = "Location_ID") %>% 
-    mutate(WRIA_ID = ifelse(Watershed_WRIA == "Kitsap", 15, 
-                            ifelse(Watershed_WRIA == "Kennedy-Goldsborough", 14,
-                                   ifelse(Watershed_WRIA == "Skokomish-Dosewallips", 16,
-                                          ifelse(Watershed_WRIA == "Quilcence-Snow", 17,
-                                                 ifelse(Watershed_WRIA == "Elwah-Dungeness", 18,
-                                                        NA))))))
-  
-  
-  # add both dataframes together
-  turb_tss <- rbind(turbidity,tss) 
-  
-  # add unique ID column
-  turb_tss$ID <- 1:nrow(turb_tss)
-  
+  # reactive df for those features in the input
+  df <- df[df$HUC_id %in% huc10_df$HUC10 | df$HUC_id %in% huc12_df$HUC12, ]
+  reactive_df <- reactive({subset(df, result_type %in% input$mapfeatures)}) 
 
-  features_df <- reactive({subset(turb_tss, result_type %in% input$mapfeatures)})    
-  reactive_df <- reactive({subset(features_df(), Watershed_WRIA %in% input$wriaselect)})
- 
+#  reactive_df$marker_size <- reactive({ifelse(midpoint_df()$result_type %in% "Investment", 10,6)})
+  
+  # subset based on HUC level
+  mid_df <- reactive({subset(reactive_df(), HUC_level %in% input$huc)})
+  # remove duplicates
+  huc_df <- reactive({mid_df()[!duplicated(mid_df()$HUC_id),]})
+  # merge the HUC shapefiles and the required information from the reactive df
+  shapes_df <- reactive({
+    if(10 %in% input$huc){
+      huc10_df <- sp::merge(x = huc10_df, y = huc_df()[ , c("HUC_id", 
+                                                        "medianyr", 
+                                                        "cohensd", 
+                                                        "TimePeriod", 
+                                                        "effectsize", 
+                                                        "meanbefore", 
+                                                        "meanafter", 
+                                                        "status", 
+                                                        "coloreffect")], by.x = "HUC10", by.y = "HUC_id", all.x=TRUE, duplicateGeoms = TRUE)
+    } else{
+      huc12_df <- sp::merge(x = huc12_df, y = huc_df()[ , c("HUC_id", 
+                                                        "medianyr", 
+                                                        "cohensd", 
+                                                        "TimePeriod", 
+                                                        "effectsize", 
+                                                        "meanbefore", 
+                                                        "meanafter", 
+                                                        "status", 
+                                                        "coloreffect")], by.x = "HUC12", by.y = "HUC_id", all.x=TRUE, duplicateGeoms = TRUE)
+    }
+  })
+  
+  # create map
   output$watermap <- renderLeaflet( m <- leaflet(data = reactive_df()) %>% 
-                                   setView(lng = -122.996823, lat = 47.5642594, zoom = 9) %>%
-    addTiles() %>%
-    addProviderTiles("Stamen.Terrain", group = "Terrain") %>%
-    addCircleMarkers(~lon, ~lat, 
-                     popup = content1(),
-                     radius = 6,
-                     color = ~qpal()(measurement),
-                     stroke = FALSE, fillOpacity = 0.5,
-                     group = "Water Quality") %>%
-    addLegend(title = paste("Water Quality",br(), "Measurement Quantiles"), pal = qpal(), values = reactive_df()$measurement, opacity = 1, labels = c("turbidity", "TSS"))
-  )
-  
-  content1 <- reactive({
-                    paste(sep = "",
-                    "<b>Project Name: </b>",
-                    reactive_df()$Study_Name,
-                    br(),
-                    "<b>Date: </b>",
-                    reactive_df()$start_date,
-                    br(),
-                    strong(reactive_df()$result_type),
-                    "<b>: </b>",
-                    reactive_df()$measurement,
-                    " ",
-                    reactive_df()$unit
-                    )})
-  
-  
-  qpal <- reactive({colorQuantile("Reds", reactive_df()$measurement, n = 5)})
-  
-  projects_reactive <- reactive({subset(all_projects, WRIA_Name %in% input$wriaselect1)})    
-  
-  output$projectmap <- renderLeaflet( m <- leaflet(data = projects_reactive()) %>% 
-                                      setView(lng = -122.996823, lat = 47.5642594, zoom = 9) %>%
+                                      setView(lng = -122.996823, lat = 47.875, zoom = 9) %>%
                                       addTiles() %>%
                                       addProviderTiles("Stamen.Terrain", group = "Terrain") %>%
+                                      # HUC outlines beneath the datapoints
+                                      addPolygons(data= shapes_df(),
+                                                  fillOpacity = 0,
+                                                  color = "black", 
+                                                  weight = 1,
+                                                  opacity = 1)  %>%
+                                      # datapoints
                                       addCircleMarkers(~lon, ~lat, 
-                                                       popup = content2(),
-                                                       radius = projects_reactive()$marker_size,
-                                                       color = ~quantpal()(cost),
-                                                       stroke = FALSE, fillOpacity = 0.7,
-                                                       group = "Projects") %>%
-                                      addLegend(title = "Project Cost Quantiles", 
-                                                pal = quantpal(), 
-                                                values = projects_reactive()$cost, 
-                                                opacity = 1)
-  )
-
-  quantpal <- reactive({colorQuantile("PuRd", projects_reactive()$cost, n = 5)})
+                                                       popup = content1(),
+                                                       # variable radius - possibly not working correctly
+                                                       radius = 6,
+                                                       color = ~qpal()(measurement),
+                                                       stroke = FALSE, fillOpacity = 0.5,
+                                                       group = "water quality"
+                                                      ) %>%
+                                      # legend (quantiles)
+                                      addLegend(title = paste("Measurement Quantiles"), pal = qpal(), values = reactive_df()$measurement, opacity = 1, labels = c("turbidity", "TSS"))
   
-  content2 <- reactive({
+                                    )
+# define the content for the popups
+  content1 <- reactive({
     paste(sep = "",
+          # name
           "<b>Project Name: </b>",
-          projects_reactive()$name,
+          reactive_df()$description,
           br(),
-          "<b>Fiscal Year Funded: </b>",
-          projects_reactive()$year,
+          # year
+          "<b>Year: </b>",
+          reactive_df()$year,
           br(),
-          "<b>Funding Amount: </b>",
-          dollar(projects_reactive()$cost)
+          # measurements
+          strong(reactive_df()$result_type),
+          "<b>: </b>",
+          # convert measurement to $ format for investments, else print as normal
+          ifelse(reactive_df()$result_type == "Investment",
+            dollar(reactive_df()$measurement),
+            paste(reactive_df()$measurement,
+            " ",
+            reactive_df()$unit))
+          
 
     )})
+  
+  # define color quantile for graphing 
+  qpal <- reactive({colorQuantile("Reds", reactive_df()$measurement, n = 5)})
+  
+### end point code ###
+  
+  
+  
+  
+### HUC code ###
+  
+# define reactive df based on mapfeatures1 input
+reactive_subset <- reactive({subset(df, result_type %in% input$mapfeatures1)})
+# further subset that df to filter only the HUCs selected from huclevel
+mid_df <- reactive({subset(reactive_subset(), HUC_level %in% input$huclevel)})
+# remove all duplicates (returns only one row per HUC that has enough measurements in the measurement column)
+huc_df <- reactive({mid_df()[!duplicated(mid_df()$HUC_id),]})
 
+# dynamically merge the shapefile and the df for mapping
+shapefile <- reactive({
+  if(10 %in% input$huclevel){
+    huc10_df <- sp::merge(x = huc10_df, y = huc_df()[ , c("HUC_id", 
+                                                      "medianyr", 
+                                                      "cohensd", 
+                                                      "TimePeriod", 
+                                                      "effectsize", 
+                                                      "meanbefore", 
+                                                      "meanafter", 
+                                                      "status", 
+                                                      "coloreffect")], by.x = "HUC10", by.y = "HUC_id", all.x=TRUE, duplicateGeoms = TRUE)
+  } else{
+    huc12_df <- sp::merge(x = huc12_df, y = huc_df()[ , c("HUC_id", 
+                                                      "medianyr", 
+                                                      "cohensd", 
+                                                      "TimePeriod", 
+                                                      "effectsize", 
+                                                      "meanbefore", 
+                                                      "meanafter", 
+                                                      "status", 
+                                                      "coloreffect")], by.x = "HUC12", by.y = "HUC_id", all.x=TRUE, duplicateGeoms = TRUE)
+  }
+})
+
+# create the HUC map
+   output$hucmap <- renderLeaflet( m <-  leaflet() %>% 
+                                         setView(lng = -122.996823, lat = 47.875, zoom = 9) %>%
+                                         addProviderTiles("Stamen.Terrain") %>%
+                                     # use the shapefile() df
+                                         addPolygons(data= shapefile(),
+                                                     popup = content2(),
+                                                     # color according to increases/decreases as defined by coloreffect column
+                                                     fillColor = ifelse(input$colorblind == FALSE, shapefile()$coloreffect, shapefile()$colorblind),
+                                                     fillOpacity = ifelse(is.na(shapefile()$coloreffect), 0, .7),
+                                                     color = "black",
+                                                     weight = 1,
+                                                     opacity = 1
+                                                     ) %>%
+                                     addLegend(colors = c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850'),
+                                               labels = c('large/worse', 'medium/worse', 'small/worse', 
+                                                          'small/improving', 'medium/improving', 'large/improving'),
+                                               position = 'topright',
+                                               title = 'Effect Sizeus',
+                                               opacity = .8)
+  )
+# variable that defines the text for the popup
+  content2 <- reactive({
+    paste(sep = "",
+          # HUC
+          "<b>HUC: </b>",
+          shapefile()$Name,
+          br(),
+          # effect size
+          "<b>Effect: </b>",
+          ifelse(is.na(shapefile()$effectsize),
+                 paste("Not enough data for meaningful analysis"),
+          paste(shapefile()$effectsize,
+          "/",
+          shapefile()$status,
+          br(),
+          # median year of projects
+          "<b>Cohen's D: </b>",
+          round(shapefile()$cohensd, 2)))
+
+    )})
+  
 }
 # Run the application 
 shinyApp(ui = ui, server = server)
