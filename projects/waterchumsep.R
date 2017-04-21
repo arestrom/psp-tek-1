@@ -122,7 +122,8 @@ before_after <- function(type, df, value) {
 # then, categorize the effect size
 apply_cohensD <- function(data, outcome) {
   if (outcome == 'water') { data %>%
-      filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
+      # filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
+      filter(!is.na(TimePeriod)) %>%
       spread(TimePeriod, measurement) %>%
       mutate(cohensd = cohensD(before, after)) %>%
       filter(!cohensd == 'NaN') %>%
@@ -132,7 +133,8 @@ apply_cohensD <- function(data, outcome) {
                                  ifelse(cohensd >= 0.8, 'large',
                                         'medium')))
   } else if (outcome == 'chum') { data %>%
-      filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
+      # filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
+      filter(!is.na(TimePeriod)) %>%
       spread(TimePeriod, count) %>%
       mutate(cohensd = cohensD(before, after)) %>%
       filter(!cohensd == 'NaN') %>%
@@ -228,8 +230,9 @@ wa10 <- water10 %>%
   apply_cohensD ('water') %>%
   left_join(bwa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
   left_join(awa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
-  add_status_colors('water') %>%
-  filter(TimePeriod == 'after')
+  add_status_colors('water') 
+# %>%
+#   filter(TimePeriod == 'after')
 
 # remove rows without a TimePeriod (no project in that HUC to get a median year)
 # create a column of measurements for before and after project implementation in each HUC
@@ -242,8 +245,9 @@ wa12 <- water12 %>%
   apply_cohensD('water') %>%
   left_join(bwa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
   left_join(awa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
-  add_status_colors('water') %>%
-  filter(TimePeriod == 'after')
+  add_status_colors('water') 
+# %>%
+#   filter(TimePeriod == 'after')
 
 # %>%
 #   ungroup() %>%
@@ -294,8 +298,9 @@ ch10 <- chum10 %>%
   apply_cohensD('chum') %>%
   left_join(bchum10, by = "HUC10_Name") %>%
   left_join(achum10, by = "HUC10_Name") %>%
-  add_status_colors('chum') %>%
-  filter(TimePeriod == 'after')
+  add_status_colors('chum') 
+# %>%
+#   filter(TimePeriod == 'after')
 
 # read in the chum count dataframe, 
 # add median project year for each HUC
@@ -307,8 +312,9 @@ ch12 <- chum12 %>%
   apply_cohensD('chum') %>%
   left_join(bchum12, by = "HUC12_Name") %>%
   left_join(achum12, by = "HUC12_Name") %>%
-  add_status_colors('chum') %>%
-  filter(TimePeriod == 'after')
+  add_status_colors('chum') 
+# %>%
+#   filter(TimePeriod == 'after')
 
 ######################## END CHUM ########################
 
@@ -389,7 +395,7 @@ all_dfs <- rbind(chum_formerge,water_formerge) %>% rbind(all_projects_formerge)
 # add unique ID column
 all_dfs$id <- 1:nrow(all_dfs)
 
-saveRDS(all_dfs, "../shinyapp/data/ALL-separate.rds")
+saveRDS(all_dfs, "../shinyapp/data/ALL-separate-2.rds")
 
 ######################## BEGIN DATA EXPORT ########################
 
