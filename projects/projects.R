@@ -4,10 +4,11 @@ library(MazamaSpatialUtils)
 
 #################### EAGL DATA #################### 
 eagl_df <- read.csv('./data/eagl.csv', header = TRUE) %>%
-  select(Funding.Fiscal.Year, WRIA, Project.Title, 
+  select(Funding.Fiscal.Year, General.Project.Category, WRIA, Project.Title, 
          Funding.Provided, Latitude, Longitude) %>%
   rename(year = Funding.Fiscal.Year, name = Project.Title, WRIA_ID = WRIA,
-         cost = Funding.Provided, lat = Latitude, lon = Longitude) %>%
+         cost = Funding.Provided, lat = Latitude, lon = Longitude,
+         project_cat = General.Project.Category) %>%
   # remove missing coordinates
   filter(!lat %in% c('#N/A', '0'),
          !lon %in% c('#N/A', '0')) %>%
@@ -15,7 +16,8 @@ eagl_df <- read.csv('./data/eagl.csv', header = TRUE) %>%
   mutate(cost_sm = str_sub(cost, 2, -4),
          cost = as.numeric(gsub(",", "", cost_sm)),
          lat = as.numeric(levels(lat))[lat],
-         lon = as.numeric(levels(lon))[lon]) %>%
+         lon = as.numeric(levels(lon))[lon],
+         id = as.character(row_number())) %>%
   select(-cost_sm)
 
 # label wria number with wria name
@@ -28,14 +30,25 @@ eagl_df <- eagl_df %>%
                                                       NA))))))
 
 #################### PRISM DATA #################### 
-hc_df <- read.csv('./data/locs.csv', header = TRUE)
-f_df <- read.csv('./data/fund.csv', header = TRUE)
+# read in hood canal prism locations spreadsheet, correct project numbers
+hc_df <- read.csv('./data/locs.csv', header = TRUE) %>%
+  mutate(ProjectNumber = as.character(ProjectNumber)) %>%
+  mutate(ProjectNumber = replace(ProjectNumber, ProjectNumber == 'Jul-15', '07-1915')) %>%
+  mutate(ProjectNumber = replace(ProjectNumber, ProjectNumber == 'Jul-16', '07-1916')) %>%
+  mutate(ProjectNumber = replace(ProjectNumber, ProjectNumber == 'Jul-21', '07-2021')) %>%
+  mutate(ProjectNumber = replace(ProjectNumber, ProjectNumber == 'Jul-25', '07-1925')) %>%
+  mutate(ProjectNumber = replace(ProjectNumber, ProjectNumber == 'Aug-57', '08-2157')) %>%
+  mutate(ProjectNumber = replace(ProjectNumber, ProjectNumber == 'Aug-90', '08-1990'))
+f_df <- read.csv('./data/fund.csv', header = TRUE) %>%
+  mutate(ProjectNumber = as.character(ProjectNumber))
 
-mdf <- merge(x = hc_df, y = f_df, by = "ProjectNumber", all.x = TRUE) %>%
-  select(ProjectNumber, ProjectYear, ProjectName.x, HUC, WRIA, 
-         PrimaryProgramAmount, ProjectLatitude, ProjectLongitude) %>%
+# merge funding and location prism dataframe, create WRIA cols, filter out NAs
+mdf <- full_join(x = hc_df, y = f_df, by = "ProjectNumber") %>%
+  select(ProjectNumber, ProjectYear, ProjectName.x, WRIA, 
+         PrimaryProgramAmount, ProjectLatitude, ProjectLongitude, ProjectType.y) %>%
   rename(id = ProjectNumber, year = ProjectYear, name = ProjectName.x, 
-         cost = PrimaryProgramAmount, lat = ProjectLatitude, lon = ProjectLongitude) %>%
+         cost = PrimaryProgramAmount, lat = ProjectLatitude, lon = ProjectLongitude,
+         project_cat = ProjectType.y) %>%
   # create wria number and wria name columns from combo string
   separate(WRIA, into = c("WRIA_Name", "WRIA_ID"), sep = " \\(", convert = TRUE) %>%
   mutate(WRIA_ID = as.numeric(str_sub(WRIA_ID, 1, -2))) %>%
