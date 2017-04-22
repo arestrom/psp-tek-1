@@ -18,46 +18,51 @@ library(ggplot2) # for plotting
 library(forcats) # for changing factor level names
 library(MazamaSpatialUtils) # for lat-long to HUC conversion
 
-# # all the data manipulation bits here
-# # loading in spatial data, using readOGR
-# prj_hydro.mp <- readOGR(dsn=path.expand("./data"), layer="WBD_PRJ_HYDRO")
-# # 
+# all the data manipulation bits here
+# loading in spatial data, using readOGR
+prj_hydro.mp <- readOGR(dsn=path.expand("./data"), layer="WBD_PRJ_HYDRO")
+#  
 # read in CSV of chum measurement locations that I got
 # manually from using MapShaper
 chumPermCodes <- read.csv("data/hoodCanalChumSiteReachCodes.csv",
                           header=TRUE)
-# # build vector of Permanent IDs to filter on
-# wantedChumSites <-
-#   unlist(unique(chumPermCodes["Permanent"]))
-# # use wantedChumSites list to filter
-# chum_sites.mp <- prj_hydro.mp %>%
-#   filter(Permanent_ %in% wantedChumSites)
-# 
-# # reset the rownames
-# rownames(chum_sites.mp@data) <- 1:nrow(chum_sites.mp@data)
+# build vector of Permanent IDs to filter on
+wantedChumSites <-
+  unlist(unique(chumPermCodes["Permanent"]))
+# use wantedChumSites list to filter
+chum_sites.mp <- prj_hydro.mp %>%
+  filter(Permanent_ %in% wantedChumSites)
+
+# reset the rownames
+rownames(chum_sites.mp@data) <- 1:nrow(chum_sites.mp@data)
 # 
 # pare down chumReachCodes data
 keeps <-c("River.site", "Description", "Permanent")
 chumSiteInfo <- chumPermCodes[keeps]
-# # 
-# # convert the projection to lat long
-# chumsites <- spTransform(chum_sites.mp, CRS("+init=epsg:4326"))
-# 
-# # retain just the final coord pair for each polyline
-# for (i in seq_along(chumsites@lines)){
-#   chumsites@lines[[i]]@Lines[[1]]@coords =
-#     tail(chumsites@lines[[i]]@Lines[[1]]@coords, n=1)
-# }
-# 
-# # convert from SpatialLinesDF to SpatialPointsDF
-# ptchumsites = as(chumsites, "SpatialPointsDataFrame")
-# 
-# # convert to geojson using geojsonio
-# chumsite_json <- geojson_json(ptchumsites)
-# 
-# # saving out this geojson - for fault tolerance
-# geojson_write(chumsite_json,
-#               file = "chumsite.json")
+#
+# convert the projection to lat long
+chumsites <- spTransform(chum_sites.mp, CRS("+init=epsg:4326"))
+
+# select first coord pair for Duckabush to make sure the
+# measurement point lands in correct HUC10 and HUC12
+chumsites@lines[[6]]@Lines[[1]]@coords =
+  head(chumsites@lines[[6]]@Lines[[1]]@coords, n=1)
+
+# retain just the final coord pair for each polyline
+for (i in seq_along(chumsites@lines)){
+  chumsites@lines[[i]]@Lines[[1]]@coords =
+    tail(chumsites@lines[[i]]@Lines[[1]]@coords, n=1)
+}
+
+# convert from SpatialLinesDF to SpatialPointsDF
+ptchumsites = as(chumsites, "SpatialPointsDataFrame")
+
+# convert to geojson using geojsonio
+chumsite_json <- geojson_json(ptchumsites)
+
+# saving out this geojson - for fault tolerance
+geojson_write(chumsite_json,
+              file = "chumsite.json")
 
 # read in saved GeoJSON file as sp object
 chum_to_map <- geojsonio::geojson_read("chumsite.json",
@@ -120,48 +125,48 @@ chumtwo$jitterlat <- as.numeric(jitter(chumtwo$lat, factor = 10))
 ############################# ADD IN HUCS ############################# 
 
 # load saved data
-ch <- readRDS("./data/chum_huc.rds")
+# ch <- readRDS("./data/chum_huc.rds")
 
 # following introductory vignette at
 # https://cran.r-project.org/web/packages/MazamaSpatialUtils/vignettes/introduction.html
 
-# # need to install the data separately via command line (see mazama github)
-# setSpatialDataDir('~/Data/Spatial')
-# # THIS TAKES A WHILE
-# loadSpatialData('WBDHU')
-# # only need to do the command below once (i think)
-# installSpatialData()
-# 
-# # get the HUC 12 and HUC 10 id's for each row
-# # THIS TAKES A WHILE
-# huc_ids <- chumtwo %>%
-#   mutate(HUC12_id = getHUC(lng, lat, SPDF = WBDHU12),
-#          HUC10_id = getHUC(lng, lat, SPDF = WBDHU10))
-# 
-# # THIS TAKES A WHILE
-# # get the HUC 12 Names for each HUC ID in the dataset
-# huc12 <- tbl_df(getHUC(chumtwo$lng,chumtwo$lat, SPDF = WBDHU12, allData=TRUE)) %>%
-#   # unite(coords, latitude, longitude, remove = FALSE) %>%
-#   rename(HUC12_id = HUC, HUC12_Name = HUCName) %>%
-#   select(HUC12_id, HUC12_Name)
-# 
-# huc12 <- distinct(huc12)
-# 
-# # THIS TAKES A WHILE
-# # get the HUC 10 Names for each HUC ID in the dataset
-# huc10 <- tbl_df(getHUC(chumtwo$lng,chumtwo$lat, SPDF = WBDHU10, allData=TRUE)) %>%
-#   rename(HUC10_id = HUC, HUC10_Name = HUCName) %>%
-#   select(HUC10_id, HUC10_Name)
-# 
-# huc10 <- distinct(huc10)
-# 
-# # join the HUC Names to the HUC ids for each row
-# chum_huc <- huc_ids %>%
-#   inner_join(huc12, by = 'HUC12_id') %>%
-#   inner_join(huc10, by = 'HUC10_id')
-# 
-# # because HUCing takes a while, save the output to an r data file that can be loaded in the app
-# saveRDS(chum_huc, "./data/chum_huc.rds")
+# need to install the data separately via command line (see mazama github)
+setSpatialDataDir('C:/Users/tim_b/Data/Spatial')
+# THIS TAKES A WHILE
+loadSpatialData('WBDHU')
+# only need to do the command below once (i think)
+installSpatialData()
+
+# get the HUC 12 and HUC 10 id's for each row
+# THIS TAKES A WHILE
+huc_ids <- chumtwo %>%
+  mutate(HUC12_id = getHUC(lng, lat, SPDF = WBDHU12),
+         HUC10_id = getHUC(lng, lat, SPDF = WBDHU10))
+
+# THIS TAKES A WHILE
+# get the HUC 12 Names for each HUC ID in the dataset
+huc12 <- tbl_df(getHUC(chumtwo$lng,chumtwo$lat, SPDF = WBDHU12, allData=TRUE)) %>%
+  # unite(coords, latitude, longitude, remove = FALSE) %>%
+  rename(HUC12_id = HUC, HUC12_Name = HUCName) %>%
+  select(HUC12_id, HUC12_Name)
+
+huc12 <- distinct(huc12)
+
+# THIS TAKES A WHILE
+# get the HUC 10 Names for each HUC ID in the dataset
+huc10 <- tbl_df(getHUC(chumtwo$lng,chumtwo$lat, SPDF = WBDHU10, allData=TRUE)) %>%
+  rename(HUC10_id = HUC, HUC10_Name = HUCName) %>%
+  select(HUC10_id, HUC10_Name)
+
+huc10 <- distinct(huc10)
+
+# join the HUC Names to the HUC ids for each row
+chum_huc <- huc_ids %>%
+  inner_join(huc12, by = 'HUC12_id') %>%
+  inner_join(huc10, by = 'HUC10_id')
+
+# because HUCing takes a while, save the output to an r data file that can be loaded in the app
+saveRDS(chum_huc, "./data/chum_huc.rds")
 
 ############################# ADD IN HUCS ############################# 
 

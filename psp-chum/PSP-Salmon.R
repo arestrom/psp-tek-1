@@ -1,5 +1,34 @@
-## ----setup, include=FALSE------------------------------------------------
-knitr::opts_chunk$set(echo = TRUE)
+# This script works with Hood Canal ESU chum salmon geospatial
+# and yearly measurement data.
+# 
+# Inputs:
+# - (2) CSV files with yearly chum salmon measurement data
+# - (1) Shapefiles with stream polylines and associated metadata
+# - (1) Manually generated CSV file of desired "mouth of the river"
+#   stream reach & permanent codes to locate measurement sites
+#
+# Outputs:
+# - (2) RDS files - one for geospatial data, one for measurement data
+#
+# The output is then merged with project and water quality data
+# and fed into leaflet and ggplot/plotly as part of the 
+# Team TEK - Puget Sound Partnership Capstone project.
+
+# What the script does
+# - reads geospatial shapefiles into a SpatialLinesDataFrame
+# - reads CSV file of desired site data and builds filtering vector
+# - uses that vector to filter the spatial data
+# - transforms the spatial data coordinate system to lat-long
+#   (leaflet requires lat-long coordinates)
+# - converts polyline data to point data by selection within the
+#   polyline coordinates and conversion of data structure to
+#   SpatialPointsDataFrame
+# - cleans up and merges the measurement site geospatial data 
+#   with descriptive data about each site
+# - reads in (2) CSV files of yearly measurement data,
+#   and then merges and tidies them
+# - outputs geospatial data and measurement data as (2) RDS files.
+
 
 ## ----libraries-----------------------------------------------------------
 library(tidyverse) # because it's the tidyverse!
@@ -12,8 +41,9 @@ library(ggplot2) # for plotting
 library(forcats) # for factor revalue with tidyverse
 
 ## ----load spatial data---------------------------------------------------
-# loading in spatial data, using readOGR
-prj_hydro.mp <- readOGR(dsn=path.expand("./data"), layer="WBD_PRJ_HYDRO")
+# loading in geospatial shapefiles as SpatialLinesDataFrame
+prj_hydro.mp <- readOGR(dsn=path.expand("./data"), 
+                        layer="WBD_PRJ_HYDRO")
 
 
 ## ----see spatial data----------------------------------------------------
@@ -44,6 +74,11 @@ chumSiteInfo <- chumPermCodes[keeps]
 ## ----convert spatial to GeoJSON------------------------------------------
 # convert the projection to lat long
 chumsites <- spTransform(chum_sites.mp, CRS("+init=epsg:4326"))
+
+# select first coord pair for Duckabush to make sure the
+# measurement point lands in correct HUC10 and HUC12
+chumsites@lines[[6]]@Lines[[1]]@coords =
+  head(chumsites@lines[[6]]@Lines[[1]]@coords, n=1)
 
 # retain just the final coord pair for each polyline
 for (i in seq_along(chumsites@lines)){
