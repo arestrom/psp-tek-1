@@ -9,7 +9,7 @@ library(leaflet)
 # read in the project-huc dataframe
 ph <- readRDS("./data/project_huc.rds")
 
-ph$id <- 1:nrow(ph)
+# ph$id <- 1:nrow(ph)
 
 # read in the chum-huc dataframe, tidy data
 chum_locations <- readRDS("../psp-chum/data/chum_huc.rds") %>%
@@ -340,14 +340,16 @@ ch12_formerge <- ch12 %>%
          medianyr, cohensd:colorblind) %>%
   rename(description = Description, measurement = count,
          HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
-  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '12') 
+  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '12',
+         project_cat = NA) 
 
 chum_formerge <- ch10 %>%
   select(year, lon, lat, Description, HUC10_id, HUC10_Name, 
          medianyr, cohensd:colorblind) %>%
   rename(description = Description, measurement = count,
          HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
-  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '10') %>%
+  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '10',
+         project_cat = NA) %>%
   rbind(ch12_formerge)
 
 wa12_formerge <- wa12 %>%
@@ -355,14 +357,16 @@ wa12_formerge <- wa12 %>%
          HUC12_id, HUC12_Name, year:colorblind) %>%
   rename(description = Study_Name,
          HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
-  mutate(HUC_level = '12', year = as.numeric(year)) 
+  mutate(HUC_level = '12', year = as.numeric(year),
+         project_cat = NA) 
 
 water_formerge <- wa10 %>%
   select(lon, lat, Study_Name, result_type, measurement, unit,
          HUC10_id, HUC10_Name, year:colorblind) %>%
   rename(description = Study_Name,
          HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
-  mutate(HUC_level = '10', year = as.numeric(year)) %>%
+  mutate(HUC_level = '10', year = as.numeric(year),
+         project_cat = NA) %>%
   rbind(wa12_formerge)
 
 wa_ph12_formerge <- wa_ph12 %>%
@@ -374,7 +378,7 @@ wa_ph12_formerge <- wa_ph12 %>%
          color = '#984ea3')
 
 water_projects_formerge <- wa_ph10 %>%
-  select(id, year, name, cost:lon, HUC10_id, HUC10_Name, 
+  select(id, year, name, cost:project_cat, HUC10_id, HUC10_Name, 
          medianyr) %>%
   rename(description = name, measurement = cost,
          HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
@@ -391,7 +395,7 @@ ph12_formerge <- ph12 %>%
          color = '#984ea3')
 
 chum_projects_formerge <- ph10 %>%
-  select(id, year, name, cost:lon, HUC10_id, HUC10_Name, 
+  select(id, year, name, cost:project_cat, HUC10_id, HUC10_Name, 
          medianyr) %>%
   rename(description = name, measurement = cost,
          HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
@@ -409,7 +413,7 @@ all_dfs <- rbind(chum_formerge,water_formerge) %>% rbind(all_projects_formerge)
 # add unique ID column
 all_dfs$id <- 1:nrow(all_dfs)
 
-saveRDS(all_dfs, "../shinyapp/data/ALL-separate-2.rds")
+saveRDS(all_dfs, "../shinyapp/data/ALL-separate-3.rds")
 
 ######################## BEGIN DATA EXPORT ########################
 
