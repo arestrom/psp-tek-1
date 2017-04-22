@@ -7,7 +7,9 @@ library(leaflet)
 ######################## BEGIN CHUM PROJ ########################
 
 # read in the project-huc dataframe
-ph <- readRDS("./data/project_huc.rds") 
+ph <- readRDS("./data/project_huc.rds")
+
+ph$id <- 1:nrow(ph)
 
 # read in the chum-huc dataframe, tidy data
 chum_locations <- readRDS("../psp-chum/data/chum_huc.rds") %>%
@@ -120,22 +122,24 @@ before_after <- function(type, df, value) {
 # then, categorize the effect size
 apply_cohensD <- function(data, outcome) {
   if (outcome == 'water') { data %>%
-      filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
+      # filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
+      # filter(!is.na(TimePeriod)) %>%
       spread(TimePeriod, measurement) %>%
       mutate(cohensd = cohensD(before, after)) %>%
-      filter(!cohensd == 'NaN') %>%
-      gather('TimePeriod', 'measurement', `before`, `after`) %>%
-      filter(!is.na(measurement)) %>%
+      # filter(!cohensd == 'NaN') %>%
+      gather('TimePeriod', 'measurement', `before`, `after`, `during`) %>%
+      # filter(!is.na(measurement)) %>%
       mutate(effectsize = ifelse(cohensd < 0.5, 'small',
                                  ifelse(cohensd >= 0.8, 'large',
                                         'medium')))
   } else if (outcome == 'chum') { data %>%
-      filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
+      # filter(!is.na(TimePeriod), !(TimePeriod == 'during')) %>%
+      # filter(!is.na(TimePeriod)) %>%
       spread(TimePeriod, count) %>%
       mutate(cohensd = cohensD(before, after)) %>%
-      filter(!cohensd == 'NaN') %>%
-      gather('TimePeriod', 'count', `before`, `after`) %>%
-      filter(!is.na(count)) %>%
+      # filter(!cohensd == 'NaN') %>%
+      gather('TimePeriod', 'count', `before`, `after`, `during`) %>%
+      # filter(!is.na(count)) %>%
       mutate(effectsize = ifelse(cohensd < 0.5, 'small',
                                  ifelse(cohensd >= 0.8, 'large',
                                         'medium')))
@@ -159,6 +163,13 @@ add_status_colors <- function(data, outcome) {
                                                 ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
                                                        ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
                                                               ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
+                                                                     NA)))))),
+             colorblind = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
+                                  ifelse(effectsize == 'medium' & status == 'worse', '#e9a3c9',
+                                         ifelse(effectsize == 'small' & status == 'worse', '#fde0ef',
+                                                ifelse(effectsize == 'small' & status == 'improving', '#e6f5d0',
+                                                       ifelse(effectsize == 'medium' & status == 'improving', '#a1d76a',
+                                                              ifelse(effectsize == 'large' & status == 'improving', '#4d9221',
                                                                      NA)))))))
   } else if (outcome == 'chum') { data %>% mutate(status = ifelse(meanbefore > meanafter, 'worse',
                                                                   ifelse(meanbefore < meanafter, 'improving',
@@ -172,7 +183,14 @@ add_status_colors <- function(data, outcome) {
                                                                                      ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
                                                                                             ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
                                                                                                    ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
-                                                                                                          NA)))))))
+                                                                                                          NA)))))),
+                                                  colorblind = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
+                                                                      ifelse(effectsize == 'medium' & status == 'worse', '#e9a3c9',
+                                                                             ifelse(effectsize == 'small' & status == 'worse', '#fde0ef',
+                                                                                    ifelse(effectsize == 'small' & status == 'improving', '#e6f5d0',
+                                                                                           ifelse(effectsize == 'medium' & status == 'improving', '#a1d76a',
+                                                                                                  ifelse(effectsize == 'large' & status == 'improving', '#4d9221',
+                                                                                                         NA)))))))
     
   }
 }
@@ -226,8 +244,9 @@ wa10 <- water10 %>%
   apply_cohensD ('water') %>%
   left_join(bwa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
   left_join(awa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
-  add_status_colors('water') %>%
-  filter(TimePeriod == 'after')
+  add_status_colors('water') 
+# %>%
+#   filter(TimePeriod == 'after')
 
 # remove rows without a TimePeriod (no project in that HUC to get a median year)
 # create a column of measurements for before and after project implementation in each HUC
@@ -240,8 +259,9 @@ wa12 <- water12 %>%
   apply_cohensD('water') %>%
   left_join(bwa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
   left_join(awa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
-  add_status_colors('water') %>%
-  filter(TimePeriod == 'after')
+  add_status_colors('water') 
+# %>%
+#   filter(TimePeriod == 'after')
 
 # %>%
 #   ungroup() %>%
@@ -292,8 +312,9 @@ ch10 <- chum10 %>%
   apply_cohensD('chum') %>%
   left_join(bchum10, by = "HUC10_Name") %>%
   left_join(achum10, by = "HUC10_Name") %>%
-  add_status_colors('chum') %>%
-  filter(TimePeriod == 'after')
+  add_status_colors('chum') 
+# %>%
+#   filter(TimePeriod == 'after')
 
 # read in the chum count dataframe, 
 # add median project year for each HUC
@@ -305,24 +326,101 @@ ch12 <- chum12 %>%
   apply_cohensD('chum') %>%
   left_join(bchum12, by = "HUC12_Name") %>%
   left_join(achum12, by = "HUC12_Name") %>%
-  add_status_colors('chum') %>%
-  filter(TimePeriod == 'after')
+  add_status_colors('chum') 
+# %>%
+#   filter(TimePeriod == 'after')
 
 ######################## END CHUM ########################
 
 # c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850')
 # cohen's D: 'small effect' = 0.2, med effect = 0.5, large effect = 0.8
 
+ch12_formerge <- ch12 %>%
+  select(year, lon, lat, Description, HUC12_id, HUC12_Name, 
+         medianyr, cohensd:colorblind) %>%
+  rename(description = Description, measurement = count,
+         HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
+  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '12') 
+
+chum_formerge <- ch10 %>%
+  select(year, lon, lat, Description, HUC10_id, HUC10_Name, 
+         medianyr, cohensd:colorblind) %>%
+  rename(description = Description, measurement = count,
+         HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
+  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '10') %>%
+  rbind(ch12_formerge)
+
+wa12_formerge <- wa12 %>%
+  select(lon, lat, Study_Name, result_type, measurement, unit,
+         HUC12_id, HUC12_Name, year:colorblind) %>%
+  rename(description = Study_Name,
+         HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
+  mutate(HUC_level = '12', year = as.numeric(year)) 
+
+water_formerge <- wa10 %>%
+  select(lon, lat, Study_Name, result_type, measurement, unit,
+         HUC10_id, HUC10_Name, year:colorblind) %>%
+  rename(description = Study_Name,
+         HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
+  mutate(HUC_level = '10', year = as.numeric(year)) %>%
+  rbind(wa12_formerge)
+
+wa_ph12_formerge <- wa_ph12 %>%
+  select(id, year, name, cost:HUC12_id, HUC12_Name, 
+         medianyr) %>%
+  rename(description = name, measurement = cost,
+         HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
+  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '12',
+         color = '#984ea3')
+
+water_projects_formerge <- wa_ph10 %>%
+  select(id, year, name, cost:lon, HUC10_id, HUC10_Name, 
+         medianyr) %>%
+  rename(description = name, measurement = cost,
+         HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
+  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '10',
+         color = '#984ea3') %>%
+  rbind(wa_ph12_formerge)
+
+ph12_formerge <- ph12 %>%
+  select(id, year, name, cost:HUC12_id, HUC12_Name, 
+         medianyr) %>%
+  rename(description = name, measurement = cost,
+         HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
+  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '12',
+         color = '#984ea3')
+
+chum_projects_formerge <- ph10 %>%
+  select(id, year, name, cost:lon, HUC10_id, HUC10_Name, 
+         medianyr) %>%
+  rename(description = name, measurement = cost,
+         HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
+  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '10',
+         color = '#984ea3') %>%
+  rbind(ph12_formerge)
+
+all_projects_formerge <- rbind(chum_projects_formerge, water_projects_formerge) %>%
+  distinct(id, HUC_id, .keep_all = TRUE) %>%
+  select(-id)
+
+# add both dataframes together
+all_dfs <- rbind(chum_formerge,water_formerge) %>% rbind(all_projects_formerge)
+
+# add unique ID column
+all_dfs$id <- 1:nrow(all_dfs)
+
+saveRDS(all_dfs, "../shinyapp/data/ALL-separate-2.rds")
+
 ######################## BEGIN DATA EXPORT ########################
 
-saveRDS(ch12, "../shinyapp/data/chum_huc12.rds")
-saveRDS(ch10, "../shinyapp/data/chum_huc10.rds")
-saveRDS(wa12, "../shinyapp/data/water_huc12.rds")
-saveRDS(wa10, "../shinyapp/data/water_huc10.rds")
-saveRDS(wa_ph12, "../shinyapp/data/water_project_huc12.rds")
-saveRDS(wa_ph10, "../shinyapp/data/water_project_huc10.rds")
-saveRDS(ph12, "../shinyapp/data/chum_project_huc12.rds")
-saveRDS(ph10, "../shinyapp/data/chum_project_huc10.rds")
+# saveRDS(ch12, "../shinyapp/data/chum_huc12.rds")
+# saveRDS(ch10, "../shinyapp/data/chum_huc10.rds")
+# saveRDS(wa12, "../shinyapp/data/water_huc12.rds")
+# saveRDS(wa10, "../shinyapp/data/water_huc10.rds")
+# saveRDS(wa_ph12, "../shinyapp/data/water_project_huc12.rds")
+# saveRDS(wa_ph10, "../shinyapp/data/water_project_huc10.rds")
+# saveRDS(ph12, "../shinyapp/data/chum_project_huc12.rds")
+# saveRDS(ph10, "../shinyapp/data/chum_project_huc10.rds")
 
 ######################## END DATA EXPORT ########################
 
@@ -331,16 +429,11 @@ saveRDS(ph10, "../shinyapp/data/chum_project_huc10.rds")
 m12 <- leaflet(data = chum12) %>% 
   setView(lng = -122.996823, lat = 47.5642594, zoom = 9) %>%
   addProviderTiles("Esri.WorldImagery") %>%
-  addCircleMarkers(ph12$lon, ph12$lat,
+  addCircleMarkers(all_projects_formerge$lon, all_projects_formerge$lat,
                    radius = 4,
                    color = '#984ea3',
                    stroke = FALSE, fillOpacity = 1,
-                   group = "Chum Projects") %>%
-  addCircleMarkers(wa_ph12$lon, wa_ph12$lat,
-                   radius = 4,
-                   color = '#984ea3',
-                   stroke = FALSE, fillOpacity = 1,
-                   group = "Water Projects") %>%
+                   group = "Projects") %>%
   addCircleMarkers(ch12$lon, ch12$lat,
                    radius = 5,
                    color = ch12$coloreffect,
@@ -353,7 +446,7 @@ m12 <- leaflet(data = chum12) %>%
                    group = "Water") %>%
   addLayersControl(
     baseGroups = c("Chum", "Water"),
-    overlayGroups = c("Chum Projects", "Water Projects"),
+    overlayGroups = "Projects",
     options = layersControlOptions(collapsed = FALSE)
   ) %>%
   addLegend(colors = c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850'),
@@ -366,19 +459,14 @@ m12
 # wa10IMP <- filter(wa10, status == 'improving')
 # greens <- colorFactor("Greens", wa10IMP$effectsize)
 
-m10 <- leaflet() %>% 
+m10 <- leaflet(data = chum10) %>% 
   setView(lng = -122.996823, lat = 47.5642594, zoom = 9) %>%
   addProviderTiles("Esri.WorldImagery") %>%
-  addCircleMarkers(ph10$lon, ph10$lat,
+  addCircleMarkers(all_projects_formerge$lon, all_projects_formerge$lat,
                    radius = 4,
                    color = '#984ea3',
                    stroke = FALSE, fillOpacity = 1,
-                   group = "Chum Projects") %>%
-  addCircleMarkers(wa_ph10$lon, wa_ph10$lat,
-                   radius = 4,
-                   color = '#984ea3',
-                   stroke = FALSE, fillOpacity = 1,
-                   group = "Water Projects") %>%
+                   group = "Projects") %>%
   addCircleMarkers(ch10$lon, ch10$lat,
                    radius = 5,
                    color = ch10$coloreffect,
@@ -391,7 +479,7 @@ m10 <- leaflet() %>%
                    group = "Water") %>%
   addLayersControl(
     baseGroups = c("Chum", "Water"),
-    overlayGroups = c("Chum Projects", "Water Projects"),
+    overlayGroups = "Projects",
     options = layersControlOptions(collapsed = FALSE)
   ) %>%
   addLegend(colors = c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850'),
@@ -400,6 +488,8 @@ m10 <- leaflet() %>%
             position = 'bottomleft',
             title = 'Effect Size/Status')
 m10
+
+# colorblind: colors = c('#c51b7d','#e9a3c9','#fde0ef','#e6f5d0','#a1d76a','#4d9221')
 
 ######################## END MAP ########################
 
@@ -430,30 +520,76 @@ unique(wa_ph12$HUC12_Name)
 
 ###### chum ######
 # print out distinct HUC names (chum are the smallest group, limits all other measurements)
-unique(chum$HUC10_Name)
-# [1] "Little Quillcene River-Frontal Hood Canal"
-# [2] "Jefferson Creek-Hamma Hamma River"        
-# [3] "Tahuya River-Frontal Hood Canal"          
-# [4] "Hood Canal"                               
+unique(chum_counts$HUC10_Name)
+# [1] "Tahuya River-Frontal Hood Canal"          
+# [2] "Hood Canal"                               
+# [3] "Little Quillcene River-Frontal Hood Canal"
+# [4] "Jefferson Creek-Hamma Hamma River"        
 # [5] "Lilliwaup Creek-Frontal Hood Canal"       
-# [6] "Skokomish River-Frontal Hood Canal" 
+# [6] "Skokomish River-Frontal Hood Canal"       
+# [7] "Chimacum Creek-Frontal Port Ludlow"       
+# [8] "Discovery Bay-Strait of Juan De Fuca"     
+# [9] "Jimmycomelately Creek-Frontal Sequim Bay" 
+# [10] "Snow Creek-Frontal Discovery Bay" 
 
-unique(chum$HUC12_Name)
-# [1] "Spencer Creek-Frontal Dabob Bay"   
-# [2] "Hamma Hamma River"                 
-# [3] "Tahuya River"                      
-# [4] "Hood Canal"                        
-# [5] "Big Beef Creek-Frontal Hood Canal" 
-# [6] "Tarboo Creek-Frontal Dabob Bay"    
-# [7] "Dewatto River"                     
-# [8] "Finch Creek-Frontal Hood Canal"    
-# [9] "Skokomish River-Frontal Hood Canal"
+unique(chum_counts$HUC12_Name)
+# [1] "Big Beef Creek-Frontal Hood Canal"   
+# [2] "Hood Canal"                          
+# [3] "Tarboo Creek-Frontal Dabob Bay"      
+# [4] "Dewatto River"                       
+# [5] "Spencer Creek-Frontal Dabob Bay"     
+# [6] "Hamma Hamma River"                   
+# [7] "Finch Creek-Frontal Hood Canal"      
+# [8] "Skokomish River-Frontal Hood Canal"  
+# [9] "Tahuya River"                        
+# [10] "Chimacum Creek"                      
+# [11] "Discovery Bay-Strait of Juan De Fuca"
+# [12] "Johnson Creek-Frontal Sequim Bay"    
+# [13] "Eagle Creek-Frontal Discovery Bay" 
+
+unique(chum12$HUC12_Name)
+# [1] "Big Beef Creek-Frontal Hood Canal"   
+# [2] "Hood Canal"                          
+# [3] "Tarboo Creek-Frontal Dabob Bay"      
+# [4] "Dewatto River"                       
+# [5] "Spencer Creek-Frontal Dabob Bay"     
+# [6] "Hamma Hamma River"                   
+# [7] "Finch Creek-Frontal Hood Canal"      
+# [8] "Skokomish River-Frontal Hood Canal"  
+# [9] "Tahuya River"                        
+# [10] "Chimacum Creek"                      
+# [11] "Discovery Bay-Strait of Juan De Fuca"
+# [12] "Johnson Creek-Frontal Sequim Bay"    
+# [13] "Eagle Creek-Frontal Discovery Bay"
 
 # 7 HUC 12s in ch12 (2 lacking sufficient temporal data)
 unique(ch12$HUC12_Name)
+# [1] "Big Beef Creek-Frontal Hood Canal"   
+# [2] "Hood Canal"                          
+# [3] "Tarboo Creek-Frontal Dabob Bay"      
+# [4] "Dewatto River"                       
+# [5] "Spencer Creek-Frontal Dabob Bay"     
+# [6] "Hamma Hamma River"                   
+# [7] "Finch Creek-Frontal Hood Canal"      
+# [8] "Skokomish River-Frontal Hood Canal"  
+# [9] "Tahuya River"                        
+# [10] "Chimacum Creek"                      
+# [11] "Discovery Bay-Strait of Juan De Fuca"
+# [12] "Johnson Creek-Frontal Sequim Bay"    
+# [13] "Eagle Creek-Frontal Discovery Bay" 
 
 # 5 HUC 10s in ch10 (1 lacking sufficient temporal data)
 unique(ch10$HUC10_Name)
+# [1] "Tahuya River-Frontal Hood Canal"          
+# [2] "Hood Canal"                               
+# [3] "Little Quillcene River-Frontal Hood Canal"
+# [4] "Jefferson Creek-Hamma Hamma River"        
+# [5] "Lilliwaup Creek-Frontal Hood Canal"       
+# [6] "Skokomish River-Frontal Hood Canal"       
+# [7] "Chimacum Creek-Frontal Port Ludlow"       
+# [8] "Discovery Bay-Strait of Juan De Fuca"     
+# [9] "Jimmycomelately Creek-Frontal Sequim Bay" 
+# [10] "Snow Creek-Frontal Discovery Bay"  
 
 ###### water ######
 # 23 HUC 10s
