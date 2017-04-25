@@ -18,7 +18,8 @@ chum_locations <- readRDS("../psp-chum/data/chum_huc.rds") %>%
 
 # read in the chum-counts dataframe, join with location/huc data
 chum_counts <- readRDS("../psp-chum/data/tidychum.rds") %>%
-  left_join(chum_locations)
+  left_join(chum_locations) %>%
+  separate(site, into = c("sitename", "project_cat"), sep = " - ")
 
 # create a HUC-10 project dataframe, 
 # filtered to only include projects in fish HUC10s
@@ -334,20 +335,18 @@ ch12 <- chum12 %>%
 # cohen's D: 'small effect' = 0.2, med effect = 0.5, large effect = 0.8
 
 ch12_formerge <- ch12 %>%
-  select(year, lon, lat, Description, HUC12_id, HUC12_Name, 
+  select(year, project_cat, lon, lat, Description, HUC12_id, HUC12_Name, 
          medianyr, cohensd:colorblind) %>%
   rename(description = Description, measurement = count,
          HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
-  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '12',
-         project_cat = NA) 
+  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '12') 
 
 chum_formerge <- ch10 %>%
-  select(year, lon, lat, Description, HUC10_id, HUC10_Name, 
+  select(year, project_cat, lon, lat, Description, HUC10_id, HUC10_Name, 
          medianyr, cohensd:colorblind) %>%
   rename(description = Description, measurement = count,
          HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
-  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '10',
-         project_cat = NA) %>%
+  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '10') %>%
   rbind(ch12_formerge)
 
 wa12_formerge <- wa12 %>%
