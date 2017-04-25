@@ -210,7 +210,8 @@ water12 <- water %>%
   group_by(result_type, HUC12_Name) %>%
   mutate(TimePeriod = ifelse(year > medianyr, 'after',
                              ifelse(year < medianyr, 'before',
-                                    'during')))
+                                    'during'))) %>%
+  mutate(TimePeriod = ifelse(is.na(TimePeriod), 'no project', TimePeriod))
 
 # read in the water quality dataframe, 
 # add median project year for each HUC
@@ -223,7 +224,8 @@ water10 <- water %>%
   group_by(result_type, HUC10_Name) %>%
   mutate(TimePeriod = ifelse(year > medianyr, 'after',
                              ifelse(year < medianyr, 'before',
-                                    'during')))
+                                    'during'))) %>%
+  mutate(TimePeriod = ifelse(is.na(TimePeriod), 'no project', TimePeriod))
 
 bwa10 <- before_after('before', water10, 'measurement')
 
@@ -280,13 +282,16 @@ chum12 <- chum_counts %>%
   group_by(HUC12_Name) %>%
   mutate(TimePeriod = ifelse(year > medianyr, 'after',
                              ifelse(year < medianyr, 'before',
-                                    'during')))
+                                    'during'))) %>%
+  mutate(TimePeriod = ifelse(is.na(TimePeriod), 'no project', TimePeriod))
+
 chum10 <- chum_counts %>%
   left_join(huc10_med, by = "HUC10_Name") %>%
   group_by(HUC10_Name) %>%
   mutate(TimePeriod = ifelse(year > medianyr, 'after',
                              ifelse(year < medianyr, 'before',
-                                    'during')))
+                                    'during'))) %>%
+  mutate(TimePeriod = ifelse(is.na(TimePeriod), 'no project', TimePeriod))
 
 # read in the chum count dataframe, 
 # add median project year for each HUC
