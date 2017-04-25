@@ -45,12 +45,12 @@ turbidity <- read.csv('./data/EIMResults.csv', header = TRUE) %>%
 
 # load tss location data file
 # select only ID and WRIA
-tss_locations <- read.csv('../TSS/data/EIMLocationDetails.csv', header = TRUE) %>%
+tss_locations <- read.csv('../polygons_TSS/data/EIMLocationDetails.csv', header = TRUE) %>%
   select(Location_ID, Watershed_WRIA)
 
 # load the tss data 
 # select only variables of interest, rename lengthy variable names
-tss <- read.csv('../TSS/data/EIMResults.csv', header = TRUE) %>%
+tss <- read.csv('../polygons_TSS/data/EIMResults.csv', header = TRUE) %>%
   select(Study_ID, Study_Name, Location_ID, 
          Field_Collection_Start_Date, Field_Collection_Start_Date_Time,
          Result_Value, Calculated_Latitude_Decimal_Degrees_NAD83HARN,
@@ -199,47 +199,37 @@ m %>%
 
 ################################ EDA plots ################################################ 
 # plot a histogram of turbidity values
-turb %>%
-  filter(0 < turbidity_NTU & turbidity_NTU < 100) %>%
-  ggplot(aes(turbidity_NTU)) +
+turbidity %>%
+  filter(0 < measurement & measurement < 100) %>%
+  ggplot(aes(measurement)) +
   geom_histogram(binwidth = 0.5)
 
 # plot mean turbidity by study 
-turb %>%
+turbidity %>%
   group_by(Study_ID) %>%
-  summarise(m.turb = mean(turbidity_NTU)) %>%
-  ggplot(aes(x = reorder(Study_ID, m.turb), y = m.turb)) +
+  summarise(m.turbidity = mean(measurement)) %>%
+  ggplot(aes(x = reorder(Study_ID, m.turbidity), y = m.turbidity)) +
   geom_bar(stat="identity") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 # plot mean turbidity by location
-turb %>%
+turbidity %>%
   group_by(Location_ID) %>%
-  summarise(m.turb = mean(turbidity_NTU)) %>%
-  ggplot(aes(x = reorder(Location_ID, m.turb), y = m.turb)) +
+  summarise(m.turbidity = mean(measurement)) %>%
+  ggplot(aes(x = reorder(Location_ID, m.turbidity), y = m.turbidity)) +
   geom_bar(stat="identity") +
-  theme(axis.text.x = element_text(angle = 60, hjust = 1))
-
-# plot mean turbidity by location
-turb %>%
-  group_by(Study_ID) %>%
-  summarise(m.turb = mean(turbidity_NTU),
-            last_day = max(end_date),
-            first_day = min(start_date),
-            change = ) %>%
-  ggplot(aes(x = Study_ID, y = m.turb)) +
-  geom_bar(stat="identity", fill = Location_ID) +
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 # plot mean turbidity by Watershed_WRIA
-turb_nums %>%
+turbidity %>%
   group_by(Watershed_WRIA) %>%
-  summarise(m.turb = mean(turbidity_NTU)) %>%
+  summarise(m.turb = mean(measurement)) %>%
   ggplot(aes(x = reorder(Watershed_WRIA, m.turb), y = m.turb)) +
   geom_bar(stat="identity") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
-ggplot(data = turb_wria, mapping = aes(x = start_date, y = logturb)) + 
+# plot log turbidity in each wria over time
+ggplot(data = turbidity, mapping = aes(x = start_date, y = logMeasurement)) + 
   geom_point() + 
   geom_smooth() +
   # geom_hline(yintercept = 1.90309, color = "red", show.legend = TRUE) +
@@ -249,9 +239,9 @@ ggplot(data = turb_wria, mapping = aes(x = start_date, y = logturb)) +
   ggtitle("Turbidity Trends Over Time")
 
 # funding project data is from 2007-2015 ONLY
-turb_wria %>%
+turbidity %>%
   filter(format(start_date,"%Y") >= 2004) %>%
-  ggplot(mapping = aes(x = start_date, y = logturb)) +
+  ggplot(mapping = aes(x = start_date, y = logMeasurement)) +
   geom_point() +
   geom_smooth() +
   facet_wrap(~ Watershed_WRIA) +
@@ -261,14 +251,14 @@ turb_wria %>%
 
 # funding project data is from 2007-2015 ONLY
 # only want longer length projects for meta-analysis
-filtered.turb <- turb_wria %>%
+filtered.turb <- turbidity %>%
   mutate(year = format(start_date,"%Y")) %>%
   filter(year >= 2004) %>%
   group_by(Study_ID) %>%
   filter(n_distinct(year) >= 6)
 
 filtered.turb %>%
-  ggplot(mapping = aes(x = start_date, y = logturb)) +
+  ggplot(mapping = aes(x = start_date, y = logMeasurement)) +
   geom_point(mapping = aes(color = Study_ID)) +
   geom_smooth() +
   # facet_wrap(~ Watershed_WRIA) +
@@ -276,15 +266,14 @@ filtered.turb %>%
   ylab("Log Turbidity (NTU)") +
   ggtitle("Turbidity Trends Over Time (2004-2016)")
 
-turb_tss %>%
-  filter(format(start_date,"%Y") >= 1995) %>%
-  gather(logTSS,logTurbidity, key = 'param', value = 'result') %>%
-  ggplot(mapping = aes(x = start_date, y = result)) +
-  geom_point(mapping = aes(color = param)) +
-  geom_smooth(mapping = aes(x = start_date, y = result, linetype = param)) +
-  facet_grid(param~ Watershed_WRIA) +
+# plot turbidity vs tss over time
+water_huc %>%
+  ggplot(mapping = aes(x = start_date, y = logMeasurement)) +
+  geom_point(mapping = aes(color = result_type)) +
+  geom_smooth(mapping = aes(x = start_date, y = logMeasurement, linetype = result_type)) +
+  facet_grid(result_type~ Watershed_WRIA) +
   xlab("Year") +
   ylab("") +
   ggtitle("Turbidity vs TSS") +
-  scale_x_date(date_breaks = '3 years', date_labels = '%Y')
+  scale_x_date(date_breaks = '10 years', date_labels = '%Y')
 ################################ EDA plots ################################################ 
