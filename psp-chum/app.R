@@ -122,6 +122,9 @@ chumtwo <- chumtwo %>%
 chumtwo$jitterlng <- as.numeric(jitter(chumtwo$lng, factor = 10))
 chumtwo$jitterlat <- as.numeric(jitter(chumtwo$lat, factor = 10))
 
+# save chumtwo as RDS
+saveRDS(chumtwo, "./data/chumtwo.rds")
+
 ############################# ADD IN HUCS ############################# 
 
 # load saved data
