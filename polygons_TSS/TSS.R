@@ -1,7 +1,7 @@
 library(tidyverse)
-library(ggmap)
+# library(ggmap)
 library(leaflet)
-library(sp)
+# library(sp)
 
 # load the tss data 
 tss <- read.csv('./data/EIMResults.csv', header = TRUE)
@@ -219,7 +219,9 @@ tss_wria %>%
   summarise(m.tss = mean(tss_mgL)) %>%
   ggplot(aes(x = reorder(Watershed_WRIA, m.tss), y = m.tss)) +
   geom_bar(stat="identity") +
-  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+  xlab("Watershed WRIA") +
+  ylab("Mean TSS (mg/L)")
 
 # plot tss by date and Watershed_WRIA
 # http://www.pugetsoundnearshore.org/supporting_documents/wria14_lfa.pdf
@@ -243,10 +245,21 @@ tss_wria %>%
   xlab("Year") +
   ylab("Log TSS (mg/L)")
 
-
+# plot measurements by year in each study_id
 ggplot(data = tss_wria) + 
   geom_point(mapping = aes(x = start_date, y = logtss)) + 
-  facet_wrap(~ Study_ID)
+  facet_wrap(~ Study_ID) +
+  xlab("Year") +
+  ylab("Log TSS (mg/L)")
+
+# plot measurements by year (ugly)
+tss_wria %>%
+  mutate(yr = format(start_date,"%Y")) %>%
+ggplot() + 
+  geom_point(mapping = aes(x = start_date, y = logtss)) + 
+  facet_wrap(~ yr) +
+  xlab("Year") +
+  ylab("Log TSS (mg/L)")
 
 # funding project data is from 2007-2015 ONLY
 tss_wria %>%
