@@ -202,16 +202,16 @@ tss %>%
   geom_bar(stat="identity") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
-# plot mean tss by location
-tss %>%
-  group_by(Study_ID) %>%
-  summarise(m.tss = mean(tss_mgL),
-            last_day = max(end_date),
-            first_day = min(start_date),
-            change = ) %>%
-  ggplot(aes(x = Study_ID, y = m.tss)) +
-  geom_bar(stat="identity", fill = Location_ID) +
-  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+# # plot mean tss by location
+# tss %>%
+#   group_by(Study_ID) %>%
+#   summarise(m.tss = mean(tss_mgL),
+#             last_day = max(end_date),
+#             first_day = min(start_date),
+#             change = ) %>%
+#   ggplot(aes(x = Study_ID, y = m.tss)) +
+#   geom_bar(stat="identity", fill = Location_ID) +
+#   theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 # plot mean tss by Watershed_WRIA
 tss_wria %>%
