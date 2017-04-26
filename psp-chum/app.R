@@ -106,7 +106,7 @@ chumtwo <- chumtwo %>%
                                  "Union River - Hatch" = "24. Union Summer Chum: Index Hatchery Escapement",
                                  "Union River - Natural" = "25. Union Summer Chum: Index Natural Escapement",
                                  "Chimacum Creek - Hatch" = "1. Chimacum Creek Summer Chum: Hatch-Origin Spawners (Prop.)",
-                                 "Chumacum Creek - Natural" = "2. Chimacum Creek Summer Chum: Natural-Origin Spawners (Prop)",
+                                 "Chimacum Creek - Natural" = "2. Chimacum Creek Summer Chum: Natural-Origin Spawners (Prop)",
                                  "Dungeness River - Natural" = "3. Dungeness Summer Chum: Natural-Origin Spawners (Prop)",
                                  "Jimmycomelately Creek - Hatchery Escapement" = "4. Jimmycomelately Creek Summer Chum: Index Hatchery Escapement",
                                  "Jimmycomelately Creek - Natural Escapement" = "5. Jimmycomelately Creek Summer Chum: Index Natural Escapement",
@@ -208,7 +208,7 @@ newnames <- c("Year",
               "Union River - Hatch",
               "Union River - Natural",
               "Chimacum Creek - Hatch",
-              "Chumacum Creek - Natural",
+              "Chimacum Creek - Natural",
               "Dungeness River - Natural",
               "Jimmycomelately Creek - Hatchery Escapement",
               "Jimmycomelately Creek - Natural Escapement",
@@ -230,7 +230,7 @@ tidychum$count <- as.numeric(gsub(",","",tidychum$count))
 # dealing with N/A values
 tidychum <- na.omit(tidychum)
 
-# saveRDS(tidychum, "./data/tidychum.rds")
+saveRDS(tidychum, "./data/tidychum.rds")
 
 chumchoices <- c("Select All", 
                  "Anderson Creek - Natural",
@@ -259,7 +259,7 @@ chumchoices <- c("Select All",
                  "Union River - Hatch",
                  "Union River - Natural",
                  "Chimacum Creek - Hatch",
-                 "Chumacum Creek - Natural",
+                 "Chimacum Creek - Natural",
                  "Dungeness River - Natural",
                  "Jimmycomelately Creek - Hatchery Escapement",
                  "Jimmycomelately Creek - Natural Escapement",
