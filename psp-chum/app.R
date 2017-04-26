@@ -45,13 +45,14 @@ chumsites <- spTransform(chum_sites.mp, CRS("+init=epsg:4326"))
 
 # select first coord pair for Duckabush to make sure the
 # measurement point lands in correct HUC10 and HUC12
-chumsites@lines[[6]]@Lines[[1]]@coords =
-  head(chumsites@lines[[6]]@Lines[[1]]@coords, n=1)
+#chumsites@lines[[6]]@Lines[[1]]@coords =
+#  head(chumsites@lines[[6]]@Lines[[1]]@coords, n=1)
 
-# retain just the final coord pair for each polyline
+# retain just the first coord pair for each polyline
+# as this makes sure they land in the right HUC10 and HUC12 shapes
 for (i in seq_along(chumsites@lines)){
   chumsites@lines[[i]]@Lines[[1]]@coords =
-    tail(chumsites@lines[[i]]@Lines[[1]]@coords, n=1)
+    head(chumsites@lines[[i]]@Lines[[1]]@coords, n=1)
 }
 
 # convert from SpatialLinesDF to SpatialPointsDF
