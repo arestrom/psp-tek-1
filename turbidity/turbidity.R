@@ -3,9 +3,9 @@ library(leaflet)
 library(MazamaSpatialUtils)
 
 # NOTE: http://apps.leg.wa.gov/WAC/default.aspx?dispo=true&cite=173-201A-200
-  #Turbidity shall not exceed:
-  # 5 NTU over background when the background is 50 NTU or less; or
-  # A 10 percent increase in turbidity when the background turbidity is more than 50 NTU.
+#Turbidity shall not exceed:
+# 5 NTU over background when the background is 50 NTU or less; or
+# A 10 percent increase in turbidity when the background turbidity is more than 50 NTU.
 
 # load location data file
 # select only ID and WRIA
@@ -140,7 +140,7 @@ saveRDS(water_huc, "./data/water_huc.rds")
 # plot(G1)
 
 
-m <- leaflet(data = turb_nums) %>% 
+m <- leaflet(data = turbidity) %>% 
   setView(lng = -122.996823, lat = 47.5642594, zoom = 9)
 
 waterIcon <- makeIcon(
@@ -150,23 +150,23 @@ waterIcon <- makeIcon(
 
 content1 <- paste(sep = ": ",
                   "<b>Turbidity NTU</b>",
-                  turb_nums$turbidity_NTU
+                  turbidity$measurement
 )
 
 content2 <- paste(sep = ": ",
                   "<b>Project Name</b>",
-                  turb_nums$Study_Name
+                  turbidity$Study_Name
 )
 content3 <- paste(sep = ": ",
                   "<b>Date</b>",
-                  turb_nums$start_date
+                  turbidity$start_date
 )
 
 content_items = c(content1,content2,content3)
 # full_content <- paste(sep = "<br>", content2,content1)
 # full_content <- paste(collapse = "<br>", content_items)
 full_content <- sprintf("Project Name: %s <br>Date: %s <br> Turbidity NTU: %s", 
-                        turb_nums$Study_Name, turb_nums$start_date, turb_nums$turbidity_NTU)
+                        turbidity$Study_Name, turbidity$start_date, turbidity$measurement)
 
 m %>%
   addTiles() %>%
@@ -174,15 +174,15 @@ m %>%
              icon = waterIcon,
              clusterOptions = markerClusterOptions())
 
-qpal <- colorQuantile("BuPu", turb_nums$turbidity_NTU, n = 5)
+qpal <- colorQuantile("BuPu", turbidity$measurement, n = 5)
 m %>%
   addProviderTiles("Stamen.Terrain", group = "Terrain") %>%
   addCircleMarkers(~lon, ~lat, popup = full_content,
                    radius = 6,
-                   color = ~qpal(turbidity_NTU),
+                   color = ~qpal(measurement),
                    stroke = FALSE, fillOpacity = 0.5,
                    group = "Water Quality") %>%
-  addLegend(pal = qpal, values = ~turbidity_NTU, opacity = 1) %>%
+  addLegend(pal = qpal, values = ~measurement, opacity = 1) %>%
   addLayersControl(
     baseGroups = "Terrain",
     overlayGroups = "Water Quality",
@@ -234,6 +234,22 @@ ggplot(data = turbidity, mapping = aes(x = start_date, y = logMeasurement)) +
   geom_smooth() +
   # geom_hline(yintercept = 1.90309, color = "red", show.legend = TRUE) +
   facet_wrap(~ Watershed_WRIA) +
+  xlab("Year") +
+  ylab("Log Turbidity (NTU)") +
+  ggtitle("Turbidity Trends Over Time")
+
+# funding project data is from 2007-2015 ONLY\
+mycolors <- c('highlight' = 'red', 'normal' = 'black')
+sub <- subset(TURB_TSS, ID == "4388")
+TURB_TSS %>%
+  filter(result_type == "Turbidity") %>%
+  # mutate(colcol = ifelse(ID == "4388", 'highlight', 'normal')) %>%
+  # filter(ID == "4388") %>%
+  ggplot(mapping = aes(x = start_date, y = logMeasurement)) +
+  geom_point(alpha = 1/4) +
+  geom_point(data = sub, color = 'red', size = 5) +
+  scale_color_manual('Status', values = mycolors) +
+  # geom_smooth() +
   xlab("Year") +
   ylab("Log Turbidity (NTU)") +
   ggtitle("Turbidity Trends Over Time")
