@@ -1,12 +1,12 @@
 library(shiny)
 library(leaflet)
-library(plotly)
+#library(plotly)
 library(shinythemes)
 library(ggmap)
 library(tidyverse)
 library(stringr)
 library(scales)
-df <- readRDS("./data/ALL-separate-2.rds")
+df <- readRDS("./data/ALL-separate-3.rds")
 
 
 ui <- navbarPage(theme = shinytheme("sandstone"),
@@ -28,14 +28,15 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                             mainPanel(
                               # map of points
                               leafletOutput("watermap",
-                                            height = 675,
+                                            height = 600,
                                             width = 800),
                               # table output to test dynamic clicking/plot creation
-                              tableOutput("myTable")
+                              #uiOutput("click_text"),
+                              plotOutput("chumcounts")
                               
                             ))),
                  # second tab panel for HUCs
-                 tabPanel("HUC View",
+                 tabPanel("Outcome Data",
                           sidebarLayout(
                             sidebarPanel(
                               # select features to view effects
@@ -46,36 +47,37 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                               radioButtons(inputId = "huclevel",
                                            label = "HUC level:",
                                            c(10, 12)),
-                              checkboxInput(inputID = "colorblind",
-                                           label = "Colorblind Friendly Key:",
+                              checkboxInput(inputId = "colorblind",
+                                           label = "colorblind friendly",
                                            value = FALSE),
                               width = 2
                             ),
                             # map output
                             mainPanel(leafletOutput("hucmap",
-                                                    height = 675,
+                                                    height = 600,
                                                     width = 800))
+                          )),
+                 tabPanel("Investment Data",
+                          sidebarLayout(
+                            sidebarPanel(
+                              radioButtons(inputId = "hucinv",
+                                           label = "HUC level:",
+                                           c(10,12)),
+                              radioButtons(inputId = "invmeasure",
+                                           label = "Investment Measure: ",
+                                           c("Total", "Average by Project")),
+                            width = 2)
+                            ,
+                            mainPanel(
+                              leafletOutput("invmap",
+                                            height = 600,
+                                            width = 800)
+                            )
                           ))
                  
                  
 )
 
-
-
-## code for marker size within the df ##
-#reactive_df <- reactive({within(reactive_df(), cost_quantile <- as.integer(cut(unique(measurement, quantile(measurement, probs=0:5/5), include.lowest=TRUE))))})
-# reactive_df()$marker_size <- reactive({
-#   cut(
-# #input data
-#    reactive_df()$cost_quantile,
-# #cut points
-#    c( 0, 1, 2, 3, 4, 6) ,
-# #label values (character strings work too)
-#    labels = c(5,7,8,9,11) ,
-# #interval closed on the right?
-#    right = FALSE)})
-#  
-## end marker size code ##
 
 server <- function(input, output, session) {
   
@@ -85,8 +87,18 @@ server <- function(input, output, session) {
   huc12_df <- readRDS("./data/huc12.rds")
   
   # reactive df for those features in the input
+  
   df <- df[df$HUC_id %in% huc10_df$HUC10 | df$HUC_id %in% huc12_df$HUC12, ]
-  reactive_df <- reactive({subset(df, result_type %in% input$mapfeatures)}) 
+  df <- subset(df, !is.na(df$measurement))
+  reactive_df <- reactive({subset(df, result_type %in% input$mapfeatures)})
+  
+  # fish_df <- subset(df, !is.na(df$measurement))
+  # df <- df[df$HUC_id %in% huc10_df$HUC10 | df$HUC_id %in% huc12_df$HUC12, ]
+  # df <- subset(df, !is.na(df$measurement))
+  # reactive_df <- reactive({if(input$mapfeatures == "Chum Salmon"){ 
+  #                         subset(fish_df, result_type %in% input$mapfeatures)
+  #                         } else{ 
+  #                         subset(df, result_type %in% input$mapfeatures)}}) 
 
 #  reactive_df$marker_size <- reactive({ifelse(midpoint_df()$result_type %in% "Investment", 10,6)})
   
@@ -119,13 +131,16 @@ server <- function(input, output, session) {
     }
   })
   
+  #clickdata <- reactiveValues(clickedMarker = NULL)
+  
   # create map
   output$watermap <- renderLeaflet( m <- leaflet(data = reactive_df()) %>% 
-                                      setView(lng = -122.996823, lat = 47.875, zoom = 9) %>%
+                                      setView(lng = -122.996823, lat = 47.8, zoom = 9) %>%
                                       addTiles() %>%
                                       addProviderTiles("Stamen.Terrain", group = "Terrain") %>%
                                       # HUC outlines beneath the datapoints
                                       addPolygons(data= shapes_df(),
+                                                  #popup = hucname(),
                                                   fillOpacity = 0,
                                                   color = "black", 
                                                   weight = 1,
@@ -133,42 +148,108 @@ server <- function(input, output, session) {
                                       # datapoints
                                       addCircleMarkers(~lon, ~lat, 
                                                        popup = content1(),
-                                                       # variable radius - possibly not working correctly
                                                        radius = 6,
                                                        color = ~qpal()(measurement),
-                                                       stroke = FALSE, fillOpacity = 0.5,
-                                                       group = "water quality"
+                                                       stroke = FALSE, fillOpacity = 0.8#,
+                                                       #layer = ~description,
                                                       ) %>%
                                       # legend (quantiles)
-                                      addLegend(title = paste("Measurement Quantiles"), pal = qpal(), values = reactive_df()$measurement, opacity = 1, labels = c("turbidity", "TSS"))
-  
+                                      addLegend(title = paste(pointstitle()), pal = qpal(), values = reactive_df()$measurement, opacity = 1, labels = c("turbidity", "TSS"))
+                                    
                                     )
+  
+  # observeEvent(input$watermap_marker_click,{
+  #   clickdata$clickedMarker <- input$watermap_marker_click
+  # })
+  # 
+  # observeEvent(input$watermap_click,{
+  #   clickdata$clickedMarker <- NULL
+  # })
+  # 
+  # output$click_text <- renderPrint({
+  #   print(clickdata$clickedMarker)
+  # })
+  # 
+  # project_sub <- reactive({
+  #   subset(reactive_df(), description %in% clickdata$clickedMarker$id)
+  # })
+  # 
+  # project_mean <- reactive({
+  #   aggregate(measurement ~ year, project_sub(), mean)
+  # })
+  # 
+  # 
+  # output$chumcounts <- renderPlot({
+  #   ggplot(project_mean(),
+  #          aes(x = year,
+  #              y = measurement)) +
+  #     geom_line(size = 1) + 
+  #     geom_point(size = 5) + 
+  #     # geom_text(aes(label = round(measurement,2), hjust = 0, vjust = -1.5)) +
+  #     scale_x_continuous(breaks = pretty_breaks(nrow(project_mean())-1))
+  # })
+  
 # define the content for the popups
   content1 <- reactive({
     paste(sep = "",
-          # name
-          "<b>Project Name: </b>",
-          reactive_df()$description,
-          br(),
-          # year
-          "<b>Year: </b>",
-          reactive_df()$year,
-          br(),
-          # measurements
-          strong(reactive_df()$result_type),
-          "<b>: </b>",
-          # convert measurement to $ format for investments, else print as normal
-          ifelse(reactive_df()$result_type == "Investment",
-            dollar(reactive_df()$measurement),
-            paste(reactive_df()$measurement,
-            " ",
-            reactive_df()$unit))
-          
+          ifelse(reactive_df()$result_type == "Chum Salmon",
+                 paste("<b>Location: </b>",
+                        reactive_df()$description,
+                        br(),
+                        "<b>Type: </b>",
+                        reactive_df()$project_cat,
+                        br(),
+                       "<b>Most Recent Year: </b>",
+                       reactive_df()$year,
+                       br(),
+                       "<b>Chum Count: </b>",
+                       reactive_df()$measurement),
+                 paste("<b>Project Name: </b>",
+                       reactive_df()$description,
+                       br(),
+                       "<b>Year: </b>",
+                       reactive_df()$year,
+                       br(),
+                       strong(reactive_df()$result_type),
+                       "<b>: </b>",
+                       ifelse(reactive_df()$result_type == "Investment",
+                              dollar(reactive_df()$measurement),
+                              paste(reactive_df()$measurement,
+                                    " ",
+                                    reactive_df()$unit)))
+                 )
+
 
     )})
   
+  hucname <- reactive({
+    paste(sep = "",
+          "<b>HUC: </b>",
+          shapes_df()$Name)
+  })
+  
   # define color quantile for graphing 
-  qpal <- reactive({colorQuantile("Reds", reactive_df()$measurement, n = 5)})
+  qpal <- reactive({if(reactive_df()$result_type == "Chum Salmon"){
+    colorQuantile("Oranges", reactive_df()$measurement, n = 5)
+  } else if(reactive_df()$result_type == "Investment"){
+    colorQuantile("Blues", reactive_df()$measurement, n = 5)
+  } else if (reactive_df()$result_type == "Turbidity"){
+    colorQuantile("Reds", reactive_df()$measurement, n = 5)
+  } else{
+    colorQuantile("Reds", reactive_df()$measurement, n = 5)
+  }
+                           })
+  
+  pointstitle <- reactive({if(reactive_df()$result_type == "Turbidity"){
+    paste("Turbidity (NTU)",br(),"(Quantiles)") 
+    } else if (reactive_df()$result_type == "TSS") {
+      paste("TSS (mg/L)",br(),"(Quantiles)")
+    } else if (reactive_df()$result_type == "Investment") {
+      paste("Investment per Project", br(),"(Quantiles)")
+    } else{
+      paste("Chum Salmon (Count)",br(),"(Quantiles)")
+    }})
+  
   
 ### end point code ###
   
@@ -195,7 +276,8 @@ shapefile <- reactive({
                                                       "meanbefore", 
                                                       "meanafter", 
                                                       "status", 
-                                                      "coloreffect")], by.x = "HUC10", by.y = "HUC_id", all.x=TRUE, duplicateGeoms = TRUE)
+                                                      "coloreffect",
+                                                      "colorblind")], by.x = "HUC10", by.y = "HUC_id", all.x=TRUE, duplicateGeoms = TRUE)
   } else{
     huc12_df <- sp::merge(x = huc12_df, y = huc_df()[ , c("HUC_id", 
                                                       "medianyr", 
@@ -205,29 +287,41 @@ shapefile <- reactive({
                                                       "meanbefore", 
                                                       "meanafter", 
                                                       "status", 
-                                                      "coloreffect")], by.x = "HUC12", by.y = "HUC_id", all.x=TRUE, duplicateGeoms = TRUE)
+                                                      "coloreffect",
+                                                      "colorblind")], by.x = "HUC12", by.y = "HUC_id", all.x=TRUE, duplicateGeoms = TRUE)
   }
 })
 
+cb_output <- reactive({input$colorblind})
+
 # create the HUC map
    output$hucmap <- renderLeaflet( m <-  leaflet() %>% 
-                                         setView(lng = -122.996823, lat = 47.875, zoom = 9) %>%
+                                         setView(lng = -122.996823, lat = 47.8, zoom = 9) %>%
                                          addProviderTiles("Stamen.Terrain") %>%
                                      # use the shapefile() df
                                          addPolygons(data= shapefile(),
                                                      popup = content2(),
                                                      # color according to increases/decreases as defined by coloreffect column
-                                                     fillColor = ifelse(input$colorblind == FALSE, shapefile()$coloreffect, shapefile()$colorblind),
+                                                     fillColor = if(cb_output() == TRUE){
+                                                       shapefile()$colorblind
+                                                     } else{
+                                                       shapefile()$coloreffect
+                                                     },
                                                      fillOpacity = ifelse(is.na(shapefile()$coloreffect), 0, .7),
                                                      color = "black",
                                                      weight = 1,
                                                      opacity = 1
                                                      ) %>%
-                                     addLegend(colors = c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850'),
-                                               labels = c('large/worse', 'medium/worse', 'small/worse', 
-                                                          'small/improving', 'medium/improving', 'large/improving'),
+                                     addLegend(colors = if(cb_output() == TRUE){
+                                       c('#c51b7d','#e9a3c9','#fde0ef','#e6f5d0','#a1d76a','#4d9221')
+                                     } else{
+                                       c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850')
+                                     }
+                                                 ,
+                                               labels = c('large / worse', 'medium / worse', 'small / worse', 
+                                                          'small / improving', 'medium / improving', 'large / improving'),
                                                position = 'topright',
-                                               title = 'Effect Sizeus',
+                                               title = 'Effect Size / Status',
                                                opacity = .8)
   )
 # variable that defines the text for the popup
@@ -237,20 +331,101 @@ shapefile <- reactive({
           "<b>HUC: </b>",
           shapefile()$Name,
           br(),
-          # effect size
-          "<b>Effect: </b>",
           ifelse(is.na(shapefile()$effectsize),
-                 paste("Not enough data for meaningful analysis"),
-          paste(shapefile()$effectsize,
-          "/",
-          shapefile()$status,
-          br(),
-          # median year of projects
-          "<b>Cohen's D: </b>",
-          round(shapefile()$cohensd, 2)))
+                 "<b>Not enough data for meaningful analysis</b>",
+                 paste("<b>Effect Size: </b>",
+                       tools::toTitleCase(shapefile()$effectsize),
+                       br(),
+                       "<b>Status: </b>",
+                       tools::toTitleCase(shapefile()$status),
+                       br(),
+                       "<b>Cohen's D: </b>",
+                       round(shapefile()$cohensd,2))
+          ))
+          
+          
 
-    )})
+    
+  })
   
+### end HUC code ###  
+  
+  
+
+### investment code
+  
+  inv_subset <- subset(df, result_type == "Investment")
+  group_inv <- aggregate(measurement ~ HUC_id, inv_subset, "sum")
+  avg_df <- aggregate(measurement ~ HUC_id, inv_subset, "mean")
+  count_inv <- aggregate(description ~ HUC_id, inv_subset, function(x){NROW(x)})
+  inv_subset <- merge(inv_subset, group_inv, by = "HUC_id")
+  inv_subset <- merge(inv_subset, count_inv, by = "HUC_id")
+  inv_subset <- merge(inv_subset, avg_df, by = "HUC_id")
+  inv_subset <- subset(inv_subset, !is.na(inv_subset$measurement.y))
+  new_inv <- subset(inv_subset, select = c("HUC_id", "HUC_level", "measurement.y", "description.y", "HUC_Name", "measurement"))
+  new_inv <- rename(new_inv, totalinv = measurement.y, projectcount = description.y, avginv = measurement)
+  new_inv <- new_inv[!duplicated(new_inv$HUC_id),] 
+  
+  
+  shape_inv <- reactive({
+    if(10 %in% input$hucinv){
+      inv_10 <- sp::merge(x = huc10_df, y = new_inv, by.x = "HUC10", by.y = "HUC_id", all.x=TRUE, duplicateGeoms = TRUE)
+    } else{
+      inv_12 <- sp::merge(x = huc12_df, y = new_inv, by.x = "HUC12", by.y = "HUC_id", all.x=TRUE, duplicateGeoms = TRUE)
+    }
+  })
+  
+  
+  output$invmap <- renderLeaflet( m <-  leaflet() %>% 
+                                    setView(lng = -122.996823, lat = 47.8, zoom = 9) %>%
+                                    addProviderTiles("Stamen.Terrain") %>%
+                                    addPolygons(data= shape_inv(),
+                                                popup = content3(),
+                                                # color according to increases/decreases as defined by coloreffect column
+                                                fillColor = ~invcolor()(as.numeric(var_inv())),
+                                                fillOpacity = ifelse(is.na(shape_inv()$totalinv), 0, .7),
+                                                color = "black",
+                                                weight = 1,
+                                                opacity = 1
+                                    ) %>%
+                                    addLegend(title = paste(invlabel()), 
+                                              colors = c("#deebf7","#9ecae1","#3182bd"), 
+                                              labels = c("small","medium","large"), opacity = 1)
+                                  
+  )
+  var_inv <- reactive({if(input$invmeasure == "Total"){
+    shape_inv()$totalinv} else {
+       shape_inv()$avginv}})
+  
+  content3 <- reactive({
+    paste(sep = "",
+          # HUC
+          "<b>HUC: </b>",
+          shape_inv()$Name,
+          br(),
+          ifelse(is.na(shape_inv()$totalinv),
+                 "<b>No project data</b>",
+          paste("<b>Total Investment: </b>",
+          dollar(shape_inv()$totalinv),
+          br(),
+          "<b>Number of Projects: </b>",
+          shape_inv()$projectcount,
+          br(),
+          "<b>Average Investment per Project: </b>",
+          dollar(shape_inv()$avginv)))
+        
+    )})
+  invcolor <- reactive({if(input$invmeasure == "Total"){
+    colorQuantile("Blues", shape_inv()$totalinv, n = 3)} else{
+      colorQuantile("Blues", shape_inv()$avginv, n = 3)
+    }})
+  
+  invlabel <- reactive({if(input$invmeasure == "Total"){
+    paste("Total Investment") } else{
+      paste("Average Investment")
+    }
+  })
+    
 }
 # Run the application 
 shinyApp(ui = ui, server = server)

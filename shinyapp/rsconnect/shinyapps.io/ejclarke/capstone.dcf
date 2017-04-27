@@ -1,0 +1,11 @@
+name: capstone
+title: capstone
+account: ejclarke
+server: shinyapps.io
+appId: 173802
+bundleId: 805701
+url: https://ejclarke.shinyapps.io/capstone/
+when: 1493261748.45444
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: data/ALL_together.rds|data/ALL-separate-2.rds|data/ALL-separate.rds|data/chum_huc10.rds|data/chum_huc12.rds|data/chum_project_huc10.rds|data/chum_project_huc12.rds|data/EAGL_Projects.xlsx|data/eagl.csv|data/EIMLocationDetails.csv|data/EIMResults.csv|data/EIMStudyDetails.csv|data/EIMWellLocationDetails.csv|data/EIMWellWaterLevelMeasuringPoint.csv|data/fund.csv|data/HoodCanal_FundingInfo.xlsx|data/HoodCanal_LocationData.xlsx|data/locs.csv|data/together_chum_huc10.rds|data/together_chum_huc12.rds|data/together_chum_project_huc10.rds|data/together_chum_project_huc12.rds|data/together_water_huc10.rds|data/together_water_huc12.rds|data/TSSEIMResults.csv|data/water_huc10.rds|data/water_huc12.rds|data/water_project_huc10.rds|data/water_project_huc12.rds
