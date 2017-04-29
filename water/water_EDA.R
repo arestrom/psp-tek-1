@@ -1,6 +1,8 @@
 library(tidyverse)
 
+# read in saved water rds file (includes HUCs)
 water_huc <- readRDS("./data/water_huc.rds")
+# create separate result_type dfs
 turbidity <- filter(water_huc, result_type == "Turbidity")
 tss <- filter(water_huc, result_type == "TSS")
 
@@ -45,7 +47,7 @@ ggplot(data = turbidity, mapping = aes(x = start_date, y = logMeasurement)) +
   ylab("Log Turbidity (NTU)") +
   ggtitle("Turbidity Trends Over Time")
 
-# funding project data is from 2007-2015 ONLY\
+# One highlighted point plot
 sub <- subset(TURB_TSS, ID == "4388")
 TURB_TSS %>%
   filter(result_type == "Turbidity") %>%
@@ -76,6 +78,7 @@ filtered.turb <- turbidity %>%
   group_by(Study_ID) %>%
   filter(n_distinct(year) >= 6)
 
+# plot filtered turbidity near project range
 filtered.turb %>%
   ggplot(mapping = aes(x = start_date, y = logMeasurement)) +
   geom_point(mapping = aes(color = Study_ID)) +
