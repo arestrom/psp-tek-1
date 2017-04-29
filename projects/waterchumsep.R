@@ -373,10 +373,9 @@ all_projects_formerge[,empties] <- NA
 # bind all dataframes together
 all_dfs <- bind_rows(chum_formerge, water_formerge, all_projects_formerge)
 
-
 # add unique ID column
 all_dfs$id <- 1:nrow(all_dfs)
 
 # export the data to the shiny app directory
-saveRDS(all_dfs, "../shinyapp/data/ALL-separate-3.rds")
+saveRDS(all_dfs, "../shinyapp/data/all-dfs.rds")
 

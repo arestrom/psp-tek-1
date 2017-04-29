@@ -1,17 +1,17 @@
 library(tidyverse)
 library(leaflet)
 
-all_dfs <- readRDS("../shinyapp/data/ALL-separate-3.rds")
+all_dfs <- readRDS("../shinyapp/data/all-dfs.rds")
 projects <- filter(all_dfs, result_type == "Investment")
-projects10 <- filter(all_dfs, result_type == "Investment", HUC_level == '10')
-projects12 <- filter(all_dfs, result_type == "Investment", HUC_level == '12')
+# projects10 <- filter(all_dfs, result_type == "Investment", HUC_level == '10')
+# projects12 <- filter(all_dfs, result_type == "Investment", HUC_level == '12')
 water10 <- filter(all_dfs, result_type == "Turbidity" | result_type == "TSS",  HUC_level == '10')
 water12 <- filter(all_dfs, result_type == "Turbidity" | result_type == "TSS", HUC_level == '12')
 chum10 <- filter(all_dfs, result_type == "Chum Salmon", HUC_level == '10')
 chum12 <- filter(all_dfs, result_type == "Chum Salmon", HUC_level == '12')
 ######################## BEGIN MAP ########################
 
-m12 <- leaflet(data = chum12) %>% 
+m12 <- leaflet() %>% 
   setView(lng = -122.996823, lat = 47.5642594, zoom = 9) %>%
   addProviderTiles("Esri.WorldImagery") %>%
   addCircleMarkers(projects$lon, projects$lat,
@@ -44,22 +44,22 @@ m12
 # wa10IMP <- filter(wa10, status == 'improving')
 # greens <- colorFactor("Greens", wa10IMP$effectsize)
 
-m10 <- leaflet(data = chum10) %>% 
+m10 <- leaflet() %>% 
   setView(lng = -122.996823, lat = 47.5642594, zoom = 9) %>%
   addProviderTiles("Esri.WorldImagery") %>%
-  addCircleMarkers(all_projects_formerge$lon, all_projects_formerge$lat,
+  addCircleMarkers(projects$lon, projects$lat,
                    radius = 4,
                    color = '#984ea3',
                    stroke = FALSE, fillOpacity = 1,
                    group = "Projects") %>%
-  addCircleMarkers(ch10$lon, ch10$lat,
+  addCircleMarkers(chum10$lon, chum10$lat,
                    radius = 5,
-                   color = ch10$coloreffect,
+                   color = chum10$coloreffect,
                    stroke = FALSE, fillOpacity = 0.8,
                    group = "Chum") %>%
-  addCircleMarkers(wa10$lon, wa10$lat, 
+  addCircleMarkers(water10$lon, water10$lat, 
                    radius = 5,
-                   color = wa10$coloreffect,
+                   color = water10$coloreffect,
                    stroke = FALSE, fillOpacity = 0.8,
                    group = "Water") %>%
   addLayersControl(
