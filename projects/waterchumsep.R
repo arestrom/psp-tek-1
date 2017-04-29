@@ -1,8 +1,5 @@
 library(tidyverse)
-# library(stringr)
-# library(MazamaSpatialUtils)
 library(lsr) #cohensD function package
-library(leaflet)
 
 ######################## BEGIN CHUM PROJ ########################
 
@@ -36,14 +33,6 @@ huc10_med <- ph10 %>%
   group_by(HUC10_Name, medianyr) %>%
   summarise()
 
-# sum10<- ph10 %>%
-#   group_by(HUC10_Name) %>%
-#   summarise(meanyr = mean(year),
-#             medianyr = median(year),
-#             maxyr = max(year),
-#             minyr = min(year),
-#             numyrs = n_distinct(year))
-
 # create a HUC-12 project dataframe, 
 # filtered to only include projects in fish HUC12s
 # calculate the median project implementation year for each HUC12
@@ -64,7 +53,7 @@ huc12_med <- ph12 %>%
 ######################## BEGIN WATER PROJ ########################
 
 # read in water quality rdata
-water <- readRDS("../turbidity/data/water_huc.rds")
+water <- readRDS("../water/data/water_huc.rds")
 
 # create a HUC-10 project dataframe, 
 # filtered to only include projects in water HUC10s
@@ -122,15 +111,17 @@ before_after <- function(type, df, value) {
 # calculate the cohensD for each measurement in each HUC (add new column)
 # then, categorize the effect size
 apply_cohensD <- function(data, outcome) {
-  if (outcome == 'water') { data %>%
+  if (outcome == 'water') { 
+    data %>%
       spread(TimePeriod, measurement) %>%
       mutate(cohensd = cohensD(before, after)) %>%
-      gather('TimePeriod', 'measurement', `before`, `after`, `during`, na.rm = TRUE) %>%
-      # gather('TimePeriod', 'measurement', `before`, `after`, `during`, `noProject`, na.rm = TRUE) %>%
+      # gather('TimePeriod', 'measurement', `before`, `after`, `during`, na.rm = TRUE) %>%
+      gather('TimePeriod', 'measurement', `before`, `after`, `during`, `noProject`, na.rm = TRUE) %>%
       mutate(effectsize = ifelse(cohensd < 0.5, 'small',
                                  ifelse(cohensd >= 0.8, 'large',
                                         'medium')))
-  } else if (outcome == 'chum') { data %>%
+  } else if (outcome == 'chum') { 
+    data %>%
       spread(TimePeriod, count) %>%
       mutate(cohensd = cohensD(before, after)) %>%
       gather('TimePeriod', 'count', `before`, `after`, `during`, `noProject`, na.rm = TRUE) %>%
@@ -144,7 +135,8 @@ apply_cohensD <- function(data, outcome) {
 # categorize each measurement (higher mean TSS or tubidity is worse)
 # then apply a binary color category and a diverging color scale (based on effect size and status)
 add_status_colors <- function(data, outcome) {
-  if (outcome == 'water') { data %>% 
+  if (outcome == 'water') { 
+    data %>% 
       mutate(status = ifelse(meanbefore < meanafter, 'worse',
                              ifelse(meanbefore > meanafter, 'improving',
                                     'no change')),
@@ -165,26 +157,28 @@ add_status_colors <- function(data, outcome) {
                                                        ifelse(effectsize == 'medium' & status == 'improving', '#a1d76a',
                                                               ifelse(effectsize == 'large' & status == 'improving', '#4d9221',
                                                                      NA)))))))
-  } else if (outcome == 'chum') { data %>% mutate(status = ifelse(meanbefore > meanafter, 'worse',
-                                                                  ifelse(meanbefore < meanafter, 'improving',
-                                                                         'no change')),
-                                                  color = ifelse(status == 'worse', '#e41a1c',
-                                                                 ifelse(status == 'improving', '#4daf4a',
-                                                                        'black')),
-                                                  coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
-                                                                       ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
-                                                                              ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
-                                                                                     ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
-                                                                                            ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
-                                                                                                   ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
-                                                                                                          NA)))))),
-                                                  colorblind = ifelse(effectsize == 'large' & status == 'worse', '#c51b7d',
-                                                                      ifelse(effectsize == 'medium' & status == 'worse', '#e9a3c9',
-                                                                             ifelse(effectsize == 'small' & status == 'worse', '#fde0ef',
-                                                                                    ifelse(effectsize == 'small' & status == 'improving', '#e6f5d0',
-                                                                                           ifelse(effectsize == 'medium' & status == 'improving', '#a1d76a',
-                                                                                                  ifelse(effectsize == 'large' & status == 'improving', '#4d9221',
-                                                                                                         NA)))))))
+  } else if (outcome == 'chum') { 
+    data %>% 
+      mutate(status = ifelse(meanbefore > meanafter, 'worse',
+                             ifelse(meanbefore < meanafter, 'improving',
+                                    'no change')),
+             color = ifelse(status == 'worse', '#e41a1c',
+                            ifelse(status == 'improving', '#4daf4a',
+                                   'black')),
+             coloreffect = ifelse(effectsize == 'large' & status == 'worse', '#d73027',
+                                  ifelse(effectsize == 'medium' & status == 'worse', '#fc8d59',
+                                         ifelse(effectsize == 'small' & status == 'worse', '#fee08b',
+                                                ifelse(effectsize == 'small' & status == 'improving', '#d9ef8b',
+                                                       ifelse(effectsize == 'medium' & status == 'improving', '#91cf60',
+                                                              ifelse(effectsize == 'large' & status == 'improving', '#1a9850',
+                                                                     NA)))))),
+             colorblind = ifelse(effectsize == 'large' & status == 'worse', '#c51b7d',
+                                 ifelse(effectsize == 'medium' & status == 'worse', '#e9a3c9',
+                                        ifelse(effectsize == 'small' & status == 'worse', '#fde0ef',
+                                               ifelse(effectsize == 'small' & status == 'improving', '#e6f5d0',
+                                                      ifelse(effectsize == 'medium' & status == 'improving', '#a1d76a',
+                                                             ifelse(effectsize == 'large' & status == 'improving', '#4d9221',
+                                                                    NA)))))))
     
   }
 }
@@ -198,7 +192,7 @@ add_status_colors <- function(data, outcome) {
 # group by measurement type (TSS or turbidity), then by HUC 12
 # categorize each row as before, during or after the median project year in each HUC
 water12 <- water %>%
-  filter(HUC12_Name %in% unique(wa_ph12$HUC12_Name)) %>%
+  # filter(HUC12_Name %in% unique(wa_ph12$HUC12_Name)) %>%
   mutate(year = format(start_date,"%Y")) %>%
   left_join(wa_huc12_med, by = "HUC12_Name") %>%
   group_by(result_type, HUC12_Name) %>%
@@ -212,7 +206,7 @@ water12 <- water %>%
 # group by measurement type (TSS or turbidity), then by HUC 10
 # categorize each row as before, during or after the median project year in each HUC
 water10 <- water %>%
-  filter(HUC10_Name %in% unique(wa_ph10$HUC10_Name)) %>%
+  # filter(HUC10_Name %in% unique(wa_ph10$HUC10_Name)) %>%
   mutate(year = format(start_date,"%Y")) %>%
   left_join(wa_huc10_med, by = "HUC10_Name") %>%
   group_by(result_type, HUC10_Name) %>%
@@ -241,8 +235,6 @@ wa10 <- water10 %>%
   left_join(bwa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
   left_join(awa10, by = c("result_type" = "result_type", "HUC10_Name" = "HUC10_Name")) %>%
   add_status_colors('water') 
-# %>%
-#   filter(TimePeriod == 'after')
 
 # remove rows without a TimePeriod (no project in that HUC to get a median year)
 # create a column of measurements for before and after project implementation in each HUC
@@ -256,16 +248,7 @@ wa12 <- water12 %>%
   left_join(bwa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
   left_join(awa12, by = c("result_type" = "result_type", "HUC12_Name" = "HUC12_Name")) %>%
   add_status_colors('water') 
-# %>%
-#   filter(TimePeriod == 'after')
 
-# %>%
-#   ungroup() %>%
-#   filter(TimePeriod == 'after') %>%
-#   group_by(result_type, HUC12_Name, Location_ID, year, effectsize, status) %>%
-#   summarise(mean_measurement = mean(measurement))
-# %>%
-#   filter(year == max(year))
 ######################## END WATER ########################
 
 
@@ -312,8 +295,6 @@ ch10 <- chum10 %>%
   left_join(bchum10, by = "HUC10_Name") %>%
   left_join(achum10, by = "HUC10_Name") %>%
   add_status_colors('chum') 
-# %>%
-#   filter(TimePeriod == 'after')
 
 # read in the chum count dataframe, 
 # add median project year for each HUC
@@ -326,8 +307,6 @@ ch12 <- chum12 %>%
   left_join(bchum12, by = "HUC12_Name") %>%
   left_join(achum12, by = "HUC12_Name") %>%
   add_status_colors('chum') 
-# %>%
-#   filter(TimePeriod == 'after')
 
 ######################## END CHUM ########################
 
@@ -335,281 +314,69 @@ ch12 <- chum12 %>%
 # cohen's D: 'small effect' = 0.2, med effect = 0.5, large effect = 0.8
 
 ch12_formerge <- ch12 %>%
-  select(year:project_cat, jitterlng:jitterlat, HUC12_id, HUC12_Name, 
+  select(year:project_cat, Description:jitterlat, HUC12_id, HUC12_Name, 
          medianyr, cohensd:colorblind) %>%
-  rename(description = sitename, lon = jitterlng, lat = jitterlat,
+  rename(name = sitename, description = Description, lon = jitterlng, lat = jitterlat,
          measurement = count, HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
-  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '12') 
+  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '12',
+         Study_ID = NA, full_date = NA, Location_ID = NA, logMeasurement = NA) 
 
 chum_formerge <- ch10 %>%
-  select(year:project_cat, jitterlng:jitterlat, HUC10_id, HUC10_Name, 
+  select(year:project_cat, Description:jitterlat, HUC10_id, HUC10_Name, 
          medianyr, cohensd:colorblind) %>%
-  rename(description = sitename, lon = jitterlng, lat = jitterlat,
+  rename(name = sitename, description = Description, lon = jitterlng, lat = jitterlat,
          measurement = count, HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
-  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '10') %>%
+  mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '10',
+         Study_ID = NA, full_date = NA, Location_ID = NA, logMeasurement = NA) %>%
   rbind(ch12_formerge)
 
 wa12_formerge <- wa12 %>%
-  select(lon, lat, Study_Name, result_type, measurement, unit,
+  select(lon, lat, Study_ID, Study_Name, Location_ID, start_date,
+         logMeasurement, result_type, measurement, unit,
          HUC12_id, HUC12_Name, year:colorblind) %>%
-  rename(description = Study_Name,
+  rename(name = Study_Name, full_date = start_date,
          HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
   mutate(HUC_level = '12', year = as.numeric(year),
-         project_cat = NA) 
+         project_cat = NA, description = NA) 
 
 water_formerge <- wa10 %>%
-  select(lon, lat, Study_Name, result_type, measurement, unit,
+  select(lon, lat, Study_ID, Study_Name, Location_ID, start_date,
+         logMeasurement, result_type, measurement, unit,
          HUC10_id, HUC10_Name, year:colorblind) %>%
-  rename(description = Study_Name,
+  rename(name = Study_Name, full_date = start_date,
          HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
   mutate(HUC_level = '10', year = as.numeric(year),
-         project_cat = NA) %>%
+         project_cat = NA, description = NA) %>%
   rbind(wa12_formerge)
 
-wa_ph12_formerge <- wa_ph12 %>%
-  select(id, year, name, cost:HUC12_id, HUC12_Name, 
-         medianyr) %>%
-  rename(description = name, measurement = cost,
-         HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
-  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '12',
-         color = '#984ea3')
+# separate projects into huc 10 and 12 dataframes, then bind them together
+# format columns to match outcome data for ease with binding
+p_h10 <- ph %>% select(-HUC12_id, -HUC12_Name, -WRIA_Name, -WRIA_ID) %>%
+  rename(measurement = cost,
+         HUC_id = HUC10_id, HUC_Name = HUC10_Name,
+         Study_ID = id) %>%
+  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '10')
+all_projects_formerge <- ph %>% select(-HUC10_id, -HUC10_Name, -WRIA_Name, -WRIA_ID) %>%
+  rename(measurement = cost,
+         HUC_id = HUC12_id, HUC_Name = HUC12_Name,
+         Study_ID = id) %>%
+  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '12') %>%
+  rbind(p_h10)
 
-water_projects_formerge <- wa_ph10 %>%
-  select(id, year, name, cost:project_cat, HUC10_id, HUC10_Name, 
-         medianyr) %>%
-  rename(description = name, measurement = cost,
-         HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
-  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '10',
-         color = '#984ea3') %>%
-  rbind(wa_ph12_formerge)
+# create a list of column names that do not occur in the project df
+empties <- c('description', 'full_date', 'Location_ID', 'logMeasurement', 
+             'medianyr', 'cohensd', 'TimePeriod', 'effectsize', 'meanbefore', 
+             'meanafter', 'status', 'color', 'coloreffect', 'colorblind')
+# set all non-project columns to be NA
+all_projects_formerge[,empties] <- NA
 
-ph12_formerge <- ph12 %>%
-  select(id, year, name, cost:HUC12_id, HUC12_Name, 
-         medianyr) %>%
-  rename(description = name, measurement = cost,
-         HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
-  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '12',
-         color = '#984ea3')
+# bind all dataframes together
+all_dfs <- bind_rows(chum_formerge, water_formerge, all_projects_formerge)
 
-chum_projects_formerge <- ph10 %>%
-  select(id, year, name, cost:project_cat, HUC10_id, HUC10_Name, 
-         medianyr) %>%
-  rename(description = name, measurement = cost,
-         HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
-  mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '10',
-         color = '#984ea3') %>%
-  rbind(ph12_formerge)
-
-all_projects_formerge <- rbind(chum_projects_formerge, water_projects_formerge) %>%
-  distinct(id, HUC_id, .keep_all = TRUE) %>%
-  select(-id)
-
-# add both dataframes together
-all_dfs <- rbind(chum_formerge,water_formerge) %>% rbind(all_projects_formerge)
 
 # add unique ID column
 all_dfs$id <- 1:nrow(all_dfs)
 
+# export the data to the shiny app directory
 saveRDS(all_dfs, "../shinyapp/data/ALL-separate-3.rds")
 
-######################## BEGIN DATA EXPORT ########################
-
-# saveRDS(ch12, "../shinyapp/data/chum_huc12.rds")
-# saveRDS(ch10, "../shinyapp/data/chum_huc10.rds")
-# saveRDS(wa12, "../shinyapp/data/water_huc12.rds")
-# saveRDS(wa10, "../shinyapp/data/water_huc10.rds")
-# saveRDS(wa_ph12, "../shinyapp/data/water_project_huc12.rds")
-# saveRDS(wa_ph10, "../shinyapp/data/water_project_huc10.rds")
-# saveRDS(ph12, "../shinyapp/data/chum_project_huc12.rds")
-# saveRDS(ph10, "../shinyapp/data/chum_project_huc10.rds")
-
-######################## END DATA EXPORT ########################
-
-######################## BEGIN MAP ########################
-
-m12 <- leaflet(data = chum12) %>% 
-  setView(lng = -122.996823, lat = 47.5642594, zoom = 9) %>%
-  addProviderTiles("Esri.WorldImagery") %>%
-  addCircleMarkers(all_projects_formerge$lon, all_projects_formerge$lat,
-                   radius = 4,
-                   color = '#984ea3',
-                   stroke = FALSE, fillOpacity = 1,
-                   group = "Projects") %>%
-  addCircleMarkers(ch12$lon, ch12$lat,
-                   radius = 5,
-                   color = ch12$coloreffect,
-                   stroke = FALSE, fillOpacity = 0.8,
-                   group = "Chum") %>%
-  addCircleMarkers(wa12$lon, wa12$lat, 
-                   radius = 5,
-                   color = wa12$coloreffect,
-                   stroke = FALSE, fillOpacity = 0.8,
-                   group = "Water") %>%
-  addLayersControl(
-    baseGroups = c("Chum", "Water"),
-    overlayGroups = "Projects",
-    options = layersControlOptions(collapsed = FALSE)
-  ) %>%
-  addLegend(colors = c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850'),
-            labels = c('large/worse', 'medium/worse', 'small/worse', 
-                       'small/improving', 'medium/improving', 'large/improving'),
-            position = 'bottomleft',
-            title = 'Effect Size/Status')
-m12
-
-# wa10IMP <- filter(wa10, status == 'improving')
-# greens <- colorFactor("Greens", wa10IMP$effectsize)
-
-m10 <- leaflet(data = chum10) %>% 
-  setView(lng = -122.996823, lat = 47.5642594, zoom = 9) %>%
-  addProviderTiles("Esri.WorldImagery") %>%
-  addCircleMarkers(all_projects_formerge$lon, all_projects_formerge$lat,
-                   radius = 4,
-                   color = '#984ea3',
-                   stroke = FALSE, fillOpacity = 1,
-                   group = "Projects") %>%
-  addCircleMarkers(ch10$lon, ch10$lat,
-                   radius = 5,
-                   color = ch10$coloreffect,
-                   stroke = FALSE, fillOpacity = 0.8,
-                   group = "Chum") %>%
-  addCircleMarkers(wa10$lon, wa10$lat, 
-                   radius = 5,
-                   color = wa10$coloreffect,
-                   stroke = FALSE, fillOpacity = 0.8,
-                   group = "Water") %>%
-  addLayersControl(
-    baseGroups = c("Chum", "Water"),
-    overlayGroups = "Projects",
-    options = layersControlOptions(collapsed = FALSE)
-  ) %>%
-  addLegend(colors = c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850'),
-            labels = c('large/worse', 'medium/worse', 'small/worse', 
-                       'small/improving', 'medium/improving', 'large/improving'),
-            position = 'bottomleft',
-            title = 'Effect Size/Status')
-m10
-
-# colorblind: colors = c('#c51b7d','#e9a3c9','#fde0ef','#e6f5d0','#a1d76a','#4d9221')
-
-######################## END MAP ########################
-
-######################## SUMMARY INFO ########################
-
-###### projects ######
-# 21 HUCs, 1 NA
-unique(ph$HUC10_Name)
-
-# 46 HUCs, 1 NA
-unique(ph$HUC12_Name)
-
-unique(ph10$HUC10_Name)
-# [1] "Skokomish River-Frontal Hood Canal"       
-# [2] "Little Quillcene River-Frontal Hood Canal"
-# [3] "Hood Canal"                               
-# [4] "Tahuya River-Frontal Hood Canal"          
-# [5] "Lilliwaup Creek-Frontal Hood Canal"   
-
-# 7 HUC 12s
-unique(ph12$HUC12_Name)
-
-# 19 water-project HUC 10s
-unique(wa_ph10$HUC10_Name)
-
-# 37 water-project HUC 12s
-unique(wa_ph12$HUC12_Name)
-
-###### chum ######
-# print out distinct HUC names (chum are the smallest group, limits all other measurements)
-unique(chum_counts$HUC10_Name)
-# [1] "Tahuya River-Frontal Hood Canal"          
-# [2] "Hood Canal"                               
-# [3] "Little Quillcene River-Frontal Hood Canal"
-# [4] "Jefferson Creek-Hamma Hamma River"        
-# [5] "Lilliwaup Creek-Frontal Hood Canal"       
-# [6] "Skokomish River-Frontal Hood Canal"       
-# [7] "Chimacum Creek-Frontal Port Ludlow"       
-# [8] "Discovery Bay-Strait of Juan De Fuca"     
-# [9] "Jimmycomelately Creek-Frontal Sequim Bay" 
-# [10] "Snow Creek-Frontal Discovery Bay" 
-
-unique(chum_counts$HUC12_Name)
-# [1] "Big Beef Creek-Frontal Hood Canal"   
-# [2] "Hood Canal"                          
-# [3] "Tarboo Creek-Frontal Dabob Bay"      
-# [4] "Dewatto River"                       
-# [5] "Spencer Creek-Frontal Dabob Bay"     
-# [6] "Hamma Hamma River"                   
-# [7] "Finch Creek-Frontal Hood Canal"      
-# [8] "Skokomish River-Frontal Hood Canal"  
-# [9] "Tahuya River"                        
-# [10] "Chimacum Creek"                      
-# [11] "Discovery Bay-Strait of Juan De Fuca"
-# [12] "Johnson Creek-Frontal Sequim Bay"    
-# [13] "Eagle Creek-Frontal Discovery Bay" 
-
-unique(chum12$HUC12_Name)
-# [1] "Big Beef Creek-Frontal Hood Canal"   
-# [2] "Hood Canal"                          
-# [3] "Tarboo Creek-Frontal Dabob Bay"      
-# [4] "Dewatto River"                       
-# [5] "Spencer Creek-Frontal Dabob Bay"     
-# [6] "Hamma Hamma River"                   
-# [7] "Finch Creek-Frontal Hood Canal"      
-# [8] "Skokomish River-Frontal Hood Canal"  
-# [9] "Tahuya River"                        
-# [10] "Chimacum Creek"                      
-# [11] "Discovery Bay-Strait of Juan De Fuca"
-# [12] "Johnson Creek-Frontal Sequim Bay"    
-# [13] "Eagle Creek-Frontal Discovery Bay"
-
-# 7 HUC 12s in ch12 (2 lacking sufficient temporal data)
-unique(ch12$HUC12_Name)
-# [1] "Big Beef Creek-Frontal Hood Canal"   
-# [2] "Hood Canal"                          
-# [3] "Tarboo Creek-Frontal Dabob Bay"      
-# [4] "Dewatto River"                       
-# [5] "Spencer Creek-Frontal Dabob Bay"     
-# [6] "Hamma Hamma River"                   
-# [7] "Finch Creek-Frontal Hood Canal"      
-# [8] "Skokomish River-Frontal Hood Canal"  
-# [9] "Tahuya River"                        
-# [10] "Chimacum Creek"                      
-# [11] "Discovery Bay-Strait of Juan De Fuca"
-# [12] "Johnson Creek-Frontal Sequim Bay"    
-# [13] "Eagle Creek-Frontal Discovery Bay" 
-
-# 5 HUC 10s in ch10 (1 lacking sufficient temporal data)
-unique(ch10$HUC10_Name)
-# [1] "Tahuya River-Frontal Hood Canal"          
-# [2] "Hood Canal"                               
-# [3] "Little Quillcene River-Frontal Hood Canal"
-# [4] "Jefferson Creek-Hamma Hamma River"        
-# [5] "Lilliwaup Creek-Frontal Hood Canal"       
-# [6] "Skokomish River-Frontal Hood Canal"       
-# [7] "Chimacum Creek-Frontal Port Ludlow"       
-# [8] "Discovery Bay-Strait of Juan De Fuca"     
-# [9] "Jimmycomelately Creek-Frontal Sequim Bay" 
-# [10] "Snow Creek-Frontal Discovery Bay"  
-
-###### water ######
-# 23 HUC 10s
-unique(water$HUC10_Name)
-unique(water$HUC12_Name)
-
-# # 5 HUC 10s
-# wa_pr <- filter(water, HUC10_Name %in% unique(ph10$HUC10_Name))
-# unique(wa_pr$HUC10_Name)
-# # 17 HUC 12s
-# unique(wa_pr$HUC12_Name)
-
-# 68 HUC 12s (water)
-unique(water12$HUC12_Name)
-# 23 HUC 10s (water)
-unique(water10$HUC10_Name)
-# 11 HUC 10s (water-project-time)
-unique(wa10$HUC10_Name)
-# 17 HUC 12's (water-project-time)
-unique(wa12$HUC12_Name)
-
-######################## SUMMARY INFO ########################
