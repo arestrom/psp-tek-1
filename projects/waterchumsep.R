@@ -314,17 +314,17 @@ ch12 <- chum12 %>%
 # cohen's D: 'small effect' = 0.2, med effect = 0.5, large effect = 0.8
 
 ch12_formerge <- ch12 %>%
-  select(year:project_cat, Description:jitterlat, HUC12_id, HUC12_Name, 
+  select(year:Description, HUC12_id, HUC12_Name, 
          medianyr, cohensd:colorblind) %>%
-  rename(name = sitename, description = Description, lon = jitterlng, lat = jitterlat,
+  rename(name = sitename, description = Description,
          measurement = count, HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
   mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '12',
          Study_ID = NA, full_date = NA, Location_ID = NA, logMeasurement = NA) 
 
 chum_formerge <- ch10 %>%
-  select(year:project_cat, Description:jitterlat, HUC10_id, HUC10_Name, 
+  select(year:Description, HUC10_id, HUC10_Name, 
          medianyr, cohensd:colorblind) %>%
-  rename(name = sitename, description = Description, lon = jitterlng, lat = jitterlat,
+  rename(name = sitename, description = Description,
          measurement = count, HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
   mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '10',
          Study_ID = NA, full_date = NA, Location_ID = NA, logMeasurement = NA) %>%
