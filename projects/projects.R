@@ -3,7 +3,7 @@ library(stringr)
 library(MazamaSpatialUtils)
 
 #################### EAGL DATA #################### 
-eagl_df <- read.csv('./data/eagl.csv', header = TRUE) %>%
+eagl_df <- read.csv('./data/EAGL_Projects.csv', header = TRUE) %>%
   select(Funding.Fiscal.Year, General.Project.Category, Project.Title, 
          Funding.Provided, Latitude, Longitude, Funding.Number) %>%
   rename(year = Funding.Fiscal.Year, name = Project.Title,
@@ -22,32 +22,35 @@ eagl_df <- read.csv('./data/eagl.csv', header = TRUE) %>%
   select(-cost_sm)
 
 #################### PRISM DATA #################### 
-# read in hood canal prism locations spreadsheet, correct project numbers
-hc_df <- read.csv('./data/locs.csv', header = TRUE) %>%
+# read in hood canal prism locations spreadsheet, correct typo project numbers, remove excess cols
+location <- read.csv('./data/HoodCanal_LocationData.csv', header = TRUE) %>%
   mutate(ProjectNumber = as.character(ProjectNumber)) %>%
   mutate(ProjectNumber = replace(ProjectNumber, ProjectNumber == 'Jul-15', '07-1915')) %>%
   mutate(ProjectNumber = replace(ProjectNumber, ProjectNumber == 'Jul-16', '07-1916')) %>%
   mutate(ProjectNumber = replace(ProjectNumber, ProjectNumber == 'Jul-21', '07-2021')) %>%
   mutate(ProjectNumber = replace(ProjectNumber, ProjectNumber == 'Jul-25', '07-1925')) %>%
   mutate(ProjectNumber = replace(ProjectNumber, ProjectNumber == 'Aug-57', '08-2157')) %>%
-  mutate(ProjectNumber = replace(ProjectNumber, ProjectNumber == 'Aug-90', '08-1990'))
-f_df <- read.csv('./data/fund.csv', header = TRUE) %>%
+  mutate(ProjectNumber = replace(ProjectNumber, ProjectNumber == 'Aug-90', '08-1990')) %>%
+  select(-ProjectType, -ProjectName)
+
+# read in Hood Canal funding csv file, convert ProjectNumber to character type
+funding <- read.csv('./data/HoodCanal_FundingInfo.csv', header = TRUE) %>%
   mutate(ProjectNumber = as.character(ProjectNumber))
 
-# merge funding and location prism dataframe, create WRIA cols, filter out NAs
-mdf <- full_join(x = hc_df, y = f_df, by = "ProjectNumber") %>%
-  select(ProjectNumber, ProjectYear, ProjectName.x, 
-         PrimaryProgramAmount, ProjectLatitude, ProjectLongitude, ProjectType.y) %>%
-  rename(Study_ID = ProjectNumber, year = ProjectYear, name = ProjectName.x, 
-         cost = PrimaryProgramAmount, lat = ProjectLatitude, lon = ProjectLongitude,
-         project_cat = ProjectType.y) %>%
+# merge funding and location prism dataframe, filter out NAs in lat/lon cols
+all_prism <- left_join(x = location, y = funding, by = "ProjectNumber") %>%
+  select(ProjectNumber, ProjectYear, ProjectName, 
+         ProjectTotalAmount, ProjectLatitude, ProjectLongitude, ProjectType) %>%
+  rename(Study_ID = ProjectNumber, year = ProjectYear, name = ProjectName, 
+         cost = ProjectTotalAmount, lat = ProjectLatitude, lon = ProjectLongitude,
+         project_cat = ProjectType) %>%
   mutate(project_source = 'PRISM') %>%
   filter(!is.na(lat), !is.na(cost))
 
 
 #################### MERGE #################### 
-
-all_projects <- bind_rows(mdf, eagl_df)
+# combine dataframes from both investment sources
+all_projects <- bind_rows(all_prism, eagl_df)
 
 #################### MERGE #################### 
 
