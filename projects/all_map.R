@@ -34,11 +34,16 @@ m12 <- leaflet() %>%
     overlayGroups = "Projects",
     options = layersControlOptions(collapsed = FALSE)
   ) %>%
-  addLegend(colors = c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850'),
-            labels = c('large/worse', 'medium/worse', 'small/worse', 
-                       'small/improving', 'medium/improving', 'large/improving'),
+  addLegend(colors = c('#1a9850', '#91cf60', '#d9ef8b', '#fee08b', '#fc8d59', '#d73027'),
+            labels = c('large increase', 'medium increase', 'small increase', 
+                       'small decrease', 'medium decrease', 'large decrease'),
             position = 'bottomleft',
-            title = 'Effect Size/Status')
+            title = 'Chum Counts After Projects') %>%
+  addLegend(colors = c('#1a9850', '#91cf60', '#d9ef8b', '#fee08b', '#fc8d59', '#d73027'),
+            labels = c('large decrease', 'medium decrease', 'small decrease', 
+                       'small increase', 'medium increase', 'large increase'),
+            position = 'bottomright',
+            title = 'TSS/Turbidity After Projects')
 m12
 
 # wa10IMP <- filter(wa10, status == 'improving')
