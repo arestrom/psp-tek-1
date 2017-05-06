@@ -4,11 +4,12 @@ library(MazamaSpatialUtils)
 
 #################### EAGL DATA #################### 
 eagl_df <- read.csv('./data/eagl.csv', header = TRUE) %>%
-  select(Funding.Fiscal.Year, General.Project.Category, WRIA, Project.Title, 
-         Funding.Provided, Latitude, Longitude) %>%
-  rename(year = Funding.Fiscal.Year, name = Project.Title, WRIA_ID = WRIA,
+  select(Funding.Fiscal.Year, General.Project.Category, Project.Title, 
+         Funding.Provided, Latitude, Longitude, Funding.Number) %>%
+  rename(year = Funding.Fiscal.Year, name = Project.Title,
          cost = Funding.Provided, lat = Latitude, lon = Longitude,
-         project_cat = General.Project.Category) %>%
+         project_cat = General.Project.Category,
+         Study_ID = Funding.Number) %>%
   # remove missing coordinates
   filter(!lat %in% c('#N/A', '0'),
          !lon %in% c('#N/A', '0')) %>%
@@ -17,17 +18,8 @@ eagl_df <- read.csv('./data/eagl.csv', header = TRUE) %>%
          cost = as.numeric(gsub(",", "", cost_sm)),
          lat = as.numeric(levels(lat))[lat],
          lon = as.numeric(levels(lon))[lon],
-         id = as.character(row_number())) %>%
+         project_source = 'EAGL') %>%
   select(-cost_sm)
-
-# label wria number with wria name
-eagl_df <- eagl_df %>% 
-  mutate(WRIA_Name = ifelse(WRIA_ID == 15, "Kitsap",
-                          ifelse(WRIA_ID == 14, "Kennedy-Goldsborough",
-                                 ifelse(WRIA_ID == 16, "Skokomish-Dosewallips",
-                                        ifelse(WRIA_ID == 17, "Quilcence-Snow",
-                                               ifelse(WRIA_ID == 18, "Elwah-Dungeness",
-                                                      NA))))))
 
 #################### PRISM DATA #################### 
 # read in hood canal prism locations spreadsheet, correct project numbers
@@ -44,14 +36,12 @@ f_df <- read.csv('./data/fund.csv', header = TRUE) %>%
 
 # merge funding and location prism dataframe, create WRIA cols, filter out NAs
 mdf <- full_join(x = hc_df, y = f_df, by = "ProjectNumber") %>%
-  select(ProjectNumber, ProjectYear, ProjectName.x, WRIA, 
+  select(ProjectNumber, ProjectYear, ProjectName.x, 
          PrimaryProgramAmount, ProjectLatitude, ProjectLongitude, ProjectType.y) %>%
-  rename(id = ProjectNumber, year = ProjectYear, name = ProjectName.x, 
+  rename(Study_ID = ProjectNumber, year = ProjectYear, name = ProjectName.x, 
          cost = PrimaryProgramAmount, lat = ProjectLatitude, lon = ProjectLongitude,
          project_cat = ProjectType.y) %>%
-  # create wria number and wria name columns from combo string
-  separate(WRIA, into = c("WRIA_Name", "WRIA_ID"), sep = " \\(", convert = TRUE) %>%
-  mutate(WRIA_ID = as.numeric(str_sub(WRIA_ID, 1, -2))) %>%
+  mutate(project_source = 'PRISM') %>%
   filter(!is.na(lat), !is.na(cost))
 
 
@@ -70,10 +60,6 @@ setSpatialDataDir('~/Data/Spatial')
 loadSpatialData('WBDHU')
 # only need to do the command below once (i think)
 # installSpatialData()
-
-# testing country stuff
-# loadSpatialData('NaturalEarthAdm1')
-# country <- tbl_df(getCountry(all_projects$lon,all_projects$lat, allData=TRUE))
 
 # get the HUC 12 and HUC 10 id's for each row
 huc_ids <- all_projects %>%
