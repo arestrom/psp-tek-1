@@ -319,7 +319,8 @@ ch12_formerge <- ch12 %>%
   rename(name = sitename, description = Description,
          measurement = count, HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
   mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '12',
-         Study_ID = NA, full_date = NA, Location_ID = NA, logMeasurement = NA) 
+         Study_ID = NA, full_date = NA, Location_ID = NA, logMeasurement = NA,
+         project_source = NA) 
 
 chum_formerge <- ch10 %>%
   select(year:Description, HUC10_id, HUC10_Name, 
@@ -327,7 +328,8 @@ chum_formerge <- ch10 %>%
   rename(name = sitename, description = Description,
          measurement = count, HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
   mutate(result_type = 'Chum Salmon', unit = '', HUC_level = '10',
-         Study_ID = NA, full_date = NA, Location_ID = NA, logMeasurement = NA) %>%
+         Study_ID = NA, full_date = NA, Location_ID = NA, logMeasurement = NA,
+         project_source = NA) %>%
   rbind(ch12_formerge)
 
 wa12_formerge <- wa12 %>%
@@ -337,7 +339,7 @@ wa12_formerge <- wa12 %>%
   rename(name = Study_Name, full_date = start_date,
          HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
   mutate(HUC_level = '12', year = as.numeric(year),
-         project_cat = NA, description = NA) 
+         project_cat = NA, description = NA, project_source = NA) 
 
 water_formerge <- wa10 %>%
   select(lon, lat, Study_ID, Study_Name, Location_ID, start_date,
@@ -346,20 +348,16 @@ water_formerge <- wa10 %>%
   rename(name = Study_Name, full_date = start_date,
          HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
   mutate(HUC_level = '10', year = as.numeric(year),
-         project_cat = NA, description = NA) %>%
+         project_cat = NA, description = NA, project_source = NA) %>%
   rbind(wa12_formerge)
 
 # separate projects into huc 10 and 12 dataframes, then bind them together
 # format columns to match outcome data for ease with binding
-p_h10 <- ph %>% select(-HUC12_id, -HUC12_Name, -WRIA_Name, -WRIA_ID) %>%
-  rename(measurement = cost,
-         HUC_id = HUC10_id, HUC_Name = HUC10_Name,
-         Study_ID = id) %>%
+p_h10 <- ph %>% select(-HUC12_id, -HUC12_Name) %>%
+  rename(measurement = cost, HUC_id = HUC10_id, HUC_Name = HUC10_Name) %>%
   mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '10')
-all_projects_formerge <- ph %>% select(-HUC10_id, -HUC10_Name, -WRIA_Name, -WRIA_ID) %>%
-  rename(measurement = cost,
-         HUC_id = HUC12_id, HUC_Name = HUC12_Name,
-         Study_ID = id) %>%
+all_projects_formerge <- ph %>% select(-HUC10_id, -HUC10_Name) %>%
+  rename(measurement = cost, HUC_id = HUC12_id, HUC_Name = HUC12_Name) %>%
   mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '12') %>%
   rbind(p_h10)
 
