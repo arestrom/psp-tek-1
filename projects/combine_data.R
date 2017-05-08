@@ -1,6 +1,6 @@
 library(tidyverse)
 library(lsr) #cohensD function package
-library(DescTools) # mean function package
+# library(DescTools) # mean function package
 
 ######################## BEGIN CHUM PROJ ########################
 
@@ -113,15 +113,11 @@ cohensD_manual <- function(before, after) {
   la <- length(after)
   mb <- mean(before, na.rm = TRUE)
   ma <- mean(after, na.rm = TRUE)
-  # sd_gm_x <-Gsd(before, na.rm = TRUE)
-  # sd_gm_y <-Gsd(after, na.rm = TRUE)
-  # step1 <- (la-1) * (sd_gm_y^2)
-  # step2 <- (lb-1) *  (sd_gm_x^2)
-  # den <- (lb+la)-1
   sdb <- sd(before, na.rm = TRUE)
   sda <- sd(after, na.rm = TRUE)
-  var_pooled <- sqrt((((la-1)*(sda^2))+((lb-1)*(sbd^2)))/(la+lb-1))
-  # vp <- sqrt( (step1 + step2) / den)
+  step1 <- (la-1) * (sda^2)
+  step2 <- (lb-1) * (sdb^2)
+  var_pooled <- sqrt((step1+step2)/(la+lb-1))
   d <- (ma - mb) / var_pooled
   return(d)
 }
@@ -147,19 +143,22 @@ apply_cohensD <- function(data, outcome, HUC = NULL) {
                                         'during'))) %>%
       mutate(TimePeriod = ifelse(is.na(TimePeriod), 'noProject', TimePeriod)) %>%
       spread(TimePeriod, count) %>%
-      mutate(cohensd = cohensD(before, after),
-      # mutate(cohensd = cohensD_manual(before, after),
+      mutate(cohensd = cohensD_manual(before, after),
              var_cohensd = (length(before) + length(after))/(length(before) * length(after)) + (cohensd^2)/(2*(length(before) + length(after))),
-             wsubi = (1/var_cohensd)) %>%
+             wsubi = (1/var_cohensd),
+             correct_cd = -1*cohensd,
+             wsubixd = correct_cd*wsubi) %>%
       ungroup() %>%
       group_by_(HUC) %>%
-      mutate(cohensd_huc = 1/sum(wsubi)) %>%
+      mutate(cohensd_huc_mean = (sum(wsubixd)/sum(wsubi)),
+             huc_mean_after = mean(after, na.rm = TRUE),
+             huc_mean_before = mean(before, na.rm = TRUE)) %>%
       gather(key = 'TimePeriod', value = 'count', `before`, `after`, `during`, `noProject`, na.rm = TRUE) %>%
-      mutate(effectsize = ifelse(cohensd_huc < 0.5, 'small',
-                                 ifelse(cohensd_huc >= 0.8, 'large',
+      mutate(effectsize = ifelse(abs(cohensd_huc_mean) < 0.5, 'small',
+                                 ifelse(abs(cohensd_huc_mean) >= 0.8, 'large',
                                         'medium')),
-             site_effectsize = ifelse(cohensd < 0.5, 'small',
-                                      ifelse(cohensd >= 0.8, 'large',
+             site_effectsize = ifelse(abs(cohensd) < 0.5, 'small',
+                                      ifelse(abs(cohensd) >= 0.8, 'large',
                                              'medium')))
   }
 }
@@ -191,8 +190,8 @@ add_status_colors <- function(data, outcome) {
                                                                      NA)))))))
   } else if (outcome == 'chum') { 
     data %>% 
-      mutate(status = ifelse(meanbefore > meanafter, 'worse',
-                             ifelse(meanbefore < meanafter, 'improving',
+      mutate(status = ifelse(cohensd_huc_mean > 0, 'worse',
+                             ifelse(cohensd_huc_mean < 0, 'improving',
                                     'no change')),
              color = ifelse(status == 'worse', '#e41a1c',
                             ifelse(status == 'improving', '#4daf4a',
@@ -301,91 +300,36 @@ chum10 <- chum_counts %>%
 # obtain the mean chum count before and mean chum count after 
 # investment (median year) at each site
 # create a dataframe with those results for each HUC level 
-chum10byHUC <- chum10 %>%
-  group_by(HUC10_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
-                                    'during'))) %>%
-  mutate(TimePeriod = ifelse(is.na(TimePeriod), 'noProject', TimePeriod)) 
-         
-chum12byHUC <- chum12 %>%
-  group_by(HUC12_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
-                                    'during'))) %>%
-  mutate(TimePeriod = ifelse(is.na(TimePeriod), 'noProject', TimePeriod))        
+# chum10byHUC <- chum10 %>%
+#   group_by(HUC10_Name) %>%
+#   mutate(TimePeriod = ifelse(year > medianyr, 'after',
+#                              ifelse(year < medianyr, 'before',
+#                                     'during'))) %>%
+#   mutate(TimePeriod = ifelse(is.na(TimePeriod), 'noProject', TimePeriod)) 
+#          
+# chum12byHUC <- chum12 %>%
+#   group_by(HUC12_Name) %>%
+#   mutate(TimePeriod = ifelse(year > medianyr, 'after',
+#                              ifelse(year < medianyr, 'before',
+#                                     'during'))) %>%
+#   mutate(TimePeriod = ifelse(is.na(TimePeriod), 'noProject', TimePeriod))        
 
-bchum10 <- before_after('before', chum10byHUC, 'count')
-
-achum10 <- before_after('after', chum10byHUC, 'count')
-
-bchum12 <- before_after('before', chum12byHUC, 'count')
-
-achum12 <- before_after('after', chum12byHUC, 'count')
+# bchum10 <- before_after('before', chum10byHUC, 'count')
+# 
+# achum10 <- before_after('after', chum10byHUC, 'count')
+# 
+# bchum12 <- before_after('before', chum12byHUC, 'count')
+# 
+# achum12 <- before_after('after', chum12byHUC, 'count')
 
 # apply the cohen's D function to the chum dataframe to get a cohen's D for each chum site
 # then join this dataframe with the before/after mean count dataframes 
 # to categorize each site as "worse" or "improving" after the median investment year in each HUC 10
 ch10 <- chum10 %>%
-  apply_cohensD('chum', HUC = 'HUC10_Name') 
-
-%>%
-  left_join(bchum10, by = "HUC10_Name") %>%
-  left_join(achum10, by = "HUC10_Name") %>%
+  apply_cohensD('chum', HUC = 'HUC10_Name') %>%
+  # left_join(bchum10, by = "HUC10_Name") %>%
+  # left_join(achum10, by = "HUC10_Name") %>%
   add_status_colors('chum') 
-
-cohensD_manual <- function(x, y) {
-  lx <- length(x)
-  ly <- length(y)
-  gmx <- mean(x, na.rm = TRUE)
-  gmy <- mean(y, na.rm = TRUE)
-  sd_gm_x <-Gsd(x, na.rm = TRUE)
-  sd_gm_y <-Gsd(y, na.rm = TRUE)
-  step1 <- (ly-1) * (sd_gm_y^2)
-  step2 <- (lx-1) *  (sd_gm_x^2)
-  den <- (lx+ly)-1
-  vp <- sqrt( (step1 + step2) / den)
-  d <- (gmy - gmx) / vp
-  return(d)
-}
-
-cohensD_manual <- function(before, after) {
-  lb <- length(before)
-  la <- length(after)
-  mb <- mean(before, na.rm = TRUE)
-  ma <- mean(after, na.rm = TRUE)
-  sdb <- sd(before, na.rm = TRUE)
-  sda <- sd(after, na.rm = TRUE)
-  step1 <- (la-1) * (sda^2)
-  step2 <- (lb-1) * (sdb^2)
-  var_pooled <- sqrt((step1+step2)/(la+lb-1))
-  d <- (ma - mb) / var_pooled
-  return(d)
-}
-
-chum10 <- chum_counts %>%
-  left_join(huc10_med, by = "HUC10_Name") %>%
-  group_by(site) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
-                                    'during'))) %>%
-  mutate(TimePeriod = ifelse(is.na(TimePeriod), 'noProject', TimePeriod)) %>%
-  spread(TimePeriod, count) %>%
-  mutate(cohensd = cohensD_manual(before, after),
-         var_cohensd = (length(before) + length(after))/(length(before) * length(after)) + (cohensd^2)/(2*(length(before) + length(after))),
-         wsubi = (1/var_cohensd),
-         correct_cd = -1*cohensd,
-         wsubixd = correct_cd*wsubi) %>%
-  ungroup() %>%
-  group_by_('HUC10_Name') %>%
-  mutate(cohensd_huc_mean = (sum(wsubixd)/sum(wsubi))) %>%
-  gather(key = 'TimePeriod', value = 'count', `before`, `after`, `during`, `noProject`, na.rm = TRUE) %>%
-  mutate(effectsize = ifelse(abs(cohensd_huc_mean) < 0.5, 'small',
-                             ifelse(abs(cohensd_huc_mean) >= 0.8, 'large',
-                                    'medium')),
-         site_effectsize = ifelse(abs(cohensd) < 0.5, 'small',
-                                  ifelse(abs(cohensd) >= 0.8, 'large',
-                                         'medium')))
 
 
 # apply the cohen's D function to the chum dataframe to get a cohen's D for each chum site
@@ -393,8 +337,8 @@ chum10 <- chum_counts %>%
 # to categorize each site as "worse" or "improving" after the median investment year in each HUC 12
 ch12 <- chum12 %>%
   apply_cohensD('chum', HUC = 'HUC12_Name') %>%
-  left_join(bchum12, by = "HUC12_Name") %>%
-  left_join(achum12, by = "HUC12_Name") %>%
+  # left_join(bchum12, by = "HUC12_Name") %>%
+  # left_join(achum12, by = "HUC12_Name") %>%
   add_status_colors('chum') 
 
 ######################## END CHUM ########################
