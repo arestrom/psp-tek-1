@@ -108,18 +108,21 @@ before_after <- function(type, df, value) {
   return(df)
 }
 
-cohensD_manual <- function(x, y) {
-  lx <- length(x)
-  ly <- length(y)
-  mx <- mean(x, na.rm = TRUE)
-  my <- mean(y, na.rm = TRUE)
-  sd_gm_x <-Gsd(x, na.rm = TRUE)
-  sd_gm_y <-Gsd(y, na.rm = TRUE)
-  step1 <- (ly-1) * (sd_gm_y^2)
-  step2 <- (lx-1) *  (sd_gm_x^2)
-  den <- (lx+ly)-1
-  vp <- sqrt( (step1 + step2) / den)
-  d <- (my - mx) / vp
+cohensD_manual <- function(before, after) {
+  lb <- length(before)
+  la <- length(after)
+  mb <- mean(before, na.rm = TRUE)
+  ma <- mean(after, na.rm = TRUE)
+  # sd_gm_x <-Gsd(before, na.rm = TRUE)
+  # sd_gm_y <-Gsd(after, na.rm = TRUE)
+  # step1 <- (la-1) * (sd_gm_y^2)
+  # step2 <- (lb-1) *  (sd_gm_x^2)
+  # den <- (lb+la)-1
+  sdb <- sd(before, na.rm = TRUE)
+  sda <- sd(after, na.rm = TRUE)
+  var_pooled <- sqrt((((la-1)*(sda^2))+((lb-1)*(sbd^2)))/(la+lb-1))
+  # vp <- sqrt( (step1 + step2) / den)
+  d <- (ma - mb) / var_pooled
   return(d)
 }
 
@@ -346,6 +349,20 @@ cohensD_manual <- function(x, y) {
   return(d)
 }
 
+cohensD_manual <- function(before, after) {
+  lb <- length(before)
+  la <- length(after)
+  mb <- mean(before, na.rm = TRUE)
+  ma <- mean(after, na.rm = TRUE)
+  sdb <- sd(before, na.rm = TRUE)
+  sda <- sd(after, na.rm = TRUE)
+  step1 <- (la-1) * (sda^2)
+  step2 <- (lb-1) * (sdb^2)
+  var_pooled <- sqrt((step1+step2)/(la+lb-1))
+  d <- (ma - mb) / var_pooled
+  return(d)
+}
+
 chum10 <- chum_counts %>%
   left_join(huc10_med, by = "HUC10_Name") %>%
   group_by(site) %>%
@@ -354,18 +371,20 @@ chum10 <- chum_counts %>%
                                     'during'))) %>%
   mutate(TimePeriod = ifelse(is.na(TimePeriod), 'noProject', TimePeriod)) %>%
   spread(TimePeriod, count) %>%
-  mutate(cohensd = CohenD(before, after, na.rm=TRUE),
+  mutate(cohensd = cohensD_manual(before, after),
          var_cohensd = (length(before) + length(after))/(length(before) * length(after)) + (cohensd^2)/(2*(length(before) + length(after))),
-         wsubi = (1/var_cohensd)) %>%
+         wsubi = (1/var_cohensd),
+         correct_cd = -1*cohensd,
+         wsubixd = correct_cd*wsubi) %>%
   ungroup() %>%
   group_by_('HUC10_Name') %>%
-  mutate(cohensd_huc = 1/sum(wsubi)) %>%
+  mutate(cohensd_huc_mean = (sum(wsubixd)/sum(wsubi))) %>%
   gather(key = 'TimePeriod', value = 'count', `before`, `after`, `during`, `noProject`, na.rm = TRUE) %>%
-  mutate(effectsize = ifelse(cohensd_huc < 0.5, 'small',
-                             ifelse(cohensd_huc >= 0.8, 'large',
+  mutate(effectsize = ifelse(abs(cohensd_huc_mean) < 0.5, 'small',
+                             ifelse(abs(cohensd_huc_mean) >= 0.8, 'large',
                                     'medium')),
-         site_effectsize = ifelse(cohensd < 0.5, 'small',
-                                  ifelse(cohensd >= 0.8, 'large',
+         site_effectsize = ifelse(abs(cohensd) < 0.5, 'small',
+                                  ifelse(abs(cohensd) >= 0.8, 'large',
                                          'medium')))
 
 
