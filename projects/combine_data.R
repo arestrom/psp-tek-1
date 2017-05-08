@@ -1,5 +1,6 @@
 library(tidyverse)
 library(lsr) #cohensD function package
+library(DescTools) # mean function package
 
 ######################## BEGIN CHUM PROJ ########################
 
@@ -14,9 +15,11 @@ chum_locations <- readRDS("../psp-chum/data/chum_huc.rds") %>%
   select(-(Permanent:Line.NR))
 
 # read in the chum-counts dataframe, join with location/huc data
+# separate out the chum site into two categorical variables for mapping
 chum_counts <- readRDS("../psp-chum/data/tidychum.rds") %>%
   left_join(chum_locations) %>%
-  separate(site, into = c("sitename", "project_cat"), sep = " - ")
+  separate(site, into = c("sitename", "project_cat"), sep = " - ",
+           remove = FALSE)
 
 # create a HUC-10 project dataframe, 
 # filtered to only include projects in fish HUC10s
@@ -91,46 +94,72 @@ wa_huc12_med <- wa_ph12 %>%
 
 ######################## BEGIN FUNCTION TOWN ########################
 
-# create a dataframe with the mean water quality measurements before/after projects
-# obtain the mean water quality measurement for each HUC for each time period
+# function to create a dataframe with the mean values before or after investments
 before_after <- function(type, df, value) {
   df <- if (type == 'before') {
     df %>% filter(TimePeriod == 'before') %>%
       spread_('TimePeriod', value) %>%
-      summarise(meanbefore = mean(before))
+      summarise(meanbefore = mean(before, na.rm = TRUE))
   } else if (type == 'after') {
     df %>% filter(TimePeriod == 'after') %>%
       spread_('TimePeriod', value) %>%
-      summarise(meanafter = mean(after))
+      summarise(meanafter = mean(after, na.rm = TRUE))
   } 
   return(df)
+}
+
+cohensD_manual <- function(x, y) {
+  lx <- length(x)
+  ly <- length(y)
+  mx <- mean(x, na.rm = TRUE)
+  my <- mean(y, na.rm = TRUE)
+  sd_gm_x <-Gsd(x, na.rm = TRUE)
+  sd_gm_y <-Gsd(y, na.rm = TRUE)
+  step1 <- (ly-1) * (sd_gm_y^2)
+  step2 <- (lx-1) *  (sd_gm_x^2)
+  den <- (lx+ly)-1
+  vp <- sqrt( (step1 + step2) / den)
+  d <- (my - mx) / vp
+  return(d)
 }
 
 # remove rows without a TimePeriod (no project in that HUC to get a median year)
 # create a column of measurements for before and after project implementation in each HUC
 # calculate the cohensD for each measurement in each HUC (add new column)
 # then, categorize the effect size
-apply_cohensD <- function(data, outcome) {
-  if (outcome == 'water') { 
+apply_cohensD <- function(data, outcome, HUC = NULL) {
+  if (outcome == 'water' & is.null(HUC)) { 
     data %>%
       spread(TimePeriod, measurement) %>%
       mutate(cohensd = cohensD(before, after)) %>%
-      # gather('TimePeriod', 'measurement', `before`, `after`, `during`, na.rm = TRUE) %>%
       gather('TimePeriod', 'measurement', `before`, `after`, `during`, `noProject`, na.rm = TRUE) %>%
       mutate(effectsize = ifelse(cohensd < 0.5, 'small',
                                  ifelse(cohensd >= 0.8, 'large',
                                         'medium')))
-  } else if (outcome == 'chum') { 
+  } else if (outcome == 'chum' & !is.null(HUC)) { 
     data %>%
+      group_by(site) %>%
+      mutate(TimePeriod = ifelse(year > medianyr, 'after',
+                                 ifelse(year < medianyr, 'before',
+                                        'during'))) %>%
+      mutate(TimePeriod = ifelse(is.na(TimePeriod), 'noProject', TimePeriod)) %>%
       spread(TimePeriod, count) %>%
-      mutate(cohensd = cohensD(before, after)) %>%
-      gather('TimePeriod', 'count', `before`, `after`, `during`, `noProject`, na.rm = TRUE) %>%
-      mutate(effectsize = ifelse(cohensd < 0.5, 'small',
-                                 ifelse(cohensd >= 0.8, 'large',
-                                        'medium')))
+      mutate(cohensd = cohensD(before, after),
+      # mutate(cohensd = cohensD_manual(before, after),
+             var_cohensd = (length(before) + length(after))/(length(before) * length(after)) + (cohensd^2)/(2*(length(before) + length(after))),
+             wsubi = (1/var_cohensd)) %>%
+      ungroup() %>%
+      group_by_(HUC) %>%
+      mutate(cohensd_huc = 1/sum(wsubi)) %>%
+      gather(key = 'TimePeriod', value = 'count', `before`, `after`, `during`, `noProject`, na.rm = TRUE) %>%
+      mutate(effectsize = ifelse(cohensd_huc < 0.5, 'small',
+                                 ifelse(cohensd_huc >= 0.8, 'large',
+                                        'medium')),
+             site_effectsize = ifelse(cohensd < 0.5, 'small',
+                                      ifelse(cohensd >= 0.8, 'large',
+                                             'medium')))
   }
 }
-
 
 # categorize each measurement (higher mean TSS or tubidity is worse)
 # then apply a binary color category and a diverging color scale (based on effect size and status)
@@ -254,56 +283,97 @@ wa12 <- water12 %>%
 
 ######################## BEGIN CHUM ########################
 
+# merge chum HUC 12 dataframe with median investment year dataframe
+# group by chum site, then categorize each count as before/during/after investment
+# or noProject if no investment in that HUC
 chum12 <- chum_counts %>%
-  left_join(huc12_med, by = "HUC12_Name") %>%
-  group_by(HUC12_Name) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
-                                    'during'))) %>%
-  mutate(TimePeriod = ifelse(is.na(TimePeriod), 'noProject', TimePeriod))
+  left_join(huc12_med, by = "HUC12_Name")
 
+# merge chum HUC 10 dataframe with median investment year dataframe
+# group by chum site, then categorize each count as before/during/after investment
+# or noProject if no investment in that HUC
 chum10 <- chum_counts %>%
-  left_join(huc10_med, by = "HUC10_Name") %>%
+  left_join(huc10_med, by = "HUC10_Name")
+
+# obtain the mean chum count before and mean chum count after 
+# investment (median year) at each site
+# create a dataframe with those results for each HUC level 
+chum10byHUC <- chum10 %>%
   group_by(HUC10_Name) %>%
   mutate(TimePeriod = ifelse(year > medianyr, 'after',
                              ifelse(year < medianyr, 'before',
                                     'during'))) %>%
-  mutate(TimePeriod = ifelse(is.na(TimePeriod), 'noProject', TimePeriod))
+  mutate(TimePeriod = ifelse(is.na(TimePeriod), 'noProject', TimePeriod)) 
+         
+chum12byHUC <- chum12 %>%
+  group_by(HUC12_Name) %>%
+  mutate(TimePeriod = ifelse(year > medianyr, 'after',
+                             ifelse(year < medianyr, 'before',
+                                    'during'))) %>%
+  mutate(TimePeriod = ifelse(is.na(TimePeriod), 'noProject', TimePeriod))        
 
-# read in the chum count dataframe, 
-# add median project year for each HUC
-# group by HUC
-# categorize each row as before, during or after the median project year in each HUC
-# obtain the mean salmon count for each HUC for each time period
-bchum10 <- before_after('before', chum10, 'count')
+bchum10 <- before_after('before', chum10byHUC, 'count')
 
-achum10 <- before_after('after', chum10, 'count')
+achum10 <- before_after('after', chum10byHUC, 'count')
 
-bchum12 <- before_after('before', chum12, 'count')
+bchum12 <- before_after('before', chum12byHUC, 'count')
 
-achum12 <- before_after('after', chum12, 'count')
+achum12 <- before_after('after', chum12byHUC, 'count')
 
-# read in the chum count dataframe, 
-# add median project year for each HUC
-# group by HUC 10
-# categorize each row as before, during or after the median project year in each HUC
-# calculate the cohensD in each HUC (add new column)
-# then, tidy the output dataframe
-# join with summary mean by time period, then classify each according to change in mean fish count
+# apply the cohen's D function to the chum dataframe to get a cohen's D for each chum site
+# then join this dataframe with the before/after mean count dataframes 
+# to categorize each site as "worse" or "improving" after the median investment year in each HUC 10
 ch10 <- chum10 %>%
-  apply_cohensD('chum') %>%
+  apply_cohensD('chum', HUC = 'HUC10_Name') 
+
+%>%
   left_join(bchum10, by = "HUC10_Name") %>%
   left_join(achum10, by = "HUC10_Name") %>%
   add_status_colors('chum') 
 
-# read in the chum count dataframe, 
-# add median project year for each HUC
-# group by HUC 12
-# categorize each row as before, during or after the median project year in each HUC
-# calculate the cohensD in each HUC (add new column)
-# then, tidy the output dataframe (remove NaN cohensD)
+cohensD_manual <- function(x, y) {
+  lx <- length(x)
+  ly <- length(y)
+  gmx <- mean(x, na.rm = TRUE)
+  gmy <- mean(y, na.rm = TRUE)
+  sd_gm_x <-Gsd(x, na.rm = TRUE)
+  sd_gm_y <-Gsd(y, na.rm = TRUE)
+  step1 <- (ly-1) * (sd_gm_y^2)
+  step2 <- (lx-1) *  (sd_gm_x^2)
+  den <- (lx+ly)-1
+  vp <- sqrt( (step1 + step2) / den)
+  d <- (gmy - gmx) / vp
+  return(d)
+}
+
+chum10 <- chum_counts %>%
+  left_join(huc10_med, by = "HUC10_Name") %>%
+  group_by(site) %>%
+  mutate(TimePeriod = ifelse(year > medianyr, 'after',
+                             ifelse(year < medianyr, 'before',
+                                    'during'))) %>%
+  mutate(TimePeriod = ifelse(is.na(TimePeriod), 'noProject', TimePeriod)) %>%
+  spread(TimePeriod, count) %>%
+  mutate(cohensd = CohenD(before, after, na.rm=TRUE),
+         var_cohensd = (length(before) + length(after))/(length(before) * length(after)) + (cohensd^2)/(2*(length(before) + length(after))),
+         wsubi = (1/var_cohensd)) %>%
+  ungroup() %>%
+  group_by_('HUC10_Name') %>%
+  mutate(cohensd_huc = 1/sum(wsubi)) %>%
+  gather(key = 'TimePeriod', value = 'count', `before`, `after`, `during`, `noProject`, na.rm = TRUE) %>%
+  mutate(effectsize = ifelse(cohensd_huc < 0.5, 'small',
+                             ifelse(cohensd_huc >= 0.8, 'large',
+                                    'medium')),
+         site_effectsize = ifelse(cohensd < 0.5, 'small',
+                                  ifelse(cohensd >= 0.8, 'large',
+                                         'medium')))
+
+
+# apply the cohen's D function to the chum dataframe to get a cohen's D for each chum site
+# then join this dataframe with the before/after mean count dataframes 
+# to categorize each site as "worse" or "improving" after the median investment year in each HUC 12
 ch12 <- chum12 %>%
-  apply_cohensD('chum') %>%
+  apply_cohensD('chum', HUC = 'HUC12_Name') %>%
   left_join(bchum12, by = "HUC12_Name") %>%
   left_join(achum12, by = "HUC12_Name") %>%
   add_status_colors('chum') 
@@ -375,5 +445,5 @@ all_dfs <- bind_rows(chum_formerge, water_formerge, all_projects_formerge)
 all_dfs$id <- 1:nrow(all_dfs)
 
 # export the data to the shiny app directory
-saveRDS(all_dfs, "../shinyapp/data/all-dfs.rds")
+saveRDS(all_dfs, "../shinyapp/data/cdbyhuc.rds")
 
