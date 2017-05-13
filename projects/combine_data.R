@@ -262,54 +262,13 @@ chum10 <- chum_counts %>%
   apply_cohensD('chum', HUC = 'HUC10_Name') %>%
   add_status_colors('chum') 
 
-c10 <- chum_counts %>%
-  left_join(huc10_med, by = "HUC10_Name") %>%
-  group_by(site) %>%
-  mutate(TimePeriod = ifelse(year > medianyr, 'after',
-                             ifelse(year < medianyr, 'before',
-                                    'during'))) %>%
-  mutate(TimePeriod = ifelse(is.na(TimePeriod), 'noProject', TimePeriod)) %>%
-  spread(TimePeriod, count) %>%
-  filter('Duck' %in% site)
-  
-  summarize(cohensd = cohensD_manual(before, after),
-            nb = length(before),
-            na = length(after),
-         site_mean_after = mean(after, na.rm = TRUE),
-         site_mean_before = mean(before, na.rm = TRUE),
-         site_sd_before = sd(before, na.rm = TRUE),
-         site_sd_after = sd(after, na.rm = TRUE),
-         var_pooled = sqrt((((length(after)-1)*(site_sd_after^2))+((length(before)-1)*(site_sd_before^2)))/(length(after)+length(before)-1)),
-         var_cohensd = (length(before) + length(after))/(length(before) * length(after)) + (cohensd^2)/(2*(length(before) + length(after))),
-         sd_cohensd = var_cohensd^0.5,
-         wsubi = 1/var_cohensd,
-         # correct_cd = -1*cohensd,
-         wsubixd = cohensd*wsubi)
-
-
-    ungroup() %>%
-  group_by_(HUC) %>%
-  mutate(cohensd_huc_mean = (sum(wsubixd)/sum(wsubi)),
-         huc_mean_after = mean(after, na.rm = TRUE),
-         huc_mean_before = mean(before, na.rm = TRUE),
-         sum_wsubixd = sum(wsubixd),
-         sum_wsubi = sum(wsubi),
-         cohensd_huc_var = 1/sum_wsubi,
-         cohensd_huc_sd = cohensd_huc_var^0.5,
-         plus_minus = cohensd_huc_sd*1.645) %>%
-  gather(key = 'TimePeriod', value = 'count', `before`, `after`, `during`, `noProject`, na.rm = TRUE) %>%
-  mutate(effectsize = ifelse(abs(cohensd_huc_mean) < 0.5, 'small',
-                             ifelse(abs(cohensd_huc_mean) >= 0.8, 'large',
-                                    'medium')),
-         site_effectsize = ifelse(abs(cohensd) < 0.5, 'small',
-                                  ifelse(abs(cohensd) >= 0.8, 'large',
-                                         'medium')))
-
 ######################## END CHUM ########################
 
 # c('#d73027','#fc8d59','#fee08b','#d9ef8b','#91cf60','#1a9850')
 # cohen's D: 'small effect' = 0.2, med effect = 0.5, large effect = 0.8
 
+# select variables for the final merged dataframe
+# rename variables to match across outcomes/investments
 ch12_formerge <- chum12 %>%
   select(year:Description, HUC12_id, HUC12_Name, 
          medianyr, cohensd:colorblind) %>%
