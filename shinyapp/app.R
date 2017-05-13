@@ -21,16 +21,22 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                               radioButtons(inputId = "huclevel",
                                            label = "HUC level:",
                                            c(10, 12)),
-                              radioButtons(inputId = "projects",
-                                                 label = "Show investment sites from:",
-                                                 c("PRISM", "EAGL", "Both"),
-                                           selected = "Both"),
+                              uiOutput("checkbox"),
+                              # checkboxGroupInput(inputId = "projects",
+                              #                    label = "Choose sites to display:",
+                              #                    choiceNames = list((img(src = './data/darklegend.png')),
+                              #                                       HTML("EAGL Projects <img src = './data/lightlegend.png'>"),
+                              #                                       HTML("Chum Sites <img src = './data/arrowlegend.png'>")),
+                              #                    choiceValues = list("PRISM", "EAGL", "River Mouths")),
                               checkboxInput(inputId = "colorblind",
                                            label = "colorblind friendly",
                                            value = FALSE),
                               actionButton("button", "Reset graphs"),
                               br(),
                               br(),
+                              selectInput("result_type", "Choose a dataset:", 
+                                          choices = c("Chum Salmon", "Turbidity", "TSS", "Investment")),
+                              downloadButton('downloadData', 'Download'),
                               "USER GUIDE GOES HERE",
                               
                               width = 2
@@ -75,8 +81,25 @@ server <- function(input, output, session) {
   
   df1 <- df[df$HUC_id %in% huc10_df$HUC10 | df$HUC_id %in% huc12_df$HUC12, ]
   df1 <- subset(df1, !is.na(df1$measurement))
+  df1$project_source[df1$result_type == "Chum Salmon"] <- "River Mouths"
+  
+  df1$color[df1$project_source == "PRISM"] <- "#494a52" 
+  df1$color[df1$project_source == "EAGL"] <-  "#969595"
 
 
+  output$checkbox <- renderUI({
+    checkboxGroupInput("projects",
+                       "Select sites to display: ",
+                       choiceNames = list(HTML("<div>PRISM projects <img src = '/images/darklegend.png'/></div>"),
+                                          HTML("<div>EAGL projects <img src = '/images/lightlegend.png'/></div>"),
+                                          HTML("<div>Chum sites <img src = '/images/arrowlegend.png'/></div>")),
+                       choiceValues = list("PRISM", "EAGL", "River Mouths"))
+  })
+  
+  
+                     
+  
+  
 # define reactive df based on mapfeatures1 input
 reactive_subset <- reactive({subset(df1, result_type %in% input$mapfeatures1)})
 # further subset that df to filter only the HUCs selected from huclevel
@@ -107,7 +130,7 @@ shapefile <- reactive({
   }
 })
 
-river_mouths <- subset(df, result_type == "Chum Salmon")
+
 river_popup <- reactive({
   paste("Mouth of",
         river_mouths$name)
@@ -115,17 +138,9 @@ river_popup <- reactive({
 
 cb_output <- reactive({input$colorblind})
 
-fishIcon <- makeIcon(iconUrl = "./data/salmon3.png",
-                     iconWidth = 25, iconHeight = 25,
-                     iconAnchorX = 10, iconAnchorY = 10)
-
 # filter project points
-proj_df <- reactive({
-  if (input$projects == "Both") {
-    inv_subset
-  } else {
-  subset(inv_subset, project_source %in% input$projects)}
-})
+factor_df <- subset(df1, result_type %in% c("Chum Salmon", "Investment"))
+proj_df <- reactive({subset(factor_df, project_source %in% input$projects)})
 
 # layer = reactive({if(input$mapfeatures1 == "Investment"){
 #   ~shape_inv()$HUC_id
@@ -174,21 +189,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
                                                      layerId = ~shapefile()$Name
                                                      ) %>%
 
-                                     addCircleMarkers(data = proj_df(),
-                                                      ~lon, ~lat,
-                                                      fillColor = ifelse(proj_df()$project_source == "PRISM","#696969", "#A9A9A9"),
-                                                      stroke = FALSE,
-                                                      fillOpacity = .7,
-                                                      radius = 4,
-                                                      popup = projectpopup()) %>%
-                                     addCircleMarkers(data = river_mouths,
-                                                      ~lon, ~lat,
-                                                      fillColor = "black",
-                                                      stroke = FALSE,
-                                                      fillOpacity = 1,
-                                                      radius = 4,
-                                                      popup = river_popup()
-                                     ) %>%
+
                                      addLegend(colors = if(input$mapfeatures1 == "Investment"){
                                                           c('#deebf7', '#9ecae1', '#3182bd')
                                                         } else if(cb_output() == TRUE){
@@ -205,7 +206,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
                                                           c('large decrease', 'medium decrease', 'small decrease',
                                                             'small increase', 'medium increase', 'large increase')
                                                         },
-                                               position = 'topright',
+                                               position = 'bottomright',
                                                title = ifelse(input$mapfeatures1 == "Investment", 
                                                               paste("Total Investment"),
                                                               ifelse(input$mapfeatures1 == "Chum Salmon",
@@ -215,13 +216,56 @@ clickdata <- reactiveValues(clickedShape = NULL)
                                                              paste("Change in",
                                                                    input$mapfeatures1)
                                                              )), 
-                                               opacity = .7) %>%
-                                     addLegend(colors = c("black", "#696969", "#A9A9A9"),
-                                               labels = c("Salmon Count Sites", "PRISM Projects", "EAGL Projects"),
-                                               
-                                               opacity = 1,
-                                               position = 'bottomright')
+                                               opacity = .7)
+                                     # addLegend(colors = c("black", "#696969", "#A9A9A9"),
+                                     #           labels = c("Salmon Count Sites", "PRISM Projects", "EAGL Projects"),
+                                     #           
+                                     #           opacity = 1,
+                                     #           position = 'bottomright')
   )
+   
+   
+   eagl_prism <- reactive({subset(proj_df(), project_source %in% c("EAGL", "PRISM"))})
+   chum_points <- reactive({subset(proj_df(), project_source %in% c("River Mouths"))})
+   
+   observe({
+   
+     if(is.null(input$projects)){
+       leafletProxy("hucmap") %>%
+         clearMarkers()
+     } else {
+       leafletProxy("hucmap") %>%
+         clearMarkers() %>%
+         addCircleMarkers(data = eagl_prism(),
+                    ~lon, ~lat,
+                    radius = 6,
+                    fillOpacity = .7,
+                    fillColor = eagl_prism()$color,
+                    stroke = FALSE,
+                    popup = projectpopup()) %>%
+         # addMarkers(data = subset(proj_df(), project_source == "PRISM"),
+         #            ~lon, ~lat,
+         #            icon = ~darkOval,
+         #            popup = prismpopup()) %>%
+       addMarkers(data = chum_points(),
+                  ~lon, ~lat,
+                  # fillColor = ifelse(proj_df()$project_source == "River Mouths",
+                  #                    "black",
+                  #                    ifelse(proj_df()$project_source == "PRISM",
+                  #                           "#696969", 
+                  #                           "#A9A9A9")),
+                  icon = ~fishIcon,
+                  popup = river_popup) 
+    }
+   
+   })
+
+   
+   fishIcon <- makeIcon(iconUrl = "./data/down-arrow.png",
+                        iconWidth = 12, iconHeight = 12,
+                        iconAnchorX = 5, iconAnchorY = 5)
+
+
 # variable that defines the text for the popup
    content2 <- reactive({
      paste(sep = "",
@@ -238,8 +282,10 @@ clickdata <- reactiveValues(clickedShape = NULL)
            }</style>",
            "<b>Project: </b>",
            br(),
-           print(proj_df()$name.x))
+           print(proj_df()$name))
    })
+   
+   
    
    
    observeEvent(input$hucmap_shape_click, {
@@ -255,11 +301,8 @@ clickdata <- reactiveValues(clickedShape = NULL)
    })
    
    clicked_sub <- reactive({
-     subset(df, HUC_Name == input$hucmap_shape_click$id)
+     subset(df1, HUC_Name == input$hucmap_shape_click$id)
    })
-   
-   
-   
    
    # 
    clicked_mid <- reactive({subset(clicked_sub(), year > "2002")})
@@ -268,14 +311,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
      aggregate(measurement ~ year, clicked_feat(), "sum")} else{
        aggregate(measurement ~ year, clicked_feat(), "mean") }
      })
-   # 
-   # output$clickedplot <- renderPrint({
-   #   ggplot(data = clicked_sub(),
-   #          x = year,
-   #          y = measurement) +
-   #     geom_col()
-   # })
-  
+
 ### end HUC code ###  
   
   
@@ -309,16 +345,19 @@ clickdata <- reactiveValues(clickedShape = NULL)
   
   # for the investment bar chart
   
-  inv_year_mid <- reactive({
-      if (input$projects == "Both") {
-        only_inv
-      } else {
-        subset(only_inv, project_source %in% input$projects)}
+  selected_projects <- reactive({
+      ifelse("PRISM" %in% input$projects | "EAGL" %in% input$projects, 
+             subset(only_inv, project_source %in% input$projects), only_inv) 
+    # {
+    #     eagl_prism
+    #   } else {
+    #     only_inv}
     })
-  inv_middle <- reactive({subset(inv_year_mid(), HUC_level == "10")})
-  inv_by_year <- reactive({aggregate(measurement ~ year, inv_middle(), "sum")})
   
-  clicked_inv_huc <- reactive({subset(inv_year_mid(), HUC_Name == input$hucmap_shape_click$id)})
+  selected_projects_nodupes <- reactive({subset(selected_projects(), HUC_level == "10")})
+  inv_by_year <- reactive({aggregate(measurement ~ year, selected_projects_nodupes(), "sum")})
+  
+  clicked_inv_huc <- reactive({subset(selected_projects(), HUC_Name == input$hucmap_shape_click$id)})
   clicked_inv <- reactive({aggregate(measurement ~ year, clicked_inv_huc(), "sum")})
   
   
@@ -334,9 +373,9 @@ clickdata <- reactiveValues(clickedShape = NULL)
   
   output$inv_plot <- renderPlot({
       totalbar <- ggplot() +
-                  geom_col(data = if(nrow(clicked_inv_huc()) > 0){
-                    clicked_inv()} else{ 
-                      inv_by_year()},
+                  geom_col(data = if(nrow(clicked_inv_huc()) == 0){
+                    inv_by_year()} else{ 
+                      clicked_inv()},
                            aes(x = year,
                                y = measurement/1000000),
                            fill = "#3182bd",
@@ -359,9 +398,9 @@ clickdata <- reactiveValues(clickedShape = NULL)
             axis.title.x = element_text(size = 14),
             axis.title.y = element_text(size = 14))
       
-      totalline <- ggplot(data = if(nrow(clicked_sub()) > 0) {
-        clicked_year()} else{
-          measure_year()
+      totalline <- ggplot(data = if(nrow(clicked_sub()) == 0) {
+        measure_year()} else{
+          clicked_year()
         },
                          aes(x = year,
                              y = if(input$mapfeatures1 == "Investment"){measurement/1000000} else {measurement})) +
@@ -449,6 +488,23 @@ clickdata <- reactiveValues(clickedShape = NULL)
       axis.title.x = element_text(size = 14),
       axis.title.y = element_text(size = 14))
   })
+  
+  
+  
+  # DOWNLOAD DATA 
+  # remove columns from downloaded dataset that are not relevant to the
+  # selected result type (columns where every value is 'NA')
+  data_to_download <- reactive({
+    df1 %>% 
+      dplyr::filter(result_type %in% input$result_type) %>%
+      select_if(colSums(!is.na(.)) > 0)
+  })
+  output$downloadData <- downloadHandler(
+    filename = function() { paste(input$result_type, '.csv', sep='') },
+    content = function(file) {
+      write.csv(data_to_download(), file)
+    }
+  )
   
 }
 # Run the application 
