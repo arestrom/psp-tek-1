@@ -22,14 +22,11 @@ chum_counts <- readRDS("../psp-chum/data/tidychum.rds") %>%
 # create a HUC-10 investment dataframe, 
 # filtered to only include investments in fish HUC10s
 # calculate the median investment implementation year for each HUC10
-ph10 <- ph %>%
+# create a HUC10-median year entity to merge with outcome dataframes below
+huc10_med <- ph %>%
   filter(HUC10_Name %in% unique(chum_counts$HUC10_Name))  %>%
   group_by(HUC10_Name) %>%
-  mutate(meanyr = mean(as.numeric(year)),
-         medianyr = median(as.numeric(year)))
-
-# create a HUC10-median year entity to merge with outcome dataframes below
-huc10_med <- ph10 %>%
+  mutate(medianyr = median(as.numeric(year))) %>%
   select(HUC10_Name, medianyr) %>%
   group_by(HUC10_Name, medianyr) %>%
   summarise()
@@ -37,14 +34,11 @@ huc10_med <- ph10 %>%
 # create a HUC-12 investment dataframe, 
 # filtered to only include investments in fish HUC12s
 # calculate the median investment implementation year for each HUC12
-ph12 <- ph %>%
+# create a HUC12-median year entity to merge with outcome dataframes below
+huc12_med <- ph %>%
   filter(HUC12_Name %in% unique(chum_counts$HUC12_Name)) %>%
   group_by(HUC12_Name) %>%
-  mutate(meanyr = mean(as.numeric(year)),
-         medianyr = median(as.numeric(year)))
-
-# create a HUC12-median year entity to merge with outcome dataframes below
-huc12_med <- ph12 %>%
+  mutate(medianyr = median(as.numeric(year))) %>%
   select(HUC12_Name, medianyr) %>%
   group_by(HUC12_Name, medianyr) %>%
   summarise()
@@ -59,14 +53,11 @@ water <- readRDS("../water/data/water_huc.rds")
 # create a HUC-10 investment dataframe, 
 # filtered to only include investments in water HUC10s
 # calculate the median investment implementation year for each HUC10
-wa_ph10 <- ph %>%
+# create a HUC10-median year entity to merge with outcome dataframes below
+wa_huc10_med <- ph %>%
   filter(HUC10_Name %in% unique(water$HUC10_Name))  %>%
   group_by(HUC10_Name) %>%
-  mutate(meanyr = mean(as.numeric(year)),
-         medianyr = median(as.numeric(year)))
-
-# create a HUC10-median year entity to merge with outcome dataframes below
-wa_huc10_med <- wa_ph10 %>%
+  mutate(medianyr = median(as.numeric(year))) %>%
   select(HUC10_Name, medianyr) %>%
   group_by(HUC10_Name, medianyr) %>%
   summarise()
@@ -75,15 +66,11 @@ wa_huc10_med <- wa_ph10 %>%
 # create a HUC-12 investment dataframe, 
 # filtered to only include investments in fish HUC12s
 # calculate the median investment implementation year for each HUC12
-wa_ph12 <- ph %>%
+# create a HUC12-median year entity to merge with outcome dataframes below
+wa_huc12_med <- ph %>%
   filter(HUC12_Name %in% unique(water$HUC12_Name)) %>%
   group_by(HUC12_Name) %>%
-  mutate(meanyr = mean(as.numeric(year)),
-         medianyr = median(as.numeric(year)))
-
-
-# create a HUC12-median year entity to merge with outcome dataframes below
-wa_huc12_med <- wa_ph12 %>%
+  mutate(medianyr = median(as.numeric(year))) %>%
   select(HUC12_Name, medianyr) %>%
   group_by(HUC12_Name, medianyr) %>%
   summarise()
@@ -154,7 +141,8 @@ apply_cohensD <- function(data, outcome, HUC) {
              sum_wsubi = sum(wsubi),
              cohensd_huc_var = 1/sum_wsubi,
              cohensd_huc_sd = cohensd_huc_var^0.5,
-             plus_minus = cohensd_huc_sd*1.645) %>%
+             plus_minus = cohensd_huc_sd*1.645,
+             noProject = if (exists('noProject')) noProject else NA) %>%
       gather(key = 'TimePeriod', value = 'count', `before`, `after`, `during`, `noProject`, na.rm = TRUE) %>%
       mutate(effectsize = ifelse(abs(cohensd_huc_mean) < 0.5, 'small',
                                  ifelse(abs(cohensd_huc_mean) >= 0.8, 'large',
@@ -328,7 +316,7 @@ all_projects_formerge[,empties] <- NA
 all_dfs <- bind_rows(chum_formerge, water_formerge, all_projects_formerge)
 
 # add unique ID column
-all_dfs$id <- 1:nrow(all_dfs)
+# all_dfs$id <- 1:nrow(all_dfs)
 
 # export the data to the shiny app directory
 saveRDS(all_dfs, "../shinyapp/data/all-dfs.rds")
