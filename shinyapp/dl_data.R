@@ -1,12 +1,26 @@
+library(shiny)
 library(leaflet)
 library(shinythemes)
 library(tidyverse)
 library(stringr)
-
+# library(scales)
+# library(gtable)
 df <- readRDS("./data/all-dfs.rds")
 
-ui <- navbarPage(theme = shinytheme("sandstone"),
+ui <- fluidPage(navbarPage(theme = shinytheme("sandstone"),
                  "Opening Up the Data",
+                  tabPanel("linksETC",
+                          wellPanel(
+                            # fluidRow(column(3, htmlOutput("pic"))),
+                            # fluidRow(column(3, tags$img(src = "https://www.rstudio.com/wp-content/uploads/2014/03/blue-125.png"))),
+                            # fluidRow(column(3, tags$img(src = "./www/darklegend.png"))),
+                            # fluidRow(column(3, tags$img(src = "./darklegend.png"))),
+                            # fluidRow(column(3, tags$img(src = "http://localhost/shinyapp/www/darklegend.png"))),
+                            # fluidRow(column(3, tags$img(src = "http://localhost/darklegend.png"))),
+                            # fluidRow(column(3, imageOutput("myImage"))),
+                            fluidRow(column(10, includeHTML('about.html')))
+                          )
+                  ),
                  # first tab panel for HUCs
                  tabPanel("Map View",
                           sidebarLayout(
@@ -68,7 +82,7 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                             )
                           )
                         )
-                     )
+))
 
 server <- function(input, output, session) {
   
@@ -96,6 +110,20 @@ server <- function(input, output, session) {
       write.csv(data_to_download(), file)
     }
   )
+  
+  output$pic <- renderUI({
+    HTML("<div>PRISM projects <img src = '/images/darklegend.png'/></div>")
+  })
+ 
+  output$myImage <- renderImage({
+    # When input$n is 3, filename is ./images/image3.jpeg
+    filename <- normalizePath(file.path('./darklegend.png'))
+    
+    # Return a list containing the filename and alt text
+    list(src = filename)
+    
+  }, deleteFile = FALSE)
+   
 }
 
 # Run the application 
