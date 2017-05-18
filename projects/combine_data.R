@@ -5,8 +5,6 @@ library(tidyverse)
 # read in the investment-project-huc dataframe
 ph <- readRDS("./data/project_huc.rds")
 
-# ph$id <- 1:nrow(ph)
-
 # read in the chum-huc dataframe, tidy data
 chum_locations <- readRDS("../psp-chum/data/chum_huc.rds") %>%
   rename (lon = lng, site = River.site) %>%
@@ -93,10 +91,22 @@ cohensD_manual <- function(before, after) {
   return(d)
 }
 
-# remove rows without a TimePeriod (no project in that HUC to get a median year)
-# create a column of measurements for before and after project implementation in each HUC
-# calculate the cohensD for each measurement in each HUC (add new column)
-# then, categorize the effect size
+# for water quality: group dataframe by result type and then by HUC
+  # categorize each measurement as before, during, or after the median investment year in that HUC
+  # add a 'noProject' category for HUCs without a project
+  # calculate the cohensD for each measurement in each HUC (add new column) 
+  # add new columns for the mean before and after median investment year in each HUC
+  # reogranize the dataframe
+  # then, categorize the effect size based on cohen's d standards
+# for chum: group dataframe by chum site
+  # categorize each measurement as before, during, or after the median investment year in that HUC
+  # add a 'noProject' category for sites without a project
+  # calculate the cohensD for each site (add new column) 
+  # add new columns for the mean and sd in each site, as well as other variables for the roll-up
+  # group the dataframe by HUC
+  # calculate the mean cohensD for each HUC (add new column), as well as other variables
+  # reogranize the dataframe
+  # then, categorize the effect size based on cohen's d standards
 apply_cohensD <- function(data, outcome, HUC) {
   if (outcome == 'water') { 
     data %>%
@@ -130,7 +140,6 @@ apply_cohensD <- function(data, outcome, HUC) {
              var_cohensd = (length(before) + length(after))/(length(before) * length(after)) + (cohensd^2)/(2*(length(before) + length(after))),
              sd_cohensd = var_cohensd^0.5,
              wsubi = 1/var_cohensd,
-             # correct_cd = -1*cohensd,
              wsubixd = cohensd*wsubi) %>%
       ungroup() %>%
       group_by_(HUC) %>%
@@ -305,18 +314,8 @@ all_projects_formerge <- ph %>% select(-HUC10_id, -HUC10_Name) %>%
   mutate(result_type = 'Investment', unit = 'dollars', HUC_level = '12') %>%
   rbind(p_h10)
 
-# create a list of column names that do not occur in the project df
-empties <- c('description', 'full_date', 'Location_ID', 'logMeasurement', 
-             'medianyr', 'cohensd', 'TimePeriod', 'effectsize', 'mean_before', 
-             'mean_after', 'status', 'color', 'coloreffect', 'colorblind')
-# set all non-project columns to be NA
-all_projects_formerge[,empties] <- NA
-
 # bind all dataframes together
 all_dfs <- bind_rows(chum_formerge, water_formerge, all_projects_formerge)
-
-# add unique ID column
-# all_dfs$id <- 1:nrow(all_dfs)
 
 # export the data to the shiny app directory
 saveRDS(all_dfs, "../shinyapp/data/all-dfs.rds")

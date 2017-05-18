@@ -47,25 +47,9 @@ all_prism <- left_join(x = location, y = funding, by = "ProjectNumber") %>%
   mutate(project_source = 'PRISM') %>%
   filter(!is.na(lat), !is.na(cost))
 
-#################### HWS DATA #################### 
-
-# load habitat work schedule data
-# clean and standardize data
-# filter out extra project years
-hws <- read.csv('./data/hws_hcc.csv', header = TRUE) %>%
-  setNames(tolower(names(.))) %>%
-  rename(Study_ID = id) %>%
-  mutate(project_source = 'HWS',
-         year = as.numeric(format(as.Date(start, format = "%Y-%m-%d"), '%Y'))) %>%
-  filter(!lat == 0,
-         year <= 2015,
-         year > 2000) %>%
-  select(name, Study_ID, cost, lat, lon, project_source, year)
-
 #################### MERGE #################### 
 # combine dataframes from both investment sources
-all_projects <- bind_rows(all_prism, eagl_df) %>%
-  bind_rows(hws)
+all_projects <- bind_rows(all_prism, eagl_df)
 
 #################### MERGE #################### 
 
