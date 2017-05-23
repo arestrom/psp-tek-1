@@ -6,12 +6,6 @@ library(MazamaSpatialUtils)
 # 5 NTU over background when the background is 50 NTU or less; or
 # A 10 percent increase in turbidity when the background turbidity is more than 50 NTU.
 
-# load location data file
-# select only ID and WRIA
-turbidity_locations <- read.csv('./data/turbidity/EIMLocationDetails.csv', header = TRUE) %>%
-  select(Location_ID, Watershed_WRIA)
-# unique(locs$Watershed_WRIA)
-
 # create a turbidity data frame 
 # for merging with the tss data
 # select only variables of interest, rename lengthy variable names
@@ -29,23 +23,8 @@ turbidity <- read.csv('./data/turbidity/EIMResults.csv', header = TRUE) %>%
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
          logMeasurement = log10(measurement+1),
          result_type = 'Turbidity',
-         unit = 'NTU') %>%
-  # join wria to main data file
-  # label wria name with wria number
-  left_join(turbidity_locations, by = "Location_ID") %>% 
-  mutate(WRIA_ID = ifelse(Watershed_WRIA == "Kitsap", 15, 
-                          ifelse(Watershed_WRIA == "Kennedy-Goldsborough", 14,
-                                 ifelse(Watershed_WRIA == "Skokomish-Dosewallips", 16,
-                                        ifelse(Watershed_WRIA == "Quilcence-Snow", 17,
-                                               ifelse(Watershed_WRIA == "Elwah-Dungeness", 18,
-                                                      NA))))))
-
-
-
-# load tss location data file
-# select only ID and WRIA
-tss_locations <- read.csv('./data/tss/EIMLocationDetails.csv', header = TRUE) %>%
-  select(Location_ID, Watershed_WRIA)
+         unit = 'NTU',
+         year = format(start_date,"%Y")) 
 
 # load the tss data 
 # select only variables of interest, rename lengthy variable names
@@ -61,14 +40,8 @@ tss <- read.csv('./data/tss/EIMResults.csv', header = TRUE) %>%
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
          logMeasurement = log10(measurement+1),
          result_type = 'TSS',
-         unit = 'mg/L') %>%
-  left_join(tss_locations, by = "Location_ID") %>% 
-  mutate(WRIA_ID = ifelse(Watershed_WRIA == "Kitsap", 15, 
-                          ifelse(Watershed_WRIA == "Kennedy-Goldsborough", 14,
-                                 ifelse(Watershed_WRIA == "Skokomish-Dosewallips", 16,
-                                        ifelse(Watershed_WRIA == "Quilcence-Snow", 17,
-                                               ifelse(Watershed_WRIA == "Elwah-Dungeness", 18,
-                                                      NA))))))
+         unit = 'mg/L',
+         year = format(start_date,"%Y"))
 
 
 # add both dataframes together
@@ -97,24 +70,22 @@ huc_ids <- TURB_TSS %>%
          HUC10_id = getHUC(lon, lat, SPDF = WBDHU10))
 
 # get the HUC 12 Names for each HUC ID in the dataset
-huc12 <- tbl_df(getHUC(TURB_TSS$lon,TURB_TSS$lat, SPDF = WBDHU12, allData=TRUE)) %>%
+huc12 <- getHUC(TURB_TSS$lon,TURB_TSS$lat, SPDF = WBDHU12, allData=TRUE) %>%
   # unite(coords, latitude, longitude, remove = FALSE) %>%
   rename(HUC12_id = HUC, HUC12_Name = HUCName) %>%
-  select(HUC12_id, HUC12_Name)
-
-huc12 <- distinct(huc12)
+  select(HUC12_id, HUC12_Name) %>%
+  distinct() 
 
 # get the HUC 10 Names for each HUC ID in the dataset
-huc10 <- tbl_df(getHUC(TURB_TSS$lon,TURB_TSS$lat, SPDF = WBDHU10, allData=TRUE)) %>%
+huc10 <- getHUC(TURB_TSS$lon,TURB_TSS$lat, SPDF = WBDHU10, allData=TRUE) %>%
   rename(HUC10_id = HUC, HUC10_Name = HUCName) %>%
-  select(HUC10_id, HUC10_Name)
-
-huc10 <- distinct(huc10)
+  select(HUC10_id, HUC10_Name) %>%
+  distinct()
 
 # join the HUC Names to the HUC ids for each row
 water_huc <- huc_ids %>%
-  inner_join(huc12, by = 'HUC12_id') %>%
-  inner_join(huc10, by = 'HUC10_id')
+  left_join(huc12, by = 'HUC12_id') %>%
+  left_join(huc10, by = 'HUC10_id')
 
 saveRDS(water_huc, "./data/water_huc.rds")
 # whmod2 <- readRDS("./data/water_huc.rds")
