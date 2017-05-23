@@ -1,5 +1,4 @@
 library(tidyverse)
-library(MazamaSpatialUtils)
 source('addHUC.R')
 # NOTE: http://apps.leg.wa.gov/WAC/default.aspx?dispo=true&cite=173-201A-200
 #Turbidity shall not exceed:
