@@ -130,7 +130,8 @@ apply_cohensD <- function(data, outcome, HUC) {
       spread(TimePeriod, measurement) %>%
       mutate(cohensd_huc_mean = -1*cohensD_manual(before, after),
              huc_mean_after = mean(after, na.rm = TRUE),
-             huc_mean_before = mean(before, na.rm = TRUE)) %>%
+             huc_mean_before = mean(before, na.rm = TRUE),
+             noProject = if (exists('noProject')) noProject else NA) %>%
       gather(key = 'TimePeriod', value = 'measurement', `before`, `after`, `during`, `noProject`, na.rm = TRUE) %>%
       mutate(effectsize = ifelse(abs(cohensd_huc_mean) < 0.2, 'no change',
                                  ifelse(abs(cohensd_huc_mean) >= 0.8, 'large',
@@ -216,13 +217,11 @@ add_status_colors <- function(data) {
 # add a column with the mean measurement value before/after project implementation
 # add colors based on effect and direction
 water10 <- water %>%
-  mutate(year = format(start_date,"%Y")) %>%
   left_join(wa_huc10_med, by = "HUC10_Name") %>%
   apply_cohensD ('water', "HUC10_Name") %>%
   add_status_colors() 
 
 water12 <- water %>%
-  mutate(year = format(start_date,"%Y")) %>%
   left_join(wa_huc12_med, by = "HUC12_Name") %>%
   apply_cohensD ('water', "HUC12_Name") %>%
   add_status_colors() 

@@ -1,8 +1,9 @@
 library(tidyverse)
 library(stringr)
-library(MazamaSpatialUtils)
+source('../water/addHUC.R')
 
 #################### EAGL DATA #################### 
+# read in the eagl data, clean and standardize data
 eagl_df <- read.csv('./data/EAGL_Projects.csv', header = TRUE) %>%
   select(Funding.Fiscal.Year, General.Project.Category, Project.Title, 
          Funding.Provided, Latitude, Longitude, Funding.Number) %>%
@@ -51,42 +52,23 @@ all_prism <- left_join(x = location, y = funding, by = "ProjectNumber") %>%
 # combine dataframes from both investment sources
 all_projects <- bind_rows(all_prism, eagl_df)
 
+# add unique ID column
+all_projects$ID <- 1:nrow(all_projects)
+
 #################### MERGE #################### 
 
 ################################ HUCs ################################################ 
-# following introductory vignette at 
-# https://cran.r-project.org/web/packages/MazamaSpatialUtils/vignettes/introduction.html
 
-# need to install the data separately via command line (see mazama github)
-setSpatialDataDir('~/Data/Spatial')
-loadSpatialData('WBDHU')
-# only need to do the command below once (i think)
-# installSpatialData()
+# add HUC Names and HUC IDs to the projects dataframe by lat/lon (using the addHUC function)
+# do this for each desired HUC (here, for huc 10 and huc 12)
+# then combine these dataframes to have each huc Name and ID for each project
+huc10 <- addHUC(all_projects, 'HUC10_id', 'HUC10_Name', WBDHU10) 
 
-# get the HUC 12 and HUC 10 id's for each row
-huc_ids <- all_projects %>%
-  mutate(HUC12_id = getHUC(lon, lat, SPDF = WBDHU12),
-         HUC10_id = getHUC(lon, lat, SPDF = WBDHU10))
-
-# get the HUC 12 Names for each HUC ID in the dataset
-huc12 <- tbl_df(getHUC(all_projects$lon,all_projects$lat, SPDF = WBDHU12, allData=TRUE)) %>%
-  # unite(coords, latitude, longitude, remove = FALSE) %>%
-  rename(HUC12_id = HUC, HUC12_Name = HUCName) %>%
-  select(HUC12_id, HUC12_Name)
-
-huc12 <- distinct(huc12)
-
-# get the HUC 10 Names for each HUC ID in the dataset
-huc10 <- tbl_df(getHUC(all_projects$lon,all_projects$lat, SPDF = WBDHU10, allData=TRUE)) %>%
-  rename(HUC10_id = HUC, HUC10_Name = HUCName) %>%
-  select(HUC10_id, HUC10_Name)
-
-huc10 <- distinct(huc10)
+huc12 <- addHUC(all_projects, 'HUC12_id', 'HUC12_Name', WBDHU12) %>%
+  select(HUC12_id, HUC12_Name, ID)
 
 # join the HUC Names to the HUC ids for each row
-project_huc <- huc_ids %>%
-  inner_join(huc12, by = 'HUC12_id') %>%
-  inner_join(huc10, by = 'HUC10_id')
+project_huc <- left_join(huc10, huc12, by = 'ID')
 
 saveRDS(project_huc, "./data/project_huc.rds")
 
