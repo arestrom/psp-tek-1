@@ -22,8 +22,7 @@ Any questions or comments can be directed to Leska Fore from the Puget Sound Par
 - [Key terminology](#key-terminology)
 - [Data download variable definitions](#data-download-variable-definitions)
 	+ [Chum Salmon](#chum-salmon)
-	+ [TSS](#tss)
-	+ [Turbidity](#turbidity)
+	+ [Turbidity and TSS](#turbidity-and-tss)
 	+ [Investment](#investment)
 - [Acknowledgments](#acknowledgments)
 
@@ -103,62 +102,81 @@ The project's web-based visualization prototype includes functionality to downlo
 * __lon:__ Measurement site longitude
 * __lat:__ Measurement site latitude
 * __description:__ Measurement site description, taken from WA Dept. of Fish & Wildlife web site
-* __HUC_id:__ Hydrologic Unit Code for measurement site
-* __HUC_Name:__ Hydrologic Unit Name for measurement site
+* __HUC_id:__ Hydrologic Unit Code for measurement location
+* __HUC_Name:__ Hydrologic Unit Name for measurement location
 * __medianyr:__ Median investment project year for HUC containing measurement site
 * __cohensd:__ Cohen's D value for measurement site
 * __site_mean_after:__ Mean of measurements after medianyr
 * __site_mean_before:__ Mean of measurements before medianyr
 * __site_sd_before:__ Standard deviation \(SD\) of measurements before medianyr
 * __site_sd_after:__ Standard deviation \(SD\) of measurements after medianyr
-* __var_pooled:__ xxxx
-* __var_cohensd:__ xxxx
-* __sd_cohensd:__ xxxx
-* __wsubi:__ xxxx
-* __wsubixd:__ xxxx
+* __var_pooled:__ [Pooled variance](https://en.wikipedia.org/wiki/Pooled_variance)
+* __var_cohensd:__ Variance of Cohen's D value for measurement site
+* __sd_cohensd:__ Standard deviation (SD) of Cohen's D value for measurement site
+* __wsubi:__ \(definition still to come\)
+* __wsubixd:__ \(definition still to come\)
 * __cohensd_huc_mean:__ Mean Cohen's D value of measurements aggregated by HUC
 * __huc_mean_after:__ Mean of measurements after medianyr, aggregated by HUC
 * __huc_mean_before:__ Mean of measurements before medianyr, aggregated by HUC
-* __sum_wsubixd:__ xxxx
-* __sum_wsubi:__ xxxx
+* __sum_wsubixd:__ \(definition still to come\)
+* __sum_wsubi:__ \(definition still to come\)
 * __cohensd_huc_var:__ Variance of Cohen's D value of measurements aggregated by HUC
 * __cohensd_huc_sd:__ Standard deviation (SD) of Cohen's D value of measurements aggregated by HUC
-* __plus_minus:__ xxxx
+* __plus_minus:__ \(definition still to come\)
 * __TimePeriod:__ Categorical value placing measurement before, during, or after medianyr
 * __measurement:__ Measurement at given site in given year
-* __effectsize:__ Categorical value of mean Cohen's D value in given HUC
-* __site_effectsize:__ Categorical value of Cohen's D value at given measurement site
-* __status:__ Categorical value noting change direction of mean Cohen's D value in given HUC
+* __effectsize:__ Categorical label for mean Cohen's D value in given HUC
+* __site_effectsize:__ Categorical label of Cohen's D value at given measurement site
+* __status:__ Categorical label noting change direction of mean Cohen's D value in given HUC
 * __coloreffect:__ HEX code color assignment for given effectsize and status
 * __colorblind:__ HEX code color assignment (colorblind-friendly version) for given effectsize and status
-* __result_type:__ Categorical value corresponding to variable
+* __result_type:__ Categorical label corresponding to model variable
 * __unit:__ Unit of measurement, if any
 * __HUC_level:__ Hydrologic Unit Code (HUC) level, either 10 or 12, for given row of data
 * __project_source:__ Categorical variable corresponding to project source (PRISM or EAGL) - _NA for chum salmon data_
 
-#### Turbidity
+#### Turbidity and TSS
 
-* xxxx
+* __year:__ Measurement year
+* __name:__ Measurement project name
+* __lon:__ Measurement project longitude
+* __lat:__ Measurement project latitude
+* __HUC_id:__ Hydrologic Unit Code for measurement project location
+* __HUC_Name:__ Hydrologic Unit Name for measurement project location
+* __medianyr:__ Median investment project year for HUC containing measurement site
+* __cohensd_huc_mean:__ Mean Cohen's D value of measurements aggregated by HUC
+* __huc_mean_after:__ Mean of measurements after medianyr, aggregated by HUC
+* __huc_mean_before:__ Mean of measurements before medianyr, aggregated by HUC
+* __TimePeriod:__ Categorical value placing measurement before, during, or after medianyr
+* __measurement:__ Measurement at given site in given year
+* __effectsize:__ Categorical label for mean Cohen's D value in given HUC
+* __status:__ Categorical label noting change direction of mean Cohen's D value in given HUC
+* __coloreffect:__ HEX code color assignment for given effectsize and status
+* __colorblind:__ HEX code color assignment (colorblind-friendly version) for given effectsize and status
+* __result_type:__ Categorical label corresponding to model variable
+* __unit:__ Unit of measurement, if any
+* __HUC_level:__ Hydrologic Unit Code (HUC) level, either 10 or 12, for given row of data
+* __Study_ID:__ Unique ID for measurement project
+* __full_date:__ Date, in mm/dd/yy format, of measurement project data point
+* __Location_ID:__ ID connected to measurement project location
+* __logMeasurement:__ Logarithm of the value in *measurement* column
 
-#### TSS
-
-* xxxx
 
 #### Investment
 
-* __year:__ Project investment year
-* __name:__ Project investment name
-* __project_cat:__ Project investment category
-* __lon:__ Project investment site longitude
-* __lat:__ Project investment site latitude
-* __HUC_id:__ Hydrologic Unit Code for project investment site
-* __HUC_Name:__ Hydrologic Unit Name for project investment site
-* __measurement:__ Amount of given project investment
+* __year:__ Investment project year
+* __name:__ Investment project name
+* __project_cat:__ Investment project category
+* __lon:__ Investment project site longitude
+* __lat:__ Investment project site latitude
+* __HUC_id:__ Hydrologic Unit Code for investment project location
+* __HUC_Name:__ Hydrologic Unit Name for investment project location
+* __measurement:__ Amount of given investment project 
 * __result_type:__ Categorical value corresponding to variable
 * __unit:__ Unit of measurement, if any
 * __HUC_level:__ Hydrologic Unit Code (HUC) level, either 10 or 12, for given row of data
-* __Study_ID:__ Unique ID for project investment
-* __project_source:__ Categorical variable corresponding to project source (PRISM or EAGL)
+* __Study_ID:__ Unique ID for investment project
+* __project_source:__ Categorical variable corresponding to investment project source (PRISM or EAGL)
 * __color:__ HEX code color assignment corresponding to categorical investment value (small, medium, or large)
 
 ## Acknowledgments
