@@ -8,7 +8,7 @@ Numerous environmental restoration projects have been undertaken throughout the 
 See the prototype at https://ejclarke.shinyapps.io/capstone/.
 
 ## Contact
-Any questions or comments can be directed to Leska Fore from the Puget Sound Partnership at leska.fore@psp.wa.gov.
+Any questions or comments can be directed to Leska Fore from the Puget Sound Partnership at leska&#46;fore@psp&#46;wa&#46;gov.
 
 ## Table of Contents
 
@@ -27,19 +27,19 @@ Any questions or comments can be directed to Leska Fore from the Puget Sound Par
 ## Data Sources
 As mentioned in the Description, the underlying data for the prototype project were sourced from public web sites.
 
-#### Project investment Data:
+#### Project investment Data
 
 * [Ecology's Administration of Grants and Loans (EAGL) Investment Projects](http://www.ecy.wa.gov/funding/EAGL.html):
 	* Note: Access to data requires log-in
 * [PRoject Information SysteM (PRISM) Investment Projects](http://www.rco.wa.gov/prism_app/about_prism.shtml)
 	* Note: Access to data requires log-in
 
-#### Water Quality Data:
+#### Water Quality Data
 
 * [Washington State Department of Ecology's Environmental Information Management (EIM)](http://www.ecy.wa.gov/eim/)
 	* Search for data limited to result parameters Turbidity and TSS, and WRIA's Kennedy-Goldsborough (14), Kitsap (15), Skokomish-Dosewallips (16), Quilcence-Snow (17), and Elwah-Dungeness (18).
 
-#### Hood Canal Summer Chum Salmon Data:
+#### Hood Canal Summer Chum Salmon Data
 
 * Washington State Department of Fish and Wildlife
 	* [Strait of Juan de Fuca Summer Chum](https://fortress.wa.gov/dfw/score/score/species/population_details.jsp?stockId=2500)
