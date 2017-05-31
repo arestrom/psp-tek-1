@@ -113,16 +113,16 @@ The project's web-based visualization prototype includes functionality to downlo
 * __var_pooled:__ [Pooled variance](https://en.wikipedia.org/wiki/Pooled_variance)
 * __var_cohensd:__ Variance of Cohen's D value for measurement site
 * __sd_cohensd:__ Standard deviation (SD) of Cohen's D value for measurement site
-* __wsubi:__ \(definition still to come\)
-* __wsubixd:__ \(definition still to come\)
+* __wsubi:__ \(intermediate change statistic calculation\)
+* __wsubixd:__ \(intermediate change statistic calculation\)
 * __cohensd_huc_mean:__ Mean Cohen's D value of measurements aggregated by HUC
 * __huc_mean_after:__ Mean of measurements after medianyr, aggregated by HUC
 * __huc_mean_before:__ Mean of measurements before medianyr, aggregated by HUC
-* __sum_wsubixd:__ \(definition still to come\)
-* __sum_wsubi:__ \(definition still to come\)
+* __sum_wsubixd:__ \(intermediate change statistic calculation\)
+* __sum_wsubi:__ \(intermediate change statistic calculation\)
 * __cohensd_huc_var:__ Variance of Cohen's D value of measurements aggregated by HUC
 * __cohensd_huc_sd:__ Standard deviation (SD) of Cohen's D value of measurements aggregated by HUC
-* __plus_minus:__ \(definition still to come\)
+* __plus_minus:__ \(intermediate change statistic calculation\)
 * __TimePeriod:__ Categorical value placing measurement before, during, or after medianyr
 * __measurement:__ Measurement at given site in given year
 * __effectsize:__ Categorical label for mean Cohen's D value in given HUC
