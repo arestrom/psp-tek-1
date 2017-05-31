@@ -13,10 +13,10 @@ Any questions or comments can be directed to Leska Fore from the Puget Sound Par
 ## Table of Contents
 
 - [Data Sources](#data-sources)
-    + [Project investment Data](#project-investment-data-)
-    + [Water Quality Data](#water-quality-data-)
-    + [Hood Canal Summer Chum Salmon Data](#hood-canal-summer-chum-salmon-data-)
-    + [Hydrologic Unit Shapefile Data](#hydrologic-unit-shapefile-data-)
+    + [Project investment Data](#project-investment-data)
+    + [Water Quality Data](#water-quality-data)
+    + [Hood Canal Summer Chum Salmon Data](#hood-canal-summer-chum-salmon-data)
+    + [Hydrologic Unit Shapefile Data](#hydrologic-unit-shapefile-data)
 - [Project tools](#project-tools)
 - [Usage](#usage)
 - [Key terminology](#key-terminology)
@@ -49,7 +49,7 @@ As mentioned in the Description, the underlying data for the prototype project w
 #### Hydrologic Unit Shapefile Data
 
 * [U.S. Geological Survey - Watershed Boundary Dataset (WBD)](https://nhd.usgs.gov/wbd.html)
-	* Note: Pacific Northwest region shapefiles are **WBD_17_Shape.zip** \([See XML metadata](ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/Hydrography/WBD/HU2/Shape/WBD_17_Shape.xml)\)
+	* Note: Pacific Northwest region shapefiles are **WBD_17_Shape.zip**. [See XML metadata](ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/Hydrography/WBD/HU2/Shape/WBD_17_Shape.xml).
 
 ## Project tools
 This project was completed using open-source software tools, underpinned by the statistical programming language R. Follow the links below to learn more about the tools used, including installation instructions.
@@ -89,8 +89,64 @@ Script created for Shiny web-based visualization prototype:
 * [Turbidity](https://water.usgs.gov/edu/turbidity.html): The measure of relative clarity of a liquid.
 * [HUC, or Hydrologic Unit Code](https://water.usgs.gov/GIS/huc.html): A unique code identifying a hydrologic unit such as a region, sub-region, watershed, or catchment. Smaller HUC units are nested inside larger HUC units. Analysis for this project, for instance, is at the HUC-10 and HUC-12 levels, with HUC-12 units nested inside HUC-10 units.
 
-## xxxxx
-xxxxx
+## Data download variable definitions
+The project's web-based visualization prototype includes functionality to download CSV files for the investment and outcome data sets used to create the visualizations. Here are definitions for all four of the downloadable data sets:
+
+#### Chum Salmon
+
+* __year:__ Measurement year
+* __site:__ Measurement site and type, corresponding to label used by WA Dept. of Fish & Wildlife
+* __name:__ Measurement site, isolated
+* __project_cat:__ Measurement type, isolated
+* __lon: Measurement site longitude
+* __lat:__ Measurement site latitude
+* __description:__ Measurement site description, taken from WA Dept. of Fish & Wildlife web site
+* __HUC_id:__ Hydrologic Unit Code for measurement site
+* __HUC_Name:__ Hydrologic Unit Name for measurement site
+* __medianyr:__ Median investment project year for HUC containing measurement site
+* __cohensd:__Cohen's D value for measurement site
+* __site_mean_after:__ Mean of measurements after medianyr
+* __site_mean_before:__ Mean of measurements before medianyr
+* __site_sd_before:__ Standard deviation \(SD\) of measurements before medianyr
+* __site_sd_after:__ Standard deviation \(SD\) of measurements after medianyr
+* __var_pooled:__ xxxx
+* __var_cohensd:__ xxxx
+* __sd_cohensd:__ xxxx
+* __wsubi:__ xxxx
+* __wsubixd:__ xxxx
+* __cohensd_huc_mean:__ Mean Cohen's D value of measurements aggregated by HUC
+* __huc_mean_after:__ Mean of measurements after medianyr, aggregated by HUC
+* __huc_mean_before:__ Mean of measurements before medianyr, aggregated by HUC
+* __sum_wsubixd:__ xxxx
+* __sum_wsubi:__ xxxx
+* __cohensd_huc_var:__ Variance of Cohen's D value of measurements aggregated by HUC
+* __cohensd_huc_sd:__ Standard deviation (SD) of Cohen's D value of measurements aggregated by HUC
+* __plus_minus:__ xxxx
+* __TimePeriod:__ Categorical value placing measurement before, during, or after medianyr
+* __Measurement:__ Count at given measurement site in given year
+* __effectsize:__ Categorical value of mean Cohen's D value in given HUC
+* __site_effectsize:__ Categorical value of Cohen's D value at given measurement site
+* __status:__ Categorical value noting change direction of mean Cohen's D value in given HUC
+* __coloreffect:__ HEX code color assignment for given effectsize and status
+* __colorblind:__ HEX code color assignment (colorblind-friendly version) for given effectsize and status
+* __result_type:__ Categorical value denoting outcome variable
+* __unit:__ Unit of measurement, if any
+* __HUC_level:__ Hydrologic Unit Code (HUC) level, either 10 or 12, for given row of data
+* __project_source:__ xxxx
+
+
+
+#### Turbidity
+
+* xxxx
+
+#### TSS
+
+* xxxx
+
+#### Investment
+
+* xxxx
 
 ## Acknowledgments
 We are grateful for the support we've received from our partners:
