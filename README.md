@@ -16,6 +16,7 @@ Any questions or comments can be directed to Leska Fore from the Puget Sound Par
     + [Project investment Data](#project-investment-data-)
     + [Water Quality Data](#water-quality-data-)
     + [Hood Canal Summer Chum Salmon Data](#hood-canal-summer-chum-salmon-data-)
+    + [Hydrologic Unit Shapefile Data](#hydrologic-unit-shapefile-data-)
 - [Project tools](#project-tools)
 - [Usage](#usage)
 - [Key terminology](#key-terminology)
@@ -45,6 +46,11 @@ As mentioned in the Description, the underlying data for the prototype project w
 	* [Strait of Juan de Fuca Summer Chum](https://fortress.wa.gov/dfw/score/score/species/population_details.jsp?stockId=2500)
 	* [Hood Canal Summer Chum](https://fortress.wa.gov/dfw/score/score/species/population_details.jsp?stockId=2300)
 
+#### Hydrologic Unit Shapefile Data
+
+* [U.S. Geological Survey - Watershed Boundary Dataset (WBD)](https://nhd.usgs.gov/wbd.html)
+	* Note: Pacific Northwest region shapefiles are **WBD_17_Shape.zip** \([See XML metadata](ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/Hydrography/WBD/HU2/Shape/WBD_17_Shape.xml)\)
+
 ## Project tools
 This project was completed using open-source software tools, underpinned by the statistical programming language R. Follow the links below to learn more about the tools used, including installation instructions.
 
@@ -62,7 +68,10 @@ This project was completed using open-source software tools, underpinned by the 
 	* [rmapshaper](https://cran.r-project.org/web/packages/rmapshaper/index.html): Edit and simplify 'geojson' and 'Spatial' objects.
 	* [stringr](https://cran.r-project.org/web/packages/stringr/index.html): Simple, consistent wrappers for common string operations
 
-## Usage
+## Tool usage and data pipeline
+
+
+
 Scripts created for data cleaning and analysis pipeline:
 
 * Project investment data: \(final link to come\)
