@@ -75,13 +75,17 @@ This project was completed using open-source software tools, underpinned by the 
 
 Scripts created for data cleaning and analysis pipeline:
 
-* Project investment data: \(final link to come\)
-* Chum salmon data: \(final link to come\)
-* Water quality data: \(final link to come\)
+* Project investment data: https://github.com/katger4/psp-tek/tree/master/investments
+* Chum salmon data: https://github.com/katger4/psp-tek/tree/master/chum
+* Water quality data: https://github.com/katger4/psp-tek/tree/master/water
+
+Scripts created for shapefile processing:
+
+* Shapefile processing: https://github.com/katger4/psp-tek/tree/master/shapefileprep
 
 Script created for Shiny web-based visualization prototype:
 
-* Shiny web app: https://github.com/katger4/psp-tek/blob/master/shinyapp/app.R
+* Shiny web app: https://github.com/katger4/psp-tek/tree/master/shinyapp
 
 ## Key terminology
 
