@@ -7,11 +7,11 @@ source('cohensD_functions.R')
 ph <- readRDS("./data/project_huc.rds")
 
 # read in the chum-huc dataframe, select only columns of interest
-chum_locations <- readRDS("../psp-chum/data/chum_huc.rds") %>%
+chum_locations <- readRDS("../chum/data/chum_huc.rds") %>%
   select(-(Permanent:Line.NR))
 
 # read in the chum-counts dataframe, join with location/huc data
-chum_counts <- readRDS("../psp-chum/data/tidychum.rds") %>%
+chum_counts <- readRDS("../chum/data/tidychum.rds") %>%
   left_join(chum_locations)
 
 # create a HUC-10 investment dataframe, 
