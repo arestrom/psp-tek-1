@@ -57,6 +57,7 @@ This project was completed using open-source software tools, underpinned by the 
 	* [forcats](http://forcats.tidyverse.org/): A suite of useful tools that solve common problems with factors.
 	* [ggplot2](http://ggplot2.tidyverse.org/): A system for declaratively creating graphics.
 	* [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html): Provides bindings for the Geospatial Data Abstraction Library.
+	* [spdplyr](https://cran.r-project.org/web/packages/spdplyr/index.html): Data manipulation verbs for the spatial data classes.
 	* [MazamaSpatialUtils](https://cran.r-project.org/web/packages/MazamaSpatialUtils/index.html): A suite of conversion scripts to create internally standardized spatial polygons dataframes.
 	* [rmapshaper](https://cran.r-project.org/web/packages/rmapshaper/index.html): Edit and simplify 'geojson' and 'Spatial' objects.
 	* [stringr](https://cran.r-project.org/web/packages/stringr/index.html): Simple, consistent wrappers for common string operations
@@ -74,6 +75,7 @@ Script created for Shiny web-based visualization prototype:
 
 ## Key terminology
 
+* [Chum salmon](https://en.wikipedia.org/wiki/Chum_salmon): _Oncorhynchus keta_, a species of anadromous fish in the salmon family.
 * [TSS, or Total Suspended Solids](https://www.ndhealth.gov/WQ/SW/Z6_WQ_Standards/WQ_TSS.htm): Solid materials, including organic and inorganic, that are suspended in the water
 * [Turbidity](https://water.usgs.gov/edu/turbidity.html): The measure of relative clarity of a liquid.
 * [HUC, or Hydrologic Unit Code](https://water.usgs.gov/GIS/huc.html): A unique code identifying a hydrologic unit such as a region, sub-region, watershed, or catchment. Smaller HUC units are nested inside larger HUC units. Analysis for this project, for instance, is at the HUC-10 and HUC-12 levels, with HUC-12 units nested inside HUC-10 units.
