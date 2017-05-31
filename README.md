@@ -98,13 +98,13 @@ The project's web-based visualization prototype includes functionality to downlo
 * __site:__ Measurement site and type, corresponding to label used by WA Dept. of Fish & Wildlife
 * __name:__ Measurement site, isolated
 * __project_cat:__ Measurement type, isolated
-* __lon: Measurement site longitude
+* __lon:__ Measurement site longitude
 * __lat:__ Measurement site latitude
 * __description:__ Measurement site description, taken from WA Dept. of Fish & Wildlife web site
 * __HUC_id:__ Hydrologic Unit Code for measurement site
 * __HUC_Name:__ Hydrologic Unit Name for measurement site
 * __medianyr:__ Median investment project year for HUC containing measurement site
-* __cohensd:__Cohen's D value for measurement site
+* __cohensd:__ Cohen's D value for measurement site
 * __site_mean_after:__ Mean of measurements after medianyr
 * __site_mean_before:__ Mean of measurements before medianyr
 * __site_sd_before:__ Standard deviation \(SD\) of measurements before medianyr
@@ -123,18 +123,16 @@ The project's web-based visualization prototype includes functionality to downlo
 * __cohensd_huc_sd:__ Standard deviation (SD) of Cohen's D value of measurements aggregated by HUC
 * __plus_minus:__ xxxx
 * __TimePeriod:__ Categorical value placing measurement before, during, or after medianyr
-* __Measurement:__ Count at given measurement site in given year
+* __measurement:__ Measurement at given site in given year
 * __effectsize:__ Categorical value of mean Cohen's D value in given HUC
 * __site_effectsize:__ Categorical value of Cohen's D value at given measurement site
 * __status:__ Categorical value noting change direction of mean Cohen's D value in given HUC
 * __coloreffect:__ HEX code color assignment for given effectsize and status
 * __colorblind:__ HEX code color assignment (colorblind-friendly version) for given effectsize and status
-* __result_type:__ Categorical value denoting outcome variable
+* __result_type:__ Categorical value corresponding to variable
 * __unit:__ Unit of measurement, if any
 * __HUC_level:__ Hydrologic Unit Code (HUC) level, either 10 or 12, for given row of data
-* __project_source:__ xxxx
-
-
+* __project_source:__ Categorical variable corresponding to project source (PRISM or EAGL) - _NA for chum salmon data_
 
 #### Turbidity
 
@@ -146,7 +144,20 @@ The project's web-based visualization prototype includes functionality to downlo
 
 #### Investment
 
-* xxxx
+* __year:__ Project investment year
+* __name:__ Project investment name
+* __project_cat:__ Project investment category
+* __lon:__ Project investment site longitude
+* __lat:__ Project investment site latitude
+* __HUC_id:__ Hydrologic Unit Code for project investment site
+* __HUC_Name:__ Hydrologic Unit Name for project investment site
+* __measurement:__ Amount of given project investment
+* __result_type:__ Categorical value corresponding to variable
+* __unit:__ Unit of measurement, if any
+* __HUC_level:__ Hydrologic Unit Code (HUC) level, either 10 or 12, for given row of data
+* __Study_ID:__ Unique ID for project investment
+* __project_source:__ Categorical variable corresponding to project source (PRISM or EAGL)
+* __color:__ HEX code color assignment corresponding to categorical investment value (small, medium, or large)
 
 ## Acknowledgments
 We are grateful for the support we've received from our partners:
