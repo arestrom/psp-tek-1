@@ -8,14 +8,14 @@ Numerous environmental restoration projects have been undertaken throughout the 
 See the prototype at https://ejclarke.shinyapps.io/capstone/.
 
 ## Contact
-Any questions or comments can be directed to Leska Fore from the Puget Sound Partnership at leska&#46;fore@psp&#46;wa&#46;gov.
+Any questions or comments can be directed to Leska Fore from the Puget Sound Partnership at leska.fore@psp.wa.gov.
 
 ## Table of Contents
 
 - [Data Sources](#data-sources)
-    + [Project investment Data:](#project-investment-data-)
-    + [Water Quality Data:](#water-quality-data-)
-    + [Hood Canal Summer Chum Salmon Data:](#hood-canal-summer-chum-salmon-data-)
+    + [Project investment Data](#project-investment-data-)
+    + [Water Quality Data](#water-quality-data-)
+    + [Hood Canal Summer Chum Salmon Data](#hood-canal-summer-chum-salmon-data-)
 - [Project tools](#project-tools)
 - [Usage](#usage)
 - [Key terminology](#key-terminology)
