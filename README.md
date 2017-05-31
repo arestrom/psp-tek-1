@@ -20,7 +20,11 @@ Any questions or comments can be directed to Leska Fore from the Puget Sound Par
 - [Project tools](#project-tools)
 - [Usage](#usage)
 - [Key terminology](#key-terminology)
-- [xxxxx](#xxxxx)
+- [Data download variable definitions](#data-download-variable-definitions)
+	+ [Chum Salmon](#chum-salmon)
+	+ [TSS](#tss)
+	+ [Turbidity](#turbidity)
+	+ [Investment](#investment)
 - [Acknowledgments](#acknowledgments)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
@@ -49,7 +53,7 @@ As mentioned in the Description, the underlying data for the prototype project w
 #### Hydrologic Unit Shapefile Data
 
 * [U.S. Geological Survey - Watershed Boundary Dataset (WBD)](https://nhd.usgs.gov/wbd.html)
-	* Note: Pacific Northwest region shapefiles are **WBD_17_Shape.zip**. [See XML metadata](ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/Hydrography/WBD/HU2/Shape/WBD_17_Shape.xml).
+	* Note: Click **Get WBD Data** link --> **HU2/** --> **Shape/**. The Pacific Northwest region shapefiles are **WBD_17_Shape.zip**.
 
 ## Project tools
 This project was completed using open-source software tools, underpinned by the statistical programming language R. Follow the links below to learn more about the tools used, including installation instructions.
@@ -69,8 +73,6 @@ This project was completed using open-source software tools, underpinned by the 
 	* [stringr](https://cran.r-project.org/web/packages/stringr/index.html): Simple, consistent wrappers for common string operations
 
 ## Tool usage and data pipeline
-
-
 
 Scripts created for data cleaning and analysis pipeline:
 
