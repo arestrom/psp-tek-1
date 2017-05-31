@@ -16,10 +16,10 @@ As mentioned in the Description, the underlying data for the prototype project w
 
 #### Project investment Data:
 
-*[Ecology's Administration of Grants and Loans (EAGL) Investment Projects](http://www.ecy.wa.gov/funding/EAGL.html):
-	*Note: Access to data requires log-in
-*[PRoject Information SysteM (PRISM) Investment Projects](http://www.rco.wa.gov/prism_app/about_prism.shtml)
-	*Note: Access to data requires log-in
+* [Ecology's Administration of Grants and Loans (EAGL) Investment Projects](http://www.ecy.wa.gov/funding/EAGL.html):
+	* Note: Access to data requires log-in
+* [PRoject Information SysteM (PRISM) Investment Projects](http://www.rco.wa.gov/prism_app/about_prism.shtml)
+	* Note: Access to data requires log-in
 
 #### Water Quality Data:
 
@@ -73,9 +73,3 @@ We are grateful for the support we've received from our partners:
 * Leska Fore, [Puget Sound Partnership](http://www.psp.wa.gov/)
 * Keith Dublanica, [Governor's Salmon Recovery Office](http://www.rco.wa.gov/salmon_recovery/gsro.shtml)
 * Chantell Krider, [South Sound Spatial](https://www.southsoundspatial.com/)
-
-
-    [bug]     /"*._         _
-          .-*'`    `*-.._.-'/
-        < * ))     ,       ( 
-          `*-._`._(__.--*"`.\
