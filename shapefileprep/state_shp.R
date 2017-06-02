@@ -5,8 +5,10 @@ source("shp2r.R")
 WAstate_simplified_huc8 <- shp2r('Hydrologic_Accounting_Units_8_digit_HUC', simplify = TRUE)
 saveRDS(WAstate_simplified_huc8, "../shinyapp/data/WAhuc8.rds")
 
-WAstate_huc12 <- shp2r('WBDHU12', simplify = FALSE)
-saveRDS(WAstate_huc12, "../shinyapp/data/WAhuc12.rds")
+# HUC 12 shapefile includes entire PNW region (not yet limited to WA state)
+# WAstate_huc12 <- shp2r('WBDHU12', simplify = FALSE)
+# # WAstate_huc12 <- shp2r('WBDHU12', simplify = TRUE)
+# saveRDS(WAstate_huc12, "../shinyapp/data/WAhuc12.rds")
 
 # plot(WAstate_simplified_huc8)
 leaflet() %>% 
