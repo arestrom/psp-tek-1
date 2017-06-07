@@ -18,7 +18,7 @@ Any questions or comments can be directed to Leska Fore from the Puget Sound Par
     + [Hood Canal Summer Chum Salmon Data](#hood-canal-summer-chum-salmon-data)
     + [Hydrologic Unit Shapefile Data](#hydrologic-unit-shapefile-data)
 - [Project tools](#project-tools)
-- [Usage](#usage)
+- [Tool usage and data pipeline](#tool-usage-and-data-pipeline)
 - [Key terminology](#key-terminology)
 - [Data download variable definitions](#data-download-variable-definitions)
 	+ [Chum Salmon](#chum-salmon)
@@ -73,19 +73,41 @@ This project was completed using open-source software tools, underpinned by the 
 
 ## Tool usage and data pipeline
 
+**Note: Bold** scripts are used in current application.
+
 Scripts created for data cleaning and analysis pipeline:
 
 * Project investment data: https://github.com/katger4/psp-tek/tree/master/investments
+	* __hoodcanal_investments.R:__ Tidy and merge EAGL and PRISM project data; assign HUC-10 and HUC-12 values to all projects using addHUC function.
+	* __cohensD_functions.R:__ Functions to apply Cohen's D calculations and categorizations to chum salmon, turbidity, and TSS outcomes, aggregated by HUC.
+	* __combine_data.R:__ Connect chum salmon and water quality measures to investments at HUC-10 and HUC-12 levels, using median investment year calculation; calculate Cohen's D values for each outcome using cohensD_functions.R functions; merge all data and save as RDS for input to Shiny app.
+	* all_map.R: Test code for integrating investments and outcome data into Leaflet.
+	* state_hws.R: Example of integration of statewide Habitat Work Schedule (HWS) project data into pipeline, showing scalability.
+	* combine_state_data.R: Example of visualization of statewide HWS investments and water quality outcomes, showing scalability.
+	
 * Chum salmon data: https://github.com/katger4/psp-tek/tree/master/chum
+	* __chum_loc_and_counts.R:__ Loads, prepares chum salmon geospatial and measurement data for use in pipeline; assigns HUC-10 and HUC-12 values to all sites.
+	
 * Water quality data: https://github.com/katger4/psp-tek/tree/master/water
+	* __water.R:__ Loads, prepares TSS and turbidity data for use in pipeline; assigns HUC-10 and HUC-12 values to all data.
+	* __addHUC.R:__ Function to add HUC-10 and HUC-12 values based on lat-lon; uses MazamaSpatialUtils package.
+	* state_turbidity.R: Example of integration of statewide turbidity data into pipeline, showing scalability.
+	* water_EDA.R: Exploratory Data Analysis on water quality measures.
+	* water_maps.R: Visualizations based on initial water quality EDA.
 
 Scripts created for shapefile processing:
 
 * Shapefile processing: https://github.com/katger4/psp-tek/tree/master/shapefileprep
+	* __hood_canal_shp.R:__ Preparation of Hood Canal HUC-10 and HUC-12 shapefiles for integration into Leaflet and Shiny app; uses shp2r.R function.
+	* __shp2r.R:__ Function to convert each HUC-level shapefile into a SpatialPolygonsDataFrame.
+	* state_shp.R: Example of extension of shapefile conversion and plotting with Leaflet; showing scalability.
 
-Script created for Shiny web-based visualization prototype:
+Scripts created for Shiny web-based visualization prototype:
 
 * Shiny web app: https://github.com/katger4/psp-tek/tree/master/shinyapp
+	* __app.R:__ Shiny app code for creating interactive web application visualizations.
+	* about.html: HTML code that is integrated into Shiny app "About" tab.
+	* state_tab.R: Example code to create Shiny app/tab showing statewide turbidity Cohen's D data.
 
 ## Key terminology
 
