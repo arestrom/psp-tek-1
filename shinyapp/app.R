@@ -6,6 +6,9 @@ library(stringr)
 library(scales)
 
 df <- readRDS("./data/all-dfs.rds")
+# rename "Chum Salmon" to "Summer Chum"
+df$result_type[df$result_type == "Chum Salmon"] <- "Summer Chum"
+
 
 ui <- navbarPage(theme = shinytheme("sandstone"),
                  "Effectiveness and Evaluation Tool",
@@ -19,7 +22,7 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                               br(),
                               radioButtons(inputId = "mapfeatures1",
                                            label = "Select variable:",
-                                           c("Chum Salmon", "Turbidity", "TSS", "Investment")),
+                                           c("Summer Chum", "Turbidity", "TSS", "Investment")),
                               # select HUC level
                               radioButtons(inputId = "huclevel",
                                            label = "Watershed size:",
@@ -34,7 +37,7 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                               br(),
                               br(),
                               selectInput("result_type", "Choose dataset:", 
-                                          choices = c("Chum Salmon", "Turbidity", "TSS", "Investment")),
+                                          choices = c("Summer Chum", "Turbidity", "TSS", "Investment")),
                               downloadButton('downloadData', 'Download', style='padding:4px; font-size:80%;'),
                               # br(),
                               # br(),
@@ -60,6 +63,7 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                             ),
                             # map output
                             mainPanel(
+                              # hide errors
                               tags$style(type="text/css",
                                          ".shiny-output-error { visibility: hidden; }",
                                          ".shiny-output-error:before { visibility: hidden; }"
@@ -68,7 +72,7 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                               splitLayout(cellWidths = c("52%", "1%", "47%"),
                               leafletOutput("hucmap",
                                                     height = 600
-                                                    # width = 550
+                                                  
                                             ),
                               br(),
                             plotOutput("inv_plot",
@@ -117,11 +121,10 @@ server <- function(input, output, session) {
   
   # reactive df for those features in the input
 
-  
-  
+  # if you want to filter on natural/hatchery chum count, you can do that here 
   df1 <- df[df$HUC_id %in% huc10_df$HUC10 | df$HUC_id %in% huc12_df$HUC12, ]
   df1 <- subset(df1, !is.null(df1$measurement))
-  df1$project_source[df1$result_type == "Chum Salmon"] <- "River Mouths"
+  df1$project_source[df1$result_type == "Summer Chum"] <- "River Mouths"
   
   df1$color[df1$project_source == "PRISM"] <- "#454546" 
   df1$color[df1$project_source == "EAGL"] <-  "#838284"
@@ -213,7 +216,7 @@ river_popup <- reactive({
 cb_output <- reactive({input$colorblind})
 
 # filter project points by result type
-factor_df <- subset(df1, result_type %in% c("Chum Salmon", "Investment"))
+factor_df <- subset(df1, result_type %in% c("Summer Chum", "Investment"))
 proj_df <- reactive({subset(factor_df, project_source %in% input$projects)})
 
 # dynamically create the fill color for hucmap
@@ -282,7 +285,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
                                                # create dynamic legend title based on map features
                                                title = ifelse(input$mapfeatures1 == "Investment", 
                                                               paste("Total Investment"),
-                                                              ifelse(input$mapfeatures1 == "Chum Salmon",
+                                                              ifelse(input$mapfeatures1 == "Summer Chum",
                                                               paste('Change in',
                                                                     br(),
                                                              input$mapfeatures1),
@@ -297,6 +300,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
    eagl_prism <- reactive({subset(proj_df(), project_source %in% c("EAGL", "PRISM"))})
    chum_points <- reactive({subset(proj_df(), project_source %in% c("River Mouths"))})
    
+   # points
    observe({
      # clear all markers if nothing is selected in projects  
      if(is.null(input$projects)){
@@ -406,9 +410,9 @@ clickdata <- reactiveValues(clickedShape = NULL)
    clicked_feat <- reactive({subset(clicked_mid(), result_type %in% input$mapfeatures1)})
    
    # aggregate by year
-   # if Chum Salmon, get the total
+   # if Summer Chum, get the total
    # if water quality or investements, get the average
-   clicked_year <- reactive({if(input$mapfeatures1 == "Chum Salmon"){
+   clicked_year <- reactive({if(input$mapfeatures1 == "Summer Chum"){
      aggregate(measurement ~ year, clicked_feat(), "sum")} else{
        aggregate(measurement ~ year, clicked_feat(), "mean") }
      })
@@ -478,6 +482,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
   # find the total investments per year for that HUC
   clicked_inv <- reactive({aggregate(measurement ~ year, clicked_inv_huc(), "sum")})
   
+# map features data
   # subset the dataframe containing the selected variables
   # again, we're using 2002 because we only have investment data from 2003 onwards
   mid_year_sub <- reactive({subset(reactive_subset(), year > "2002")})
@@ -485,7 +490,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
   year_sub <- reactive({subset(mid_year_sub(), HUC_level %in% input$huclevel)})
   # this is for the overall line graph; it contains the total (for salmon) 
   # or the average (for everything else) across all HUCs 
-  measure_year <- reactive({if(input$mapfeatures1 == "Chum Salmon"){
+  measure_year <- reactive({if(input$mapfeatures1 == "Summer Chum"){
     aggregate(measurement ~ year, year_sub(), "sum")} else {
       aggregate(measurement ~ year, year_sub(), "mean")
     }})
@@ -612,14 +617,14 @@ clickdata <- reactiveValues(clickedShape = NULL)
         # labels function formats the thousands with a comma
         scale_y_continuous(breaks = pretty_breaks(6), labels = comma) +
         # create labels for y-axis and title
-        labs(y = if(input$mapfeatures1 == "Chum Salmon"){
-               "Chum Salmon (Number)"
+        labs(y = if(input$mapfeatures1 == "Summer Chum"){
+               "Summer Chum (Number)"
              } else if(input$mapfeatures1 == "Investment"){
                paste("Average", input$mapfeatures1, "($M)")} else{
                paste(sep = "", "Average ", input$mapfeatures1, " (", reactive_subset()$unit,")")
              },
-             title = if(input$mapfeatures1 == "Chum Salmon"){ 
-               "Adult Chum Salmon"} else if(input$mapfeatures1 == "Investment"){
+             title = if(input$mapfeatures1 == "Summer Chum"){ 
+               "Summer Chum"} else if(input$mapfeatures1 == "Investment"){
                  paste("Average Investment Per Project")
                } else {
                  paste("Average", input$mapfeatures1)
@@ -646,8 +651,8 @@ clickdata <- reactiveValues(clickedShape = NULL)
                     size = 6,
                     fontface = "italic") +
           labs(
-          title = if(input$mapfeatures1 == "Chum Salmon"){ 
-            "Adult Chum Salmon"} else if(input$mapfeatures1 == "Investment"){
+          title = if(input$mapfeatures1 == "Summer Chum"){ 
+            "Summer Chum"} else if(input$mapfeatures1 == "Investment"){
               paste("Average Investment Per Project")
             } else {
               paste("Average", input$mapfeatures1)
@@ -673,14 +678,14 @@ clickdata <- reactiveValues(clickedShape = NULL)
           scale_x_continuous(breaks = pretty_breaks(nrow(measure_year())),
                              limits = c(2003, 2016)) +
           scale_y_continuous(breaks = pretty_breaks(6), labels = comma) +
-          labs(y = if(input$mapfeatures1 == "Chum Salmon"){
-            "Chum Salmon (Number)"
+          labs(y = if(input$mapfeatures1 == "Summer Chum"){
+            "Summer Chum (Number)"
           } else if(input$mapfeatures1 == "Investment"){
             paste("Average", input$mapfeatures1, "($M)")} else{
               paste(sep = "", "Average ", input$mapfeatures1, " (", reactive_subset()$unit,")")
             },
-          title = if(input$mapfeatures1 == "Chum Salmon"){ 
-            "Adult Chum Salmon"} else if(input$mapfeatures1 == "Investment"){
+          title = if(input$mapfeatures1 == "Summer Chum"){ 
+            "Summer Chum"} else if(input$mapfeatures1 == "Investment"){
               paste("Average Investment Per Project")
             } else {
               paste("Average", input$mapfeatures1)
@@ -854,7 +859,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
          </li>
          </ul>
          </p>
-         <p>Hood Canal Summer Chum Salmon Data:
+         <p>Hood Canal Summer Summer Chum Data:
          <ul>
          <li>Washington State Department of Fish and Wildlife
          <ul>
