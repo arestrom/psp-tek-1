@@ -1,9 +1,19 @@
+#===============================================================================================
+# Shinyapps.io link: https://ejclarke.shinyapps.io/capstone/
+#
+#===============================================================================================
+
+
 library(shiny)
 library(leaflet)
 library(shinythemes)
 library(tidyverse)
 library(stringr)
 library(scales)
+library(gtable)
+library(grid)
+library(gridExtra)
+library(gridBase)
 
 df <- readRDS("./data/all-dfs.rds")
 # rename "Chum Salmon" to "Summer Chum"
@@ -16,6 +26,7 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                  tabPanel("Map View",
                           sidebarLayout(
                             sidebarPanel(
+                              #img(src = "eet-banner.png", width = "100%"),
                               HTML("<img src = 'eet-banner.png' width = '100%'/>"),
                               # select features to view effects
                               br(),
@@ -36,7 +47,7 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                               actionButton("button", "Reset graphs", style='padding:4px; font-size:80%'),
                               br(),
                               br(),
-                              selectInput("result_type", "Choose dataset:", 
+                              selectInput("result_type", "Choose dataset:",
                                           choices = c("Summer Chum", "Turbidity", "TSS", "Investment")),
                               downloadButton('downloadData', 'Download', style='padding:4px; font-size:80%;'),
                               # br(),
@@ -58,7 +69,7 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                               br(),
                               HTML("<img src = 'odl-logo.png' width = '100%'/>"),
 
-                              
+
                               width = 2
                             ),
                             # map output
@@ -72,7 +83,7 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                               splitLayout(cellWidths = c("52%", "1%", "47%"),
                               leafletOutput("hucmap",
                                                     height = 600
-                                                  
+
                                             ),
                               br(),
                             plotOutput("inv_plot",
@@ -88,8 +99,8 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                             br(),
                             br(),
                             width = 9
-                            
-                              
+
+
                             #renderText("click_text"))
                           ))
                           )),
@@ -104,29 +115,29 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                   mainPanel(
                   wellPanel(
                     uiOutput("about")
-                  ), 
+                  ),
                   width = 10))
                  )
-                 
-                 
+
+
 )
 
 
 server <- function(input, output, session) {
-  
+
 ### map code ###
   # read in the shapefiles
   huc10_df <- readRDS("./data/huc10.rds")
   huc12_df <- readRDS("./data/huc12.rds")
-  
+
   # reactive df for those features in the input
 
-  # if you want to filter on natural/hatchery chum count, you can do that here 
+  # if you want to filter on natural/hatchery chum count, you can do that here
   df1 <- df[df$HUC_id %in% huc10_df$HUC10 | df$HUC_id %in% huc12_df$HUC12, ]
   df1 <- subset(df1, !is.null(df1$measurement))
   df1$project_source[df1$result_type == "Summer Chum"] <- "River Mouths"
-  
-  df1$color[df1$project_source == "PRISM"] <- "#454546" 
+
+  df1$color[df1$project_source == "PRISM"] <- "#454546"
   df1$color[df1$project_source == "EAGL"] <-  "#838284"
   #df1$color[df1$project_source == "HWS"] <- "#636264"
 
@@ -138,10 +149,10 @@ server <- function(input, output, session) {
                        choiceNames = list(HTML("<div>PRISM projects <img src = 'darklegend.png'/></div>"),
                                           HTML("<div>EAGL projects <img src = 'lightlegend.png'/></div>"),
                                           HTML("<div>Chum sites <img src = 'squarelegend.png'/></div>")),
-                       choiceValues = list("PRISM", 
-                                           "EAGL", 
+                       choiceValues = list("PRISM",
+                                           "EAGL",
                                            "River Mouths"))
-  })  
+  })
   # update to null on HUC level change
     observeEvent(input$huclevel, {
       updateCheckboxGroupInput(session,
@@ -150,8 +161,8 @@ server <- function(input, output, session) {
                          choiceNames = list(HTML("<div>PRISM projects <img src = 'darklegend.png'/></div>"),
                                             HTML("<div>EAGL projects <img src = 'lightlegend.png'/></div>"),
                                             HTML("<div>Chum sites <img src = 'squarelegend.png'/></div>")),
-                         choiceValues = list("PRISM", 
-                                             "EAGL",  
+                         choiceValues = list("PRISM",
+                                             "EAGL",
                                              "River Mouths"),
                          selected = NULL)
     })
@@ -163,13 +174,13 @@ server <- function(input, output, session) {
                                choiceNames = list(HTML("<div>PRISM projects <img src = 'darklegend.png'/></div>"),
                                                   HTML("<div>EAGL projects <img src = 'lightlegend.png'/></div>"),
                                                   HTML("<div>Chum sites <img src = 'squarelegend.png'/></div>")),
-                               choiceValues = list("PRISM", 
-                                                   "EAGL", 
+                               choiceValues = list("PRISM",
+                                                   "EAGL",
                                                    "River Mouths"),
                                selected = NULL)
     })
 
-  
+
 # define reactive df based on mapfeatures1 input
 reactive_subset <- reactive({subset(df1, result_type %in% input$mapfeatures1)})
 
@@ -183,28 +194,28 @@ huc_df <- reactive({mid_df()[!duplicated(mid_df()$HUC_id),]})
 shapefile <- reactive({
   # HUC 10 dataframe
   if(10 %in% input$huclevel){
-    huc10_df <- sp::merge(x = huc10_df, y = huc_df()[ , c("HUC_id", 
-                                                      "medianyr", 
-                                                      "cohensd_huc_mean", 
-                                                      "TimePeriod", 
-                                                      "effectsize", 
-                                                      "status", 
+    huc10_df <- sp::merge(x = huc10_df, y = huc_df()[ , c("HUC_id",
+                                                      "medianyr",
+                                                      "cohensd_huc_mean",
+                                                      "TimePeriod",
+                                                      "effectsize",
+                                                      "status",
                                                       "coloreffect",
                                                       "colorblind")], by.x = "HUC10", by.y = "HUC_id", all.x=TRUE, duplicateGeoms = TRUE)
   } else{
     #HUC 12 dataframe
-    huc12_df <- sp::merge(x = huc12_df, y = huc_df()[ , c("HUC_id", 
-                                                      "medianyr", 
-                                                      "cohensd_huc_mean", 
-                                                      "TimePeriod", 
-                                                      "effectsize", 
-                                                      "status", 
+    huc12_df <- sp::merge(x = huc12_df, y = huc_df()[ , c("HUC_id",
+                                                      "medianyr",
+                                                      "cohensd_huc_mean",
+                                                      "TimePeriod",
+                                                      "effectsize",
+                                                      "status",
                                                       "coloreffect",
                                                       "colorblind")], by.x = "HUC12", by.y = "HUC_id", all.x=TRUE, duplicateGeoms = TRUE)
   }
 })
 
- 
+
 # popup for river mouths
 river_popup <- reactive({
   paste("Mouth of",
@@ -237,12 +248,12 @@ fill_opacity <- reactive({if(input$mapfeatures1 == "Investment"){
     ifelse(is.na(shapefile()$coloreffect), 0, .7)}})
 
 # initiate clickdata$clickedShape as NULL
-# NOTE: this MUST be initiated before the map for 
+# NOTE: this MUST be initiated before the map for
 # clicking on HUCs to work
 clickdata <- reactiveValues(clickedShape = NULL)
 
 # create the HUC map
-   output$hucmap <- renderLeaflet( m <-  leaflet() %>% 
+   output$hucmap <- renderLeaflet( m <-  leaflet() %>%
                                          setView(lng = -122.91, lat = 47.775, zoom = 9) %>%
                                          addProviderTiles("Stamen.Terrain",
                                                           # prevent the user from zooming out too far
@@ -277,13 +288,13 @@ clickdata <- reactiveValues(clickedShape = NULL)
                                                   # investment OR measurement labels based on input
                                                labels = if(input$mapfeatures1 == "Investment"){
                                                           c("small", "medium", "large")
-                                                        } else{ 
-                                                          c('large improvement', 'small improvement', 'no change', 
+                                                        } else{
+                                                          c('large improvement', 'small improvement', 'no change',
                                                             'small decline', 'large decline')
                                                         },
                                                position = 'topright',
                                                # create dynamic legend title based on map features
-                                               title = ifelse(input$mapfeatures1 == "Investment", 
+                                               title = ifelse(input$mapfeatures1 == "Investment",
                                                               paste("Total Investment"),
                                                               ifelse(input$mapfeatures1 == "Summer Chum",
                                                               paste('Change in',
@@ -291,18 +302,18 @@ clickdata <- reactiveValues(clickedShape = NULL)
                                                              input$mapfeatures1),
                                                              paste("Change in",
                                                                    input$mapfeatures1)
-                                                             )), 
+                                                             )),
                                                # match legend opacity to opacity of polygons
                                                opacity = .7)
   )
-   
+
    # subset projects into project source dataframes for easier plotting
    eagl_prism <- reactive({subset(proj_df(), project_source %in% c("EAGL", "PRISM"))})
    chum_points <- reactive({subset(proj_df(), project_source %in% c("River Mouths"))})
-   
+
    # points
    observe({
-     # clear all markers if nothing is selected in projects  
+     # clear all markers if nothing is selected in projects
      if(is.null(input$projects)){
        leafletProxy("hucmap") %>%
          clearMarkers()
@@ -327,9 +338,9 @@ clickdata <- reactiveValues(clickedShape = NULL)
                 icon = ~fishIcon,
                 # use the popup defined above
                 popup = river_popup()
-                ) 
+                )
     }
-   
+
    })
 
    # create an icon for the fish measurement sites
@@ -340,7 +351,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
                         iconWidth = 7, iconHeight = 7,
                         iconAnchorX = 5, iconAnchorY = 5)
 
-   
+
    # variable that defines the text for the HUC popup
    popup_content <- reactive({
      paste(sep = "",
@@ -348,9 +359,9 @@ clickdata <- reactiveValues(clickedShape = NULL)
            "<b>HUC: </b>",
            print(shapefile()$Name)
            )
-    
+
    })
-   
+
    # variable that defines the text for the project popup
    projectpopup <- reactive({
      # CSS keeps text from stretching the popup and forcing a scroll bar
@@ -361,54 +372,54 @@ clickdata <- reactiveValues(clickedShape = NULL)
            br(),
            print(proj_df()$name))
    })
-   
-   
+
+
    ################################################
    # BEGIN CODE TO ALLOW LINKING GRAPHS TO HUCMAP #
-   
+
    # define clickdata$clickedShape as the ID from the clicked HUC
    # this ID will be whatever you define it as in the map code
    # in this case, it's the HUC name
    observeEvent(input$hucmap_shape_click, {
      clickdata$clickedShape <- input$hucmap_shape_click$id
    })
-   
+
    # clear the clickedShape if the user clicks outside
    # the borders of a HUC
    observeEvent(input$hucmap_click, {
      clickdata$clickedShape <- NULL
    })
-   
+
    # clear the clickedShape if the user changes the features to view
    observeEvent(input$mapfeatures1, {
      clickdata$clickedShape <- NULL
    })
-   
+
    # clear the clickedShape if the user switches betwee HUC levels
    observeEvent(input$huclevel, {
      clickdata$clickedShape <- NULL
    })
-   
+
    # clear the clickedShape if the user clicks the RESET button
    observeEvent(input$button, {
      clickdata$clickedShape <- NULL
    })
-   
+
    # subset the dataframe that has HUCs from the select level
    # to include only that HUC that has been clicked on
    # we're matching HUC_Name to the layer ID from the hucmap
    clicked_sub <- reactive({
      subset(mid_df(), HUC_Name == clickdata$clickedShape)
    })
-  
+
    # filter to include only 2003 onwards
    # this is because we only have investment data from 2003 - 2016
    # and we want the x-axes to match up
    clicked_mid <- reactive({subset(clicked_sub(), year > "2002")})
-   
+
    # subset to include only the result type indicated in the radio button input
    clicked_feat <- reactive({subset(clicked_mid(), result_type %in% input$mapfeatures1)})
-   
+
    # aggregate by year
    # if Summer Chum, get the total
    # if water quality or investements, get the average
@@ -418,11 +429,11 @@ clickdata <- reactiveValues(clickedShape = NULL)
      })
 
    # END LINKING CODE #
-   ################################################  
-  
+   ################################################
+
 
 ### investment code
-  
+
   # subset the original dataframe to only show Investment data
   only_inv <- subset(df1, result_type == "Investment")
   # find the total investment for each HUC
@@ -431,21 +442,21 @@ clickdata <- reactiveValues(clickedShape = NULL)
   avg_df <- aggregate(measurement ~ HUC_id, only_inv, "mean")
   # count the number of projects in each HUC
   count_inv <- aggregate(name ~ HUC_id, only_inv, function(x){NROW(x)})
-  
+
   # merge the above dataframes
   inv_subset <- merge(only_inv, group_inv, by = "HUC_id")
   inv_subset <- merge(inv_subset, count_inv, by = "HUC_id")
   inv_subset <- merge(inv_subset, avg_df, by = "HUC_id")
   # remove NAs
   inv_subset <- subset(inv_subset, !is.na(inv_subset$measurement.y))
-  
+
   # create new dataframe with only these columns
   new_inv <- subset(inv_subset, select = c("HUC_id", "HUC_level", "measurement.y", "name.x", "HUC_Name", "measurement"))
   # rename columns so they're easier to call
   new_inv <- rename(new_inv, totalinv = measurement.y, projectcount = name.x, avginv = measurement)
   # remove all duplicates (one set of measurements per HUC)
-  new_inv <- new_inv[!duplicated(new_inv$HUC_id),] 
-  
+  new_inv <- new_inv[!duplicated(new_inv$HUC_id),]
+
   # subset investment dataframe based on HUC level input
   shape_inv <- reactive({
     if("10" %in% input$huclevel){
@@ -454,13 +465,13 @@ clickdata <- reactiveValues(clickedShape = NULL)
       inv_12 <- sp::merge(x = huc12_df, y = new_inv, by.x = "HUC12", by.y = "HUC_id", all.x=TRUE, duplicateGeoms = TRUE)
     }
   })
-    
+
   # color variables for the investment map
   var_inv <- reactive({shape_inv()$totalinv})
   invcolor <- reactive({colorQuantile("Blues", shape_inv()$totalinv, n = 3)})
-  
+
   # subset for the investment graphs
-  # if the user has selected one of the project sources, 
+  # if the user has selected one of the project sources,
   # subset to only include that source; else, show all projects
   inv_year_mid <- reactive({
       if ("PRISM" %in% input$projects | "EAGL" %in% input$projects) {
@@ -468,33 +479,33 @@ clickdata <- reactiveValues(clickedShape = NULL)
       } else {
         only_inv}
     })
-  
+
   # subset only one set of HUCs
   # since this is for total, you could use HUC10 or HUC12;
   # we just want the total investements per year
   inv_middle <- reactive({subset(inv_year_mid(), HUC_level == "10")})
   # get the total per year
   inv_by_year <- reactive({aggregate(measurement ~ year, inv_middle(), "sum")})
-  
+
   # subset the reactive dataframe created in line 461
   # to only include the HUC that the user clicks on
   clicked_inv_huc <- reactive({subset(inv_year_mid(), HUC_Name == clickdata$clickedShape)})
   # find the total investments per year for that HUC
   clicked_inv <- reactive({aggregate(measurement ~ year, clicked_inv_huc(), "sum")})
-  
+
 # map features data
   # subset the dataframe containing the selected variables
   # again, we're using 2002 because we only have investment data from 2003 onwards
   mid_year_sub <- reactive({subset(reactive_subset(), year > "2002")})
   # subset based on HUC level
   year_sub <- reactive({subset(mid_year_sub(), HUC_level %in% input$huclevel)})
-  # this is for the overall line graph; it contains the total (for salmon) 
-  # or the average (for everything else) across all HUCs 
+  # this is for the overall line graph; it contains the total (for salmon)
+  # or the average (for everything else) across all HUCs
   measure_year <- reactive({if(input$mapfeatures1 == "Summer Chum"){
     aggregate(measurement ~ year, year_sub(), "sum")} else {
       aggregate(measurement ~ year, year_sub(), "mean")
     }})
-  
+
   # create an empty dataframe to be called in geom_empty() below
   # this will allow for a blank graph to show when there is no current
   # data to graph
@@ -600,7 +611,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
                 axis.title.x = element_blank(),
                 axis.title.y = element_text(size = 14))
       }
-        
+
       # create line graph
       totalline <- if(is.null(clickdata$clickedShape)){
         # if no HUCs have been clicked
@@ -608,7 +619,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
           aes(x = year,
               # divide by a million for investments only
               y = if(input$mapfeatures1 == "Investment"){measurement/1000000} else {measurement})) +
-          
+
         geom_point() +
         geom_line() +
         # this must stay the same as the x-axis in the bar graph for them to line up
@@ -623,7 +634,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
                paste("Average", input$mapfeatures1, "($M)")} else{
                paste(sep = "", "Average ", input$mapfeatures1, " (", reactive_subset()$unit,")")
              },
-             title = if(input$mapfeatures1 == "Summer Chum"){ 
+             title = if(input$mapfeatures1 == "Summer Chum"){
                "Summer Chum"} else if(input$mapfeatures1 == "Investment"){
                  paste("Average Investment Per Project")
                } else {
@@ -651,7 +662,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
                     size = 6,
                     fontface = "italic") +
           labs(
-          title = if(input$mapfeatures1 == "Summer Chum"){ 
+          title = if(input$mapfeatures1 == "Summer Chum"){
             "Summer Chum"} else if(input$mapfeatures1 == "Investment"){
               paste("Average Investment Per Project")
             } else {
@@ -684,7 +695,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
             paste("Average", input$mapfeatures1, "($M)")} else{
               paste(sep = "", "Average ", input$mapfeatures1, " (", reactive_subset()$unit,")")
             },
-          title = if(input$mapfeatures1 == "Summer Chum"){ 
+          title = if(input$mapfeatures1 == "Summer Chum"){
             "Summer Chum"} else if(input$mapfeatures1 == "Investment"){
               paste("Average Investment Per Project")
             } else {
@@ -699,16 +710,15 @@ clickdata <- reactiveValues(clickedShape = NULL)
                 axis.title.x = element_blank(),
                 axis.title.y = element_text(size = 14))
       }
-      
+
             # create a grid that calls the two graphs on top of one another
             # substituting cbind for rbind will give you two graphs side by side
-            grid::grid.draw(gridExtra:::rbind_gtable(ggplotGrob(totalline),ggplotGrob(totalbar)))
-      
-      
+            # grid::grid.draw(gridExtra:::rbind_gtable(ggplotGrob(totalline),ggplotGrob(totalbar)))
+            grid::grid.draw(gridExtra:::gtable_rbind(ggplotGrob(totalline),ggplotGrob(totalbar)))
   })
-  
+
 ## COHEN'S D ##
-  
+
   # subset original dataframe, removing NAs
   sub_cd <- subset(df1, !is.na(df$cohensd_huc_mean))
   # only use HUCs that have a color (this means they have a Cohen's D)
@@ -721,11 +731,11 @@ clickdata <- reactiveValues(clickedShape = NULL)
   cd_sub <- reactive({aggregate(cohensd_huc_mean ~ HUC_Name, mid_cd(), "mean")})
   # subset for the highlighted bar - the HUC that's been clicked
   highlight_bar <- reactive({subset(cd_sub(), HUC_Name == clickdata$clickedShape)})
-  
+
   # define improvement/decline based on the Cohen's D value
-  pos_neg <- reactive({ifelse(cd_sub()$cohensd_huc_mean >= .2, 
+  pos_neg <- reactive({ifelse(cd_sub()$cohensd_huc_mean >= .2,
                               ifelse(cd_sub()$cohensd_huc_mean >= .8,
-                                     "big_improvement", 
+                                     "big_improvement",
                                      "small_improvement"),
                               ifelse(cd_sub()$cohensd_huc_mean <= -.8,
                                      "large_decline",
@@ -733,7 +743,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
                                             "no_change",
                                             "small_decline"))
 )})
-  
+
   # this doesn't make sense, but just assigning the variable doesn't
   # work, so leave it as an ifelse
   hi_color <- reactive({ifelse(highlight_bar()$cohensd_huc_mean >= .2,
@@ -748,7 +758,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
     # colorblind friendly
     else{c(hi_color = "black", big_improvement = "#4dac26", small_improvement = "#b8e186", no_change = "#f7f7f7", small_decline = "#f1b6da", large_decline = "#d01c8b")}
   })
- 
+
   # create Cohen's D graph
   output$cohensd_plot <- renderPlot({
     ggplot() +
@@ -769,7 +779,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
                         # this SHOULD display every possible color in the legend, but it isn't working
                         drop = FALSE) +
       # graph the highlight bar
-      # this is actually creating a second complete set of bars 
+      # this is actually creating a second complete set of bars
       # over the top of the first
       # but we set the alpha to 0 so you can't see them
       geom_col(data = highlight_bar(),
@@ -781,7 +791,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
                # this is the width of the border and is the only thing visible
                size = 1) +
       # this defines the color of the border
-      scale_color_manual(values = "black", 
+      scale_color_manual(values = "black",
                          # keep this line to avoid the black showing up in the legend
                          guide = FALSE) +
       # define the title of the legend
@@ -790,7 +800,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
       labs(x = "HUC Name",
            y = "Cohen's D",
            title = paste("Change Statistic By HUC", input$huclevel)) +
-      scale_y_continuous(breaks = pretty_breaks(6)) + 
+      scale_y_continuous(breaks = pretty_breaks(6)) +
       # this will break the HUC names when they are longer than 9 characters
       scale_x_discrete(labels = function(x) str_wrap(str_replace_all(x, " ", " "), width = 9)) +
       theme(plot.title = element_text(hjust = .5, size = 14, face = "bold"),
@@ -801,14 +811,14 @@ clickdata <- reactiveValues(clickedShape = NULL)
       legend.title = element_text(size = 14),
       legend.text = element_text(size = 12))
   })
-  
-  
-  
-  # DOWNLOAD DATA 
+
+
+
+  # DOWNLOAD DATA
   # remove columns from downloaded dataset that are not relevant to the
   # selected result type (columns where every value is 'NA')
   data_to_download <- reactive({
-    df1 %>% 
+    df1 %>%
       dplyr::filter(result_type %in% input$result_type) %>%
       select_if(colSums(!is.na(.)) > 0)
   })
@@ -818,7 +828,7 @@ clickdata <- reactiveValues(clickedShape = NULL)
       write.csv(data_to_download(), file)
     }
   )
-  
+
   output$about <- renderUI({
     HTML("<h4><strong>About Us</strong></h4>
 <p>Tim Blankemeyer, Emma Clarke, and Katrina Gertz are a group of MLIS Candidates from the <a href = 'https://ischool.uw.edu/'>University of Washington's Information School</a>, interested in leveraging open data and open source tools to help solve complex problems.</p>
@@ -877,23 +887,23 @@ clickdata <- reactiveValues(clickedShape = NULL)
 
          ")
   })
-  
+
   output$contact <- renderUI({
     HTML("<h4><strong>Contact</strong></h4>
 <p>Any questions or comments can be directed to Leska Fore from the Puget Sound Partnership at leska.fore@psp.wa.gov</p>")
   })
-  
+
   output$acronyms <- renderUI({
     HTML("<h4><strong>Acronyms</strong></h4>
          <p><b>TSS:</b> Total Suspended Solids
          <br><b>HUC: </b>Hydrologic Unit Code")
   })
-  
+
   output$caveat <- renderUI({
-    HTML("<h4><b>Caveat</b></h4><p>This is a prototype to show what a web based analysis tool <i>might</i> look like. The underlying data for water quality and salmon were sourced from public web sites. 
-    Data and results have not been vetted or approved - that is our next step.</p>") 
+    HTML("<h4><b>Caveat</b></h4><p>This is a prototype to show what a web based analysis tool <i>might</i> look like. The underlying data for water quality and salmon were sourced from public web sites.
+    Data and results have not been vetted or approved - that is our next step.</p>")
   })
-  
+
   output$description <- renderUI({
     str1 <- if(is.null(clickdata$clickedShape)){
       paste("")} else{
@@ -932,8 +942,8 @@ clickdata <- reactiveValues(clickedShape = NULL)
             ))}
     HTML(paste(str1))
   })
-  
+
 }
-# Run the application 
+# Run the application
 shinyApp(ui = ui, server = server)
 
