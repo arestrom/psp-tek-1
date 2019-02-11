@@ -11,9 +11,7 @@ library(tidyverse)
 library(stringr)
 library(scales)
 library(gtable)
-library(grid)
 library(gridExtra)
-library(gridBase)
 
 df <- readRDS("./data/all-dfs.rds")
 # rename "Chum Salmon" to "Summer Chum"
