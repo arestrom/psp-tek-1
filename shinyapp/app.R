@@ -26,8 +26,8 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                  tabPanel("Map View",
                           sidebarLayout(
                             sidebarPanel(
-                              #img(src = "eet-banner.png", width = "100%"),
-                              HTML("<img src = 'eet-banner.png' width = '100%'/>"),
+                              img(src = "eet-banner.png", width = "100%"),
+                              #HTML("<img src = 'eet-banner.png' width = '100%'/>"),
                               # select features to view effects
                               br(),
                               br(),
