@@ -121,8 +121,6 @@ ui <- navbarPage(theme = shinytheme("sandstone"),
                   ),
                   width = 10))
                  )
-
-
 )
 
 
